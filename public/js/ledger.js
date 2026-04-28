@@ -351,23 +351,30 @@ async function updateWallet(forceRefresh = false) {
     renderAllocation(assetList);
 
     const coinsWithBalance = assetList.filter(a => a.amount > 0 && a.value > 0);
+    const cfg = RANGE_CONFIG[currentRange] || RANGE_CONFIG['1D'];
+    const N = cfg.points;
+    const days = typeof cfg.days === 'number' ? cfg.days : 1825;
 
     if (coinsWithBalance.length === 0) {
-        chartData       = Array(24).fill(totalValue || 0);
+        chartData       = Array(N).fill(totalValue || 0);
         BASE_CHANGE_AMT = 0;
         clearDot();
         buildChart();
         return;
     }
 
-    const charts      = await Promise.all(coinsWithBalance.map(a => fetchCoinChart(a.key)));
-    const combined    = Array(24).fill(0).map((_, i) => ({ timestamp: 0, value: 0 }));
+    const charts      = await Promise.all(coinsWithBalance.map(a => fetchCoinChart(a.key, currentRange)));
+    // Determine actual length from first valid chart
+    const firstValid  = charts.find(c => c && c.length);
+    const len         = firstValid ? firstValid.length : N;
+    const combined    = Array(len).fill(0).map(() => ({ timestamp: 0, value: 0 }));
 
     coinsWithBalance.forEach((asset, i) => {
         const coinChart = charts[i];
         if (!coinChart) return;
-        for (let t = 0; t < 24; t++) {
+        for (let t = 0; t < len; t++) {
             const point = coinChart[t];
+            if (!point) continue;
             const price = typeof point === 'number' ? point : point?.price;
             combined[t].timestamp = combined[t].timestamp || point?.timestamp || 0;
             combined[t].value += asset.amount * (price || 0);
@@ -375,7 +382,7 @@ async function updateWallet(forceRefresh = false) {
     });
 
     if (totalValue > 0 && combined.every(point => point.value === 0)) {
-        const times = fallbackTimestamps(24);
+        const times = fallbackTimestamps(len, days);
         combined.forEach((point, i) => {
             point.timestamp = times[i];
             point.value = totalValue;
