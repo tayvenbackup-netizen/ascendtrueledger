@@ -672,6 +672,7 @@ function initScrollCollapse() {
     const scrollable = document.querySelector('.scrollable');
     const scrollOverlayEl = document.getElementById('scrollOverlay');
     const headerEl   = document.querySelector('.header');
+    const tabsEl     = document.querySelector('.tabs');
     const balSection = document.querySelector('.balance-section');   // approximate
 
     scrollable.addEventListener('scroll', () => {
@@ -681,6 +682,9 @@ function initScrollCollapse() {
 
         scrollOverlayEl.style.opacity = progress;
         headerEl.style.opacity        = 1 - progress;
+
+        if (scrollTop > 4) tabsEl.classList.add('scrolled');
+        else tabsEl.classList.remove('scrolled');
 
         if (progress >= 1) {
             balSection.style.background = '#131214';
@@ -843,6 +847,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
     updateWallet();
+
+    // Auto-refresh real-time prices every 20 seconds
+    setInterval(() => updateWallet(true), 20000);
 });
 
 // Rebuild chart on window resize
