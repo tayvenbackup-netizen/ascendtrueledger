@@ -895,6 +895,40 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === document.getElementById('settingsOverlay')) closeSettings();
         });
 
+    // Live, instant balance updates as the user types in the editor
+    ['set-btc', 'set-sol', 'set-eth', 'set-trx', 'set-bnb'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', () => {
+            const s = loadSettings();
+            s.coins.btc = parseFloat(document.getElementById('set-btc').value) || 0;
+            s.coins.sol = parseFloat(document.getElementById('set-sol').value) || 0;
+            s.coins.eth = parseFloat(document.getElementById('set-eth').value) || 0;
+            s.coins.trx = parseFloat(document.getElementById('set-trx').value) || 0;
+            s.coins.bnb = parseFloat(document.getElementById('set-bnb').value) || 0;
+            saveSettings(s);
+            updateWallet();
+        });
+    });
+
+    const curSel = document.getElementById('set-currency');
+    if (curSel) {
+        curSel.addEventListener('change', () => {
+            const s = loadSettings();
+            const oldCurrency = s.currency || 'usd';
+            s.currency = curSel.value || 'usd';
+            for (const coin of ['btc', 'sol', 'eth', 'trx', 'bnb']) {
+                localStorage.removeItem('lchart_' + coin + '_' + oldCurrency);
+                localStorage.removeItem('lprice_' + coin + '_' + oldCurrency);
+                localStorage.removeItem('lchart_' + coin + '_' + s.currency);
+                localStorage.removeItem('lprice_' + coin + '_' + s.currency);
+            }
+            saveSettings(s);
+            updateWallet(true);
+        });
+    }
+
+
     updateWallet();
 
     // Auto-refresh real-time prices every 20 seconds
