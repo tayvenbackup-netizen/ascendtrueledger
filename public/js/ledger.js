@@ -705,7 +705,7 @@ function initScrollCollapse() {
         const progress   = Math.max(0, Math.min(1, scrollTop / threshold));
 
         scrollOverlayEl.style.opacity = progress;
-        headerEl.style.opacity        = 1 - progress;
+        // headerEl.style.opacity kept at 1 so settings stays clickable
 
         if (scrollTop > 4) tabsEl.classList.add('scrolled');
         else tabsEl.classList.remove('scrolled');
