@@ -544,12 +544,13 @@ function updateDot(idx) {
     crosshair.setAttribute('y1', y);
     crosshair.style.display = 'block';
 
+    const point = data[idx];
     document.getElementById('balanceDisplay').textContent =
-        discreet ? '***' : fmtUSD(data[idx]);
+        discreet ? '***' : fmtUSD(point.value);
 
-    const daysAgo  = data.length - 1 - idx;
-    const d        = new Date(Date.now() - daysAgo * 60 * 60 * 1000);
-    const dateStr  = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+    const d        = new Date(point.timestamp || Date.now());
+    const dateStr  = d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' }) +
+        ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     document.getElementById('balanceChange').innerHTML =
         `<span style="color:#fff">${dateStr}</span>`;
 }
