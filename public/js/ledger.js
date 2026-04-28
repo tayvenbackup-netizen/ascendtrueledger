@@ -350,18 +350,21 @@ async function updateWallet(forceRefresh = false) {
     }
 
     const charts      = await Promise.all(coinsWithBalance.map(a => fetchCoinChart(a.key)));
-    const combined    = Array(24).fill(0);
+    const combined    = Array(24).fill(0).map((_, i) => ({ timestamp: 0, value: 0 }));
 
     coinsWithBalance.forEach((asset, i) => {
         const coinChart = charts[i];
         if (!coinChart) return;
         for (let t = 0; t < 24; t++) {
-            combined[t] += asset.amount * (coinChart[t] || 0);
+            const point = coinChart[t];
+            const price = typeof point === 'number' ? point : point?.price;
+            combined[t].timestamp = combined[t].timestamp || point?.timestamp || 0;
+            combined[t].value += asset.amount * (price || 0);
         }
     });
 
     chartData       = combined;
-    BASE_CHANGE_AMT = totalValue - (chartData[0] || 0);
+    BASE_CHANGE_AMT = totalValue - (chartData[0]?.value || 0);
 
     clearDot();
     buildChart();
