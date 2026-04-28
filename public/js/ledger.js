@@ -486,9 +486,11 @@ function buildChart() {
     const PAD_TOP = 14, PAD_BOT = 10;
     const drawH   = H - PAD_TOP - PAD_BOT;
 
-    const data    = chartData.length >= 2 ? chartData : Array(24).fill(BASE_PRICE || 0);
-    const minVal  = Math.min(...data);
-    const maxVal  = Math.max(...data);
+    const fallbackTimes = fallbackTimestamps(24);
+    const data    = chartData.length >= 2 ? chartData : fallbackTimes.map(timestamp => ({ timestamp, value: BASE_PRICE || 0 }));
+    const values  = data.map(point => typeof point === 'number' ? point : point.value);
+    const minVal  = Math.min(...values);
+    const maxVal  = Math.max(...values);
     const range   = maxVal - minVal || 1;
 
     // Add a little breathing room around the data
@@ -496,7 +498,7 @@ function buildChart() {
     const yMax    = maxVal + range * 0.04;
     const yRange  = yMax - yMin || 1;
 
-    const pts     = data.map((v, i) => [
+    const pts     = values.map((v, i) => [
         i / (data.length - 1) * W,
         PAD_TOP + (1 - (v - yMin) / yRange) * drawH
     ]);
@@ -515,7 +517,9 @@ function buildChart() {
 
     // Store computed data on the SVG element for the interaction overlay
     svg._chartPts  = pts;
-    svg._chartData = data;
+    svg._chartData = data.map((point, i) => typeof point === 'number'
+        ? { timestamp: fallbackTimes[i] || Date.now(), value: point }
+        : { timestamp: point.timestamp || fallbackTimes[i] || Date.now(), value: point.value || 0 });
     svg._H         = H;
 }
 
