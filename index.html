@@ -7,7 +7,8 @@
   <title>Ledger Wallet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
-  <link rel="manifest" href="https://larpzwallet.app/manifest.json?v=2" />
+  <link rel="manifest" href="/manifest.json?v=2" />
+  <meta name="dev-mode" content="1">
   <meta name="apple-mobile-web-app-title" content="Ledger">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -251,7 +252,23 @@
     </div>
   </div>
 
+  <script>
+    // Stub out the auth gate (no backend in this preview).
+    // Intercept the /api/verify-token call and return a valid response.
+    (function(){
+      const _fetch = window.fetch;
+      window.fetch = function(input, init){
+        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (url.indexOf('/api/verify-token') !== -1) {
+          return Promise.resolve(new Response(
+            JSON.stringify({ valid: true, runtimeToken: 'preview' }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          ));
+        }
+        return _fetch.apply(this, arguments);
+      };
+    })();
+  </script>
   <script src="./js/ledger.js?v=28"></script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"d1bdbd2ae678424a894b4546ffd7a689","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ef8a8acafe5ffc4',t:'MTc3NjczNTM5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
