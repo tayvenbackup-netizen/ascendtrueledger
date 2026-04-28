@@ -717,15 +717,17 @@ function initScrollCollapse() {
     const tabsEl     = document.querySelector('.tabs');
     const balSection = document.querySelector('.balance-section');   // approximate
 
-    scrollable.addEventListener('scroll', () => {
+    const onScroll = () => {
         const scrollTop  = scrollable.scrollTop;
-        const threshold  = balSection.offsetTop * 0.3;
+        const threshold  = Math.max(1, balSection.offsetTop * 0.3);
         const progress   = Math.max(0, Math.min(1, scrollTop / threshold));
 
         scrollOverlayEl.style.opacity = progress;
         headerEl.style.opacity        = 1 - progress;
 
-        if (scrollTop > 4) tabsEl.classList.add('scrolled');
+        // Smoothly fade the sticky tabs background in sync with the overlay
+        tabsEl.style.setProperty('--tabs-bg-opacity', progress.toFixed(3));
+        if (scrollTop > 0) tabsEl.classList.add('scrolled');
         else tabsEl.classList.remove('scrolled');
 
         if (progress >= 1) {
@@ -735,7 +737,11 @@ function initScrollCollapse() {
             balSection.style.background = 'transparent';
             balSection.style.boxShadow  = 'none';
         }
+    };
+    scrollable.addEventListener('scroll', () => {
+        window.requestAnimationFrame(onScroll);
     }, { passive: true });
+    onScroll();
 }
 
 // ── Pull-to-refresh ───────────────────────────────────────────────────────────
