@@ -166,9 +166,18 @@ function setCachedPrice(coin, currency, price, change24h) {
     );
 }
 
-function getCachedChart(coin, currency) {
+const RANGE_CONFIG = {
+    '1D':  { days: 1,    points: 24 },
+    '1W':  { days: 7,    points: 28 },
+    '1M':  { days: 30,   points: 30 },
+    '1Y':  { days: 365,  points: 52 },
+    'ALL': { days: 'max', points: 60 }
+};
+let currentRange = '1D';
+
+function getCachedChart(coin, currency, range) {
     try {
-        const raw = localStorage.getItem('lchart_' + coin + '_' + currency);
+        const raw = localStorage.getItem('lchart_' + coin + '_' + currency + '_' + range);
         if (!raw) return null;
         const cached = JSON.parse(raw);
         if (Date.now() - cached.ts > PRICE_CACHE_MS) return null;
@@ -178,9 +187,9 @@ function getCachedChart(coin, currency) {
     }
 }
 
-function setCachedChart(coin, currency, prices) {
+function setCachedChart(coin, currency, range, prices) {
     localStorage.setItem(
-        'lchart_' + coin + '_' + currency,
+        'lchart_' + coin + '_' + currency + '_' + range,
         JSON.stringify({ prices, ts: Date.now() })
     );
 }
