@@ -625,6 +625,13 @@ function initInteraction() {
 
     chart.addEventListener('pointerup', stopScrub);
     chart.addEventListener('pointercancel', stopScrub);
+
+    chart.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+    chart.addEventListener('touchmove', e => {
+        e.stopPropagation();
+        e.preventDefault();
+    }, { passive: false });
+    chart.addEventListener('touchend', e => e.stopPropagation());
 }
 
 // ── Settings panel ────────────────────────────────────────────────────────────
