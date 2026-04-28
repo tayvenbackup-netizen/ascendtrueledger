@@ -185,6 +185,13 @@ function setCachedChart(coin, currency, prices) {
     );
 }
 
+function fallbackTimestamps(length) {
+    const count = Math.max(length, 1);
+    const end = Date.now();
+    const start = end - 24 * 60 * 60 * 1000;
+    return Array.from({ length: count }, (_, i) => start + (end - start) * (i / Math.max(count - 1, 1)));
+}
+
 // ── API fetchers ─────────────────────────────────────────────────────────────
 
 async function fetchAllPrices(forceRefresh = false) {
@@ -257,7 +264,7 @@ async function fetchCoinChart(coin) {
         const step      = (rawPrices.length - 1) / (POINTS - 1);
         const sampled   = Array.from({ length: POINTS }, (_, i) => {
             const idx = Math.min(Math.round(i * step), rawPrices.length - 1);
-            return rawPrices[idx][1];
+            return { timestamp: rawPrices[idx][0], price: rawPrices[idx][1] };
         });
 
         setCachedChart(coin, currency, sampled);
