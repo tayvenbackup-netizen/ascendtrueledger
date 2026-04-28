@@ -363,6 +363,14 @@ async function updateWallet(forceRefresh = false) {
         }
     });
 
+    if (totalValue > 0 && combined.every(point => point.value === 0)) {
+        const times = fallbackTimestamps(24);
+        combined.forEach((point, i) => {
+            point.timestamp = times[i];
+            point.value = totalValue;
+        });
+    }
+
     chartData       = combined;
     BASE_CHANGE_AMT = totalValue - (chartData[0]?.value || 0);
 
