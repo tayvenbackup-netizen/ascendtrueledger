@@ -166,9 +166,18 @@ function setCachedPrice(coin, currency, price, change24h) {
     );
 }
 
-function getCachedChart(coin, currency) {
+const RANGE_CONFIG = {
+    '1D':  { days: 1,    points: 24 },
+    '1W':  { days: 7,    points: 28 },
+    '1M':  { days: 30,   points: 30 },
+    '1Y':  { days: 365,  points: 52 },
+    'ALL': { days: 'max', points: 60 }
+};
+let currentRange = '1D';
+
+function getCachedChart(coin, currency, range) {
     try {
-        const raw = localStorage.getItem('lchart_' + coin + '_' + currency);
+        const raw = localStorage.getItem('lchart_' + coin + '_' + currency + '_' + range);
         if (!raw) return null;
         const cached = JSON.parse(raw);
         if (Date.now() - cached.ts > PRICE_CACHE_MS) return null;
@@ -178,17 +187,18 @@ function getCachedChart(coin, currency) {
     }
 }
 
-function setCachedChart(coin, currency, prices) {
+function setCachedChart(coin, currency, range, prices) {
     localStorage.setItem(
-        'lchart_' + coin + '_' + currency,
+        'lchart_' + coin + '_' + currency + '_' + range,
         JSON.stringify({ prices, ts: Date.now() })
     );
 }
 
-function fallbackTimestamps(length) {
+function fallbackTimestamps(length, days = 1) {
     const count = Math.max(length, 1);
     const end = Date.now();
-    const start = end - 24 * 60 * 60 * 1000;
+    const span = (typeof days === 'number' ? days : 1825) * 24 * 60 * 60 * 1000;
+    const start = end - span;
     return Array.from({ length: count }, (_, i) => start + (end - start) * (i / Math.max(count - 1, 1)));
 }
 
@@ -235,10 +245,11 @@ async function fetchAllPrices(forceRefresh = false) {
     }
 }
 
-async function fetchCoinChart(coin) {
+async function fetchCoinChart(coin, range = currentRange) {
     const settings = loadSettings();
     const currency = settings.currency || 'usd';
-    const cached   = getCachedChart(coin, currency);
+    const cfg      = RANGE_CONFIG[range] || RANGE_CONFIG['1D'];
+    const cached   = getCachedChart(coin, currency, range);
     if (cached) return cached;
 
     const geckoId = COINGECKO_IDS[coin];
@@ -248,7 +259,7 @@ async function fetchCoinChart(coin) {
     const base = isPro
         ? 'https://pro-api.coingecko.com/api/v3'
         : 'https://api.coingecko.com/api/v3';
-    const url  = `${base}/coins/${geckoId}/market_chart?vs_currency=${currency}&days=1`;
+    const url  = `${base}/coins/${geckoId}/market_chart?vs_currency=${currency}&days=${cfg.days}`;
 
     const headers = {};
     if (apiKey) headers[isPro ? 'x-cg-pro-api-key' : 'x-cg-demo-api-key'] = apiKey;
@@ -260,14 +271,14 @@ async function fetchCoinChart(coin) {
         if (!data.prices || data.prices.length === 0) return null;
 
         const rawPrices = data.prices;
-        const POINTS    = 24;
-        const step      = (rawPrices.length - 1) / (POINTS - 1);
+        const POINTS    = Math.min(cfg.points, rawPrices.length);
+        const step      = (rawPrices.length - 1) / Math.max(POINTS - 1, 1);
         const sampled   = Array.from({ length: POINTS }, (_, i) => {
             const idx = Math.min(Math.round(i * step), rawPrices.length - 1);
             return { timestamp: rawPrices[idx][0], price: rawPrices[idx][1] };
         });
 
-        setCachedChart(coin, currency, sampled);
+        setCachedChart(coin, currency, range, sampled);
         return sampled;
     } catch (err) {
         console.error('Chart fetch error (' + coin + '):', err);
@@ -340,23 +351,30 @@ async function updateWallet(forceRefresh = false) {
     renderAllocation(assetList);
 
     const coinsWithBalance = assetList.filter(a => a.amount > 0 && a.value > 0);
+    const cfg = RANGE_CONFIG[currentRange] || RANGE_CONFIG['1D'];
+    const N = cfg.points;
+    const days = typeof cfg.days === 'number' ? cfg.days : 1825;
 
     if (coinsWithBalance.length === 0) {
-        chartData       = Array(24).fill(totalValue || 0);
+        chartData       = Array(N).fill(totalValue || 0);
         BASE_CHANGE_AMT = 0;
         clearDot();
         buildChart();
         return;
     }
 
-    const charts      = await Promise.all(coinsWithBalance.map(a => fetchCoinChart(a.key)));
-    const combined    = Array(24).fill(0).map((_, i) => ({ timestamp: 0, value: 0 }));
+    const charts      = await Promise.all(coinsWithBalance.map(a => fetchCoinChart(a.key, currentRange)));
+    // Determine actual length from first valid chart
+    const firstValid  = charts.find(c => c && c.length);
+    const len         = firstValid ? firstValid.length : N;
+    const combined    = Array(len).fill(0).map(() => ({ timestamp: 0, value: 0 }));
 
     coinsWithBalance.forEach((asset, i) => {
         const coinChart = charts[i];
         if (!coinChart) return;
-        for (let t = 0; t < 24; t++) {
+        for (let t = 0; t < len; t++) {
             const point = coinChart[t];
+            if (!point) continue;
             const price = typeof point === 'number' ? point : point?.price;
             combined[t].timestamp = combined[t].timestamp || point?.timestamp || 0;
             combined[t].value += asset.amount * (price || 0);
@@ -364,7 +382,7 @@ async function updateWallet(forceRefresh = false) {
     });
 
     if (totalValue > 0 && combined.every(point => point.value === 0)) {
-        const times = fallbackTimestamps(24);
+        const times = fallbackTimestamps(len, days);
         combined.forEach((point, i) => {
             point.timestamp = times[i];
             point.value = totalValue;
@@ -851,7 +869,14 @@ document.addEventListener('DOMContentLoaded', () => {
     initButtons('.nav-btn[data-nav]');
     initButtons('.tab');
     initButtons('.segment-btn');
-    initButtons('.range-btn');
+    document.querySelectorAll('.range-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentRange = btn.dataset.range || '1D';
+            updateWallet(false);
+        });
+    });
 
     document.getElementById('eyeBtn')
         .addEventListener('click', toggleDiscreet);
