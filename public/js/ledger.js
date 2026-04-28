@@ -962,7 +962,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Rebuild chart on window resize
-window.addEventListener('resize', buildChart);
+let _resizeChartT;
+window.addEventListener('resize', () => {
+    clearTimeout(_resizeChartT);
+    _resizeChartT = setTimeout(buildChart, 120);
+}, { passive: true });
 
 // Disable context-menu (long-press menu on mobile)
 document.addEventListener('contextmenu', e => { e.preventDefault(); return false; });
