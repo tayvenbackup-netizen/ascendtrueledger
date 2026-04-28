@@ -185,6 +185,13 @@ function setCachedChart(coin, currency, prices) {
     );
 }
 
+function fallbackTimestamps(length) {
+    const count = Math.max(length, 1);
+    const end = Date.now();
+    const start = end - 24 * 60 * 60 * 1000;
+    return Array.from({ length: count }, (_, i) => start + (end - start) * (i / Math.max(count - 1, 1)));
+}
+
 // ── API fetchers ─────────────────────────────────────────────────────────────
 
 async function fetchAllPrices(forceRefresh = false) {
@@ -257,7 +264,7 @@ async function fetchCoinChart(coin) {
         const step      = (rawPrices.length - 1) / (POINTS - 1);
         const sampled   = Array.from({ length: POINTS }, (_, i) => {
             const idx = Math.min(Math.round(i * step), rawPrices.length - 1);
-            return rawPrices[idx][1];
+            return { timestamp: rawPrices[idx][0], price: rawPrices[idx][1] };
         });
 
         setCachedChart(coin, currency, sampled);
@@ -343,18 +350,29 @@ async function updateWallet(forceRefresh = false) {
     }
 
     const charts      = await Promise.all(coinsWithBalance.map(a => fetchCoinChart(a.key)));
-    const combined    = Array(24).fill(0);
+    const combined    = Array(24).fill(0).map((_, i) => ({ timestamp: 0, value: 0 }));
 
     coinsWithBalance.forEach((asset, i) => {
         const coinChart = charts[i];
         if (!coinChart) return;
         for (let t = 0; t < 24; t++) {
-            combined[t] += asset.amount * (coinChart[t] || 0);
+            const point = coinChart[t];
+            const price = typeof point === 'number' ? point : point?.price;
+            combined[t].timestamp = combined[t].timestamp || point?.timestamp || 0;
+            combined[t].value += asset.amount * (price || 0);
         }
     });
 
+    if (totalValue > 0 && combined.every(point => point.value === 0)) {
+        const times = fallbackTimestamps(24);
+        combined.forEach((point, i) => {
+            point.timestamp = times[i];
+            point.value = totalValue;
+        });
+    }
+
     chartData       = combined;
-    BASE_CHANGE_AMT = totalValue - (chartData[0] || 0);
+    BASE_CHANGE_AMT = totalValue - (chartData[0]?.value || 0);
 
     clearDot();
     buildChart();
@@ -476,9 +494,11 @@ function buildChart() {
     const PAD_TOP = 14, PAD_BOT = 10;
     const drawH   = H - PAD_TOP - PAD_BOT;
 
-    const data    = chartData.length >= 2 ? chartData : Array(24).fill(BASE_PRICE || 0);
-    const minVal  = Math.min(...data);
-    const maxVal  = Math.max(...data);
+    const fallbackTimes = fallbackTimestamps(24);
+    const data    = chartData.length >= 2 ? chartData : fallbackTimes.map(timestamp => ({ timestamp, value: BASE_PRICE || 0 }));
+    const values  = data.map(point => typeof point === 'number' ? point : point.value);
+    const minVal  = Math.min(...values);
+    const maxVal  = Math.max(...values);
     const range   = maxVal - minVal || 1;
 
     // Add a little breathing room around the data
@@ -486,7 +506,7 @@ function buildChart() {
     const yMax    = maxVal + range * 0.04;
     const yRange  = yMax - yMin || 1;
 
-    const pts     = data.map((v, i) => [
+    const pts     = values.map((v, i) => [
         i / (data.length - 1) * W,
         PAD_TOP + (1 - (v - yMin) / yRange) * drawH
     ]);
@@ -505,7 +525,9 @@ function buildChart() {
 
     // Store computed data on the SVG element for the interaction overlay
     svg._chartPts  = pts;
-    svg._chartData = data;
+    svg._chartData = data.map((point, i) => typeof point === 'number'
+        ? { timestamp: fallbackTimes[i] || Date.now(), value: point }
+        : { timestamp: point.timestamp || fallbackTimes[i] || Date.now(), value: point.value || 0 });
     svg._H         = H;
 }
 
@@ -530,12 +552,13 @@ function updateDot(idx) {
     crosshair.setAttribute('y1', y);
     crosshair.style.display = 'block';
 
+    const point = data[idx];
     document.getElementById('balanceDisplay').textContent =
-        discreet ? '***' : fmtUSD(data[idx]);
+        discreet ? '***' : fmtUSD(point.value);
 
-    const daysAgo  = data.length - 1 - idx;
-    const d        = new Date(Date.now() - daysAgo * 60 * 60 * 1000);
-    const dateStr  = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+    const d        = new Date(point.timestamp || Date.now());
+    const dateStr  = d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' }) +
+        ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     document.getElementById('balanceChange').innerHTML =
         `<span style="color:#fff">${dateStr}</span>`;
 }
@@ -573,41 +596,42 @@ function getIdx(clientX) {
 }
 
 function initInteraction() {
-    const overlay = document.getElementById('scrollOverlay');
-    let dragging  = false;
+    const chart = document.getElementById('chartContainer');
+    let dragging = false;
 
-    overlay.addEventListener('mousedown', e => {
+    const scrubTo = clientX => updateDot(getIdx(clientX));
+    const stopScrub = e => {
+        if (!dragging) return;
+        dragging = false;
+        if (e?.pointerId && chart.hasPointerCapture?.(e.pointerId)) {
+            chart.releasePointerCapture(e.pointerId);
+        }
+        clearDot();
+        e?.preventDefault?.();
+    };
+
+    chart.addEventListener('pointerdown', e => {
         dragging = true;
-        updateDot(getIdx(e.clientX));
-        e.stopPropagation();
-    });
-
-    window.addEventListener('mousemove', e => {
-        if (dragging) updateDot(getIdx(e.clientX));
-    });
-
-    window.addEventListener('mouseup', () => {
-        if (dragging) { dragging = false; clearDot(); }
-    });
-
-    overlay.addEventListener('touchstart', e => {
-        dragging = true;
-        updateDot(getIdx(e.touches[0].clientX));
-        e.stopPropagation();
+        chart.setPointerCapture?.(e.pointerId);
+        scrubTo(e.clientX);
         e.preventDefault();
     }, { passive: false });
 
-    overlay.addEventListener('touchmove', e => {
-        if (dragging) {
-            updateDot(getIdx(e.touches[0].clientX));
-            e.stopPropagation();
-            e.preventDefault();
-        }
+    chart.addEventListener('pointermove', e => {
+        if (!dragging) return;
+        scrubTo(e.clientX);
+        e.preventDefault();
     }, { passive: false });
 
-    overlay.addEventListener('touchend', e => {
-        if (dragging) { dragging = false; clearDot(); e.preventDefault(); }
-    });
+    chart.addEventListener('pointerup', stopScrub);
+    chart.addEventListener('pointercancel', stopScrub);
+
+    chart.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+    chart.addEventListener('touchmove', e => {
+        e.stopPropagation();
+        e.preventDefault();
+    }, { passive: false });
+    chart.addEventListener('touchend', e => e.stopPropagation());
 }
 
 // ── Settings panel ────────────────────────────────────────────────────────────
