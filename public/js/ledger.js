@@ -194,10 +194,11 @@ function setCachedChart(coin, currency, range, prices) {
     );
 }
 
-function fallbackTimestamps(length) {
+function fallbackTimestamps(length, days = 1) {
     const count = Math.max(length, 1);
     const end = Date.now();
-    const start = end - 24 * 60 * 60 * 1000;
+    const span = (typeof days === 'number' ? days : 1825) * 24 * 60 * 60 * 1000;
+    const start = end - span;
     return Array.from({ length: count }, (_, i) => start + (end - start) * (i / Math.max(count - 1, 1)));
 }
 
