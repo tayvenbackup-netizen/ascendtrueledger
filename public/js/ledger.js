@@ -847,6 +847,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
     updateWallet();
+
+    // Auto-refresh real-time prices every 20 seconds
+    setInterval(() => updateWallet(true), 20000);
 });
 
 // Rebuild chart on window resize
