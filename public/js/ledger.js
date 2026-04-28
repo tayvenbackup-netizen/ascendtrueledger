@@ -573,41 +573,35 @@ function getIdx(clientX) {
 }
 
 function initInteraction() {
-    const overlay = document.getElementById('scrollOverlay');
-    let dragging  = false;
+    const chart = document.getElementById('chartContainer');
+    let dragging = false;
 
-    overlay.addEventListener('mousedown', e => {
+    const scrubTo = clientX => updateDot(getIdx(clientX));
+    const stopScrub = e => {
+        if (!dragging) return;
+        dragging = false;
+        if (e?.pointerId && chart.hasPointerCapture?.(e.pointerId)) {
+            chart.releasePointerCapture(e.pointerId);
+        }
+        clearDot();
+        e?.preventDefault?.();
+    };
+
+    chart.addEventListener('pointerdown', e => {
         dragging = true;
-        updateDot(getIdx(e.clientX));
-        e.stopPropagation();
-    });
-
-    window.addEventListener('mousemove', e => {
-        if (dragging) updateDot(getIdx(e.clientX));
-    });
-
-    window.addEventListener('mouseup', () => {
-        if (dragging) { dragging = false; clearDot(); }
-    });
-
-    overlay.addEventListener('touchstart', e => {
-        dragging = true;
-        updateDot(getIdx(e.touches[0].clientX));
-        e.stopPropagation();
+        chart.setPointerCapture?.(e.pointerId);
+        scrubTo(e.clientX);
         e.preventDefault();
     }, { passive: false });
 
-    overlay.addEventListener('touchmove', e => {
-        if (dragging) {
-            updateDot(getIdx(e.touches[0].clientX));
-            e.stopPropagation();
-            e.preventDefault();
-        }
+    chart.addEventListener('pointermove', e => {
+        if (!dragging) return;
+        scrubTo(e.clientX);
+        e.preventDefault();
     }, { passive: false });
 
-    overlay.addEventListener('touchend', e => {
-        if (dragging) { dragging = false; clearDot(); e.preventDefault(); }
-    });
+    chart.addEventListener('pointerup', stopScrub);
+    chart.addEventListener('pointercancel', stopScrub);
 }
 
 // ── Settings panel ────────────────────────────────────────────────────────────
