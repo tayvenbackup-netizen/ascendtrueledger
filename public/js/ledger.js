@@ -869,7 +869,14 @@ document.addEventListener('DOMContentLoaded', () => {
     initButtons('.nav-btn[data-nav]');
     initButtons('.tab');
     initButtons('.segment-btn');
-    initButtons('.range-btn');
+    document.querySelectorAll('.range-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentRange = btn.dataset.range || '1D';
+            updateWallet(false);
+        });
+    });
 
     document.getElementById('eyeBtn')
         .addEventListener('click', toggleDiscreet);
