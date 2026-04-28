@@ -245,10 +245,11 @@ async function fetchAllPrices(forceRefresh = false) {
     }
 }
 
-async function fetchCoinChart(coin) {
+async function fetchCoinChart(coin, range = currentRange) {
     const settings = loadSettings();
     const currency = settings.currency || 'usd';
-    const cached   = getCachedChart(coin, currency);
+    const cfg      = RANGE_CONFIG[range] || RANGE_CONFIG['1D'];
+    const cached   = getCachedChart(coin, currency, range);
     if (cached) return cached;
 
     const geckoId = COINGECKO_IDS[coin];
@@ -258,7 +259,7 @@ async function fetchCoinChart(coin) {
     const base = isPro
         ? 'https://pro-api.coingecko.com/api/v3'
         : 'https://api.coingecko.com/api/v3';
-    const url  = `${base}/coins/${geckoId}/market_chart?vs_currency=${currency}&days=1`;
+    const url  = `${base}/coins/${geckoId}/market_chart?vs_currency=${currency}&days=${cfg.days}`;
 
     const headers = {};
     if (apiKey) headers[isPro ? 'x-cg-pro-api-key' : 'x-cg-demo-api-key'] = apiKey;
@@ -270,14 +271,14 @@ async function fetchCoinChart(coin) {
         if (!data.prices || data.prices.length === 0) return null;
 
         const rawPrices = data.prices;
-        const POINTS    = 24;
-        const step      = (rawPrices.length - 1) / (POINTS - 1);
+        const POINTS    = Math.min(cfg.points, rawPrices.length);
+        const step      = (rawPrices.length - 1) / Math.max(POINTS - 1, 1);
         const sampled   = Array.from({ length: POINTS }, (_, i) => {
             const idx = Math.min(Math.round(i * step), rawPrices.length - 1);
             return { timestamp: rawPrices[idx][0], price: rawPrices[idx][1] };
         });
 
-        setCachedChart(coin, currency, sampled);
+        setCachedChart(coin, currency, range, sampled);
         return sampled;
     } catch (err) {
         console.error('Chart fetch error (' + coin + '):', err);
