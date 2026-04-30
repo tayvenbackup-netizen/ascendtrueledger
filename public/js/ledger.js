@@ -333,7 +333,7 @@ async function updateWallet(forceRefresh = false) {
         const amount   = parseFloat(coins[coin]) || 0;
         const cached   = getCachedPrice(coin, currency);
         const price    = cached ? cached.price    : 0;
-        const change24h = cached ? cached.change24h : 0;
+        const change24h = cached && typeof cached.change24h === 'number' ? cached.change24h : 0;
         const value    = amount * price;
         assetList.push({ key: coin, amount, value, change: change24h, price });
     }
