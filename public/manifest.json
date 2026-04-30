@@ -1,14 +1,16 @@
 {
   "name": "Ledger Wallet",
   "short_name": "Ledger",
-  "start_url": "/ledger/",
-  "scope": "/ledger/",
-  "display": "standalone",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
   "background_color": "#191919",
   "theme_color": "#191919",
   "orientation": "portrait",
   "icons": [
-    { "src": "/assets/ledger.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/assets/ledger.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/assets/ledger.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/assets/ledger.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
