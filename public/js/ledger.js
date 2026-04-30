@@ -333,7 +333,7 @@ async function updateWallet(forceRefresh = false) {
         const amount   = parseFloat(coins[coin]) || 0;
         const cached   = getCachedPrice(coin, currency);
         const price    = cached ? cached.price    : 0;
-        const change24h = cached ? cached.change24h : 0;
+        const change24h = cached && typeof cached.change24h === 'number' ? cached.change24h : 0;
         const value    = amount * price;
         assetList.push({ key: coin, amount, value, change: change24h, price });
     }
@@ -408,16 +408,17 @@ function renderAssets(assetList) {
         const el         = document.createElement('div');
         el.className     = 'asset-item';
 
-        const changePct  = Math.round(asset.change);
-        const isFlat     = asset.change > -1 && asset.change < 1;
-        const color      = isFlat ? '#666' : asset.change >= 0 ? '#619D55' : '#BB5454';
-        const sign       = asset.change >= 0 ? '+' : '';
+        const changeVal  = typeof asset.change === 'number' && !isNaN(asset.change) ? asset.change : 0;
+        const changePct  = Math.abs(changeVal) < 10 ? changeVal.toFixed(2) : Math.round(changeVal);
+        const isFlat     = changeVal === 0;
+        const color      = isFlat ? '#666' : changeVal >= 0 ? '#619D55' : '#BB5454';
+        const sign       = changeVal >= 0 ? '+' : '';
 
         // Up / down arrow SVGs (inline, already decoded from the string table)
         const arrowUp = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="5.2114229mm" height="5.2307897mm" viewBox="0 0 5.2114229 5.2307897" version="1.1" xml:space="preserve"><defs/><g transform="translate(-186.93514,-57.110186)"><path style="fill:none;fill-opacity:1;stroke:#619D55;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 187.53619,61.739932 3.96721,-3.98051"/><path style="fill:none;fill-opacity:1;stroke:#619D55;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 191.72158,61.445892 v -3.91071 h -3.93731"/></g></svg>';
         const arrowDown = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="5.2307854mm" height="5.211431mm" viewBox="0 0 5.2307854 5.211431" version="1.1" xml:space="preserve"><defs/><g transform="translate(-186.92547,-57.119865)"><path style="fill:none;fill-opacity:1;stroke:#BB5454;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 187.52651,57.720901 3.98051,3.967207"/><path style="fill:none;fill-opacity:1;stroke:#BB5454;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 187.82055,61.906292 h 3.91071 v -3.937315"/></g></svg>';
 
-        const arrow = isFlat ? '' : asset.change >= 0 ? arrowUp : arrowDown;
+        const arrow = isFlat ? '' : changeVal >= 0 ? arrowUp : arrowDown;
 
         el.innerHTML =
             `\n      <div class="asset-left">\n        <div class="asset-logo">\n          <img src="./assets/${COIN_ICONS[asset.key]}" alt="${COIN_SYMBOLS[asset.key]}"/>\n` +
