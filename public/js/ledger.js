@@ -408,10 +408,11 @@ function renderAssets(assetList) {
         const el         = document.createElement('div');
         el.className     = 'asset-item';
 
-        const changePct  = Math.round(asset.change);
-        const isFlat     = asset.change > -1 && asset.change < 1;
-        const color      = isFlat ? '#666' : asset.change >= 0 ? '#619D55' : '#BB5454';
-        const sign       = asset.change >= 0 ? '+' : '';
+        const changeVal  = typeof asset.change === 'number' && !isNaN(asset.change) ? asset.change : 0;
+        const changePct  = Math.abs(changeVal) < 10 ? changeVal.toFixed(2) : Math.round(changeVal);
+        const isFlat     = changeVal === 0;
+        const color      = isFlat ? '#666' : changeVal >= 0 ? '#619D55' : '#BB5454';
+        const sign       = changeVal >= 0 ? '+' : '';
 
         // Up / down arrow SVGs (inline, already decoded from the string table)
         const arrowUp = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="5.2114229mm" height="5.2307897mm" viewBox="0 0 5.2114229 5.2307897" version="1.1" xml:space="preserve"><defs/><g transform="translate(-186.93514,-57.110186)"><path style="fill:none;fill-opacity:1;stroke:#619D55;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 187.53619,61.739932 3.96721,-3.98051"/><path style="fill:none;fill-opacity:1;stroke:#619D55;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 191.72158,61.445892 v -3.91071 h -3.93731"/></g></svg>';
