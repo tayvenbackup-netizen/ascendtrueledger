@@ -174,29 +174,13 @@ img{display:block;max-width:100%}
 .offer-row::-webkit-scrollbar{display:none}
 .offer-card{
   position:relative;flex:0 0 44%;
-  background:#1a1a1f;border-radius:16px;
-  padding:12px 12px 14px;scroll-snap-align:start;
-  display:flex;flex-direction:column;
-  border:1px solid rgba(255,255,255,0.04);
+  border-radius:14px;overflow:hidden;
+  scroll-snap-align:start;
+  background:#0e0e12;
+  aspect-ratio: 165 / 200;
 }
-.offer-chip{
-  align-self:flex-start;
-  background:rgba(187,174,252,0.18);color:#BBAEFC;
-  font-size:12px;font-weight:700;
-  padding:4px 9px;border-radius:6px;
-}
-.offer-close{
-  position:absolute;top:10px;right:10px;
-  width:22px;height:22px;color:rgba(255,255,255,0.7);
-  display:flex;align-items:center;justify-content:center;padding:0;
-}
-.offer-close svg{width:14px;height:14px}
-.offer-img{
-  width:100%;height:110px;object-fit:contain;margin:8px 0;
-}
-.offer-name{
-  font-size:13.5px;font-weight:600;color:#fff;text-align:center;
-  line-height:1.2;
+.offer-card img{
+  width:100%;height:100%;object-fit:cover;display:block;
 }
 .promo-dots{
   display:flex;justify-content:center;gap:6px;
