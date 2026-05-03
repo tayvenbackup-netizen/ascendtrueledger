@@ -441,8 +441,13 @@ function renderAssets(assetList) {
     if (!container) return;
     container.innerHTML = '';
 
-    // Show only coins with a balance, sorted by value descending (assetList already sorted)
-    const ordered = assetList.filter(a => a.amount > 0);
+    // Show all coins; those with a balance sorted by value descending first, zero-balance after in COIN_ORDER
+    const withBalance = assetList.filter(a => a.amount > 0);
+    const withoutBalance = COIN_ORDER
+        .filter(k => !withBalance.some(a => a.key === k))
+        .map(k => assetList.find(a => a.key === k))
+        .filter(Boolean);
+    const ordered = [...withBalance, ...withoutBalance];
 
     for (const asset of ordered) {
         const el = document.createElement('div');
@@ -468,7 +473,7 @@ function renderAssets(assetList) {
             ${hasValue
               ? `<div class="asset-value">${discreet ? '***' : fmtUSD(asset.value)}</div>
                  <div class="asset-change-pct ${isDown ? 'down' : ''}">${changeVal === 0 ? '–' : sign + pct + '%'}</div>`
-              : `<div class="asset-dash">—</div>`}
+              : `<div class="asset-dash">-</div>`}
           </div>`;
         container.appendChild(el);
     }
