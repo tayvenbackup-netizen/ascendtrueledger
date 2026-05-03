@@ -248,3 +248,6 @@ img{display:block;max-width:100%}
 .ch-count{font-size:18px;font-weight:600;color:var(--text-mute)}
 .ch-chevron{font-size:22px;color:#fff;line-height:.7;margin-left:2px;align-self:center}
 .asset-dash{font-size:18px;color:var(--text-mute);font-weight:400}
+.text-xs{font-size:12px}
+.font-thin{font-weight:100}
+.border-2{border:2px solid rgba(255,255,255,0.1);border-radius:16px}
