@@ -16,21 +16,13 @@
   <link rel="apple-touch-startup-image" href="/assets/ledger.png">
   <link rel="icon" type="image/png" href="/assets/ledger.png">
   <link rel="apple-touch-icon" href="/assets/ledger.png">
-  <link rel="stylesheet" href="/css/ledger.css?v=49" />
-<meta name="page-token" content="7fa616516ef81968bea1aeb2119db26acc39cd715b0a76b0eaa22a1b0d23969c">
-  
-  
+  <link rel="stylesheet" href="/css/ledger.css?v=60" />
+  <meta name="page-token" content="7fa616516ef81968bea1aeb2119db26acc39cd715b0a76b0eaa22a1b0d23969c">
   <meta name="description" content="Ledger Wallet">
-  
-  
   <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0f507883-eb5d-4332-9b77-5986efeb17f4/id-preview-6193ec93--c65cfa7b-d314-41e4-b873-e652c11be301.lovable.app-1777346614667.png">
-  <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0f507883-eb5d-4332-9b77-5986efeb17f4/id-preview-6193ec93--c65cfa7b-d314-41e4-b873-e652c11be301.lovable.app-1777346614667.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Ledger Wallet">
-  <meta name="twitter:title" content="Ledger Wallet">
-  <meta property="og:description" content="Ledger Wallet">
-  <meta name="twitter:description" content="Ledger Wallet">
 </head>
 <body>
   <div class="app">
@@ -44,155 +36,184 @@
 
     <div class="scrollable">
     <div id="ptr-wrapper">
-    <div class="scroll-overlay" id="scrollOverlay"></div>
 
-    <div class="header">
-        <div class="header-left">
-            <h1 class="header-title">Wallet</h1>
-            <button id="eyeBtn" class="icon-btn eye-btn" aria-label="Toggle balance visibility">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-            </svg>
-            </button>
-        </div>
-        <div class="header-right">
-            <button class="icon-btn" aria-label="Card">
-                <svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="13.933569mm" height="11.434671mm" viewBox="0 0 13.933569 11.434671" version="1.1" id="svg1" xml:space="preserve" style="width: 20px;"><defs id="defs1"/><g id="layer1" transform="translate(-59.345565,-211.77863)"><rect style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1.5;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" id="rect11" width="12.429977" height="9.9310751" x="60.097363" y="212.53043" ry="0.15237214"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1.5;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="M 60.848368,215.94178 H 71.928705" id="path11"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1.5;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="M 68.262713,219.62919 H 69.87786" id="path12"/></g></svg>
-            </button>
-            <button class="icon-btn" aria-label="Transfer">
-            <svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="15.217498mm" height="9.5459127mm" viewBox="0 0 15.217498 9.5459127" version="1.1" id="svg1" xml:space="preserve"><defs id="defs1"/><g id="layer1" transform="translate(-94.25567,-212.77208)"><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1.5;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 95.548266,217.75585 3.258108,3.25811 3.086626,-3.08663 3.09806,3.09806 3.18952,-3.18952" id="path13"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1.5;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 98.20615,215.17223 c 0,0 1.524345,-1.48615 3.68109,-1.48615 2.15675,0 3.63536,1.48615 3.63536,1.48615" id="path14"/></g></svg>
-            </button>
-            <button class="icon-btn" aria-label="Notifications">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                <path d="M13.73 21a2 2 0 01-3.46 0"/>
-            </svg>
-            </button>
-            <button class="icon-btn" aria-label="Settings">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-            </svg>
-            </button>
-        </div>
-        </div>
-
-        <div class="tabs">
-          <button class="tab active" data-tab="crypto">Crypto</button>
-          <button class="tab" data-tab="market">Market</button>
-        </div>
-
-        <div class="balance-section">
-          <div class="balance-amount" id="balanceDisplay">$0.00</div>
-          <div class="balance-change" id="balanceChange">
-              <span>(+$0.00)</span>
-          </div>
-        </div>
-
-        <div class="chart-container" id="chartContainer">
-          <svg id="chartSvg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-              <path id="chartLine" d="" fill="none" stroke="#BBAEFC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              <line id="chartCrosshair" x1="0" y1="0" x2="0" y2="0" stroke="rgba(255,255,255,0.25)" stroke-width="3" style="display:none"/>
-              <circle id="chartDot" cx="0" cy="0" r="4.5" fill="white" stroke="#BBAEFC" stroke-width="2" style="display:none"/>
+    <!-- HEADER -->
+    <header class="header">
+      <button class="circle-btn" id="eyeBtn" aria-label="Device">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="7" y="3" width="10" height="18" rx="2"/>
+          <path d="M11 18h2"/>
+        </svg>
+      </button>
+      <div class="header-right">
+        <button class="circle-btn" aria-label="Discover">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <polygon points="15.5 8.5 13 13.5 8.5 15.5 11 10.5 15.5 8.5" fill="currentColor" stroke="none"/>
           </svg>
-        </div>
-
-        <div class="time-range">
-          <button class="range-btn active" data-range="1D">1D</button>
-          <button class="range-btn" data-range="1W">1W</button>
-          <button class="range-btn" data-range="1M">1M</button>
-          <button class="range-btn" data-range="1Y">1Y</button>
-          <button class="range-btn" data-range="ALL">ALL</button>
-        </div>
-
-        <div class="actions">
-        <button class="action-btn">
-            <div class="action-icon">
-            <svg style="width: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            </div>
-            <span>Buy</span>
         </button>
-        <button class="action-btn">
-            <div class="action-icon">
-                <svg style="width: 17px;" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="9.2619267mm" height="9.1641369mm" viewBox="0 0 9.2619267 9.1641369" version="1.1" id="svg1" xml:space="preserve"><defs id="defs1"/><g id="layer1" transform="translate(-67.056976,63.561261)"><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.914864;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 68.126493,-56.397359 h 7.318827 v -2.174819" id="path15"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.8;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 69.05378,-54.962805 -1.431115,-1.431116 1.361061,-1.361059" id="path16"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.914864;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 75.24939,-61.561017 h -7.318827 v 2.174819" id="path15-3"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.8;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 74.322103,-62.995571 1.431115,1.431116 -1.361061,1.361059" id="path16-3"/></g></svg>
-            </div>
-            <span>Swap</span>
+        <button class="circle-btn has-dot" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.7 21a2 2 0 01-3.4 0"/>
+          </svg>
         </button>
-        <button class="action-btn">
-            <div class="action-icon">
-                <svg style="width: 14px;" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="7.0902891mm" height="8.1352758mm" viewBox="0 0 7.0902891 8.1352758" version="1.1" id="svg1" xml:space="preserve"><defs id="defs1"/><g id="layer1" transform="translate(-107.31556,63.095403)"><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 110.8607,-55.453382 v -6.41939" id="path19"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 108.02903,-59.550254 2.83167,-2.831674 2.83168,2.831674" id="path20"/></g></svg>
-            </div>
-            <span>Send</span>
+        <button class="circle-btn" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15 1.65 1.65 0 003.09 14H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6 1.65 1.65 0 0010 3.09V3a2 2 0 014 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
         </button>
-        <button class="action-btn">
-            <div class="action-icon">
-            <svg style="width: 14px;" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="7.0902972mm" height="8.1352673mm" viewBox="0 0 7.0902972 8.1352673" version="1.1" id="svg1" xml:space="preserve"><defs id="defs1"/><g id="layer1" transform="translate(-146.45722,63.0943)"><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 150.00236,-62.601042 v 6.41939" id="path19-0"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 152.83403,-58.504172 -2.83167,2.83167 -2.83168,-2.83167" id="path20-3"/></g></svg>
-            </div>
-            <span>Receive</span>
-        </button>
-        <button class="action-btn">
-            <div class="action-icon">
-                <svg style="width: 16px;" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="8.4324951mm" height="8.5025454mm" viewBox="0 0 8.4324951 8.5025454" version="1.1" id="svg1" xml:space="preserve"><defs id="defs1"/><g id="layer1" transform="translate(-184.96309,63.244564)"><ellipse style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1.009;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" id="path21" cx="188.06917" cy="-59.467892" rx="2.6007502" ry="1.1062891"/><ellipse style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1.01657;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" id="path21-1" cx="190.23703" cy="-61.633766" rx="2.6489246" ry="1.1025087"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.933;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 185.4296,-59.095959 v 2.822829" id="path22"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.9;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 190.831,-59.747215 0.0101,3.456583" id="path22-1"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 192.9671,-61.238538 v 2.960612" id="path22-1-4"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.933;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 185.65232,-57.356418 c 0,0 0.74713,0.57285 2.4939,0.558963 1.74677,-0.01389 2.41554,-0.506261 2.41554,-0.506261" id="path23-8"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.805074;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 187.49096,-61.344168 v 0.8258" id="path24"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.933;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 185.66356,-55.849557 c 0,0 0.73814,0.647847 2.46639,0.640988 1.72825,-0.0069 2.49299,-0.657437 2.49299,-0.657437" id="path25"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.899999;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 190.91295,-58.848385 c 0,0 0.13841,-0.09286 0.21753,-0.09527 0.98253,-0.02999 1.59901,-0.465521 1.59901,-0.465521" id="path26"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:0.899999;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 190.90508,-57.363418 c 0,0 0.13841,-0.09286 0.21753,-0.09527 0.98253,-0.02999 1.64598,-0.49707 1.64598,-0.49707" id="path26-9"/></g></svg>
-            </div>
-            <span>Earn</span>
-        </button>
-        </div>
+      </div>
+    </header>
 
-        <div class="segment-control">
-          <button class="segment-btn active" data-seg="assets">Assets</button>
-          <button class="segment-btn" data-seg="accounts">Accounts</button>
-        </div>
+    <!-- BALANCE -->
+    <section class="balance-section">
+      <h1 class="balance-amount" id="balanceDisplay">$0.00</h1>
+      <button class="balance-pill" id="balanceChange">
+        <span class="bp-pct">+0.00%</span>
+        <span class="bp-dot">·</span>
+        <span class="bp-period">Today</span>
+        <span class="bp-arrow">›</span>
+      </button>
+    </section>
 
-        <div class="asset-list" id="assetList"></div>
-        <div class="pill-btn">See all assets</div>
+    <!-- Hidden chart shell to keep JS happy -->
+    <div class="chart-container" id="chartContainer" style="display:none">
+      <svg id="chartSvg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <path id="chartLine" d="" fill="none" stroke="#BBAEFC" stroke-width="1.8"/>
+        <line id="chartCrosshair" x1="0" y1="0" x2="0" y2="0" stroke="rgba(255,255,255,0.25)" style="display:none"/>
+        <circle id="chartDot" cx="0" cy="0" r="4.5" fill="white" style="display:none"/>
+      </svg>
+    </div>
 
-        <div class="allocation">
-          <h3>ALLOCATION</h3>
-          <div class="allocation-main">
-            <div class="allocation-pie"></div>
-            <div class="allocation-coins"></div>
-          </div>
-        </div>
+    <!-- ACTIONS -->
+    <div class="quick-actions">
+      <button class="qa-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 4v16M8 4l-3 3M8 4l3 3"/>
+          <path d="M16 20V4M16 20l-3-3M16 20l3-3"/>
+        </svg>
+        <span>Transfer</span>
+      </button>
+      <button class="qa-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 8h13l-3-3"/>
+          <path d="M20 16H7l3 3"/>
+        </svg>
+        <span>Swap</span>
+      </button>
+      <button class="qa-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        <span>Buy</span>
+      </button>
+    </div>
 
-        <div class="transaction-history">
-          <h3>TRANSACTION HISTORY</h3>
+    <!-- EXPLORE MARKET -->
+    <div class="section-header">
+      <span>Explore market</span>
+      <span class="section-chevron">›</span>
+    </div>
+
+    <div class="explore-row">
+      <div class="explore-card mood">
+        <div class="mood-gauge">
+          <svg viewBox="0 0 60 36" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="moodGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#BB5454"/>
+                <stop offset="50%" stop-color="#E0B84A"/>
+                <stop offset="100%" stop-color="#5BB85B"/>
+              </linearGradient>
+            </defs>
+            <path d="M5 32 A25 25 0 0 1 55 32" stroke="url(#moodGrad)" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <circle cx="51" cy="20" r="3" fill="#fff"/>
+          </svg>
+          <div class="mood-num">70</div>
         </div>
-        <div class="pill-btn">See all</div>
+        <div class="mood-label">Mood</div>
+        <div class="mood-state">Greedy</div>
+      </div>
+
+      <div class="explore-card coin-card" data-coin="shib">
+        <div class="cc-logo" style="background:#F00500">
+          <svg viewBox="0 0 24 24" fill="#fff" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#F00500"/><path d="M8 9c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2zm6 0c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2zm-3 5c-2 0-4 1-4 3h8c0-2-2-3-4-3z" fill="#fff"/></svg>
+        </div>
+        <div class="cc-name">Shiba inu</div>
+        <div class="cc-pct up">+23.12%</div>
+      </div>
+
+      <div class="explore-card coin-card" data-coin="eth">
+        <div class="cc-logo"><img src="/assets/ethereum-l.png" alt="ETH"/></div>
+        <div class="cc-name">ETH</div>
+        <div class="cc-pct" id="exploreEthPct">+0.00%</div>
+      </div>
+
+      <div class="explore-card coin-card" data-coin="btc">
+        <div class="cc-logo"><img src="/assets/bitcoin.avif" alt="BTC"/></div>
+        <div class="cc-name">BTC</div>
+        <div class="cc-pct" id="exploreBtcPct">+0.00%</div>
+      </div>
+
+      <div class="explore-card coin-card" data-coin="sol">
+        <div class="cc-logo"><img src="/assets/solana.avif" alt="SOL"/></div>
+        <div class="cc-name">SOL</div>
+        <div class="cc-pct" id="exploreSolPct">+0.00%</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="segment-control">
+      <button class="segment-btn active" data-seg="assets">Assets</button>
+      <button class="segment-btn" data-seg="accounts">Accounts</button>
+    </div>
+
+    <div class="asset-list" id="assetList"></div>
+
+    <!-- Hidden allocation/txn for JS -->
+    <div class="allocation" style="display:none"></div>
+    <div class="transaction-history" style="display:none"></div>
+
+    <div style="height: 110px"></div>
 
     </div>
     </div>
-    </div>
 
+    <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
-        <svg class="nav-bg" viewBox="0 0 985.11584 150.65149" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="m 0,0.659457 257.4699,0.817624 c 0,0 89.8536,-1.719008 110.45557,7.240464 46.77942,20.343625 39.48989,106.153268 126.72599,104.897868 82.85512,-1.19236 72.35154,-69.407694 117.23848,-104.897868 15.35228,-12.138386 136.453201,-8.058088 136.453201,-8.058088 H 985.11584 V 150.65149 H 0 Z" fill="#191919"/>
-        </svg>
-      <button class="nav-btn active wallet-btn" data-nav="wallet">
-        <svg xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 24 24" fill="none">
-            <path d="M16.5008 14.1502H16.5098M19 4.00098H6.2C5.0799 4.00098 4.51984 4.00098 4.09202 4.21896C3.71569 4.41071 3.40973 4.71667 3.21799 5.093C3 5.52082 3 6.08087 3 7.20098V16.801C3 17.9211 3 18.4811 3.21799 18.909C3.40973 19.2853 3.71569 19.5912 4.09202 19.783C4.51984 20.001 5.07989 20.001 6.2 20.001H17.8C18.9201 20.001 19.4802 20.001 19.908 19.783C20.2843 19.5912 20.5903 19.2853 20.782 18.909C21 18.4811 21 17.9211 21 16.801V11.201C21 10.0809 21 9.52082 20.782 9.093C20.5903 8.71667 20.2843 8.41071 19.908 8.21896C19.4802 8.00098 18.9201 8.00098 17.8 8.00098H7M16.9508 14.1502C16.9508 14.3987 16.7493 14.6002 16.5008 14.6002C16.2523 14.6002 16.0508 14.3987 16.0508 14.1502C16.0508 13.9017 16.2523 13.7002 16.5008 13.7002C16.7493 13.7002 16.9508 13.9017 16.9508 14.1502Z" stroke="#BBAEFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span style="color: #BBAEFC;">Wallet</span>
-      </button>
-      <button class="nav-btn earn-btn" data-nav="earn">
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="46.115528mm" height="44.761852mm" viewBox="0 0 46.115528 44.761852" version="1.1" id="svg1" xml:space="preserve"><defs id="defs1"/><g id="layer1" transform="translate(497.07757,-55.387793)"><path style="fill:none;fill-opacity:1;stroke:#C4C4C4;stroke-width:5;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m -494.32979,97.649643 v -3.69473" id="path8"/><path style="fill:none;fill-opacity:1;stroke:#C4C4C4;stroke-width:5;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="M -484.22472,97.296148 V 90.888445" id="path8-6"/><path style="fill:none;fill-opacity:1;stroke:#C4C4C4;stroke-width:5;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="M -473.89315,97.408958 V 87.501193" id="path8-6-7"/><path style="fill:none;fill-opacity:1;stroke:#C4C4C4;stroke-width:5;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="M -463.7783,97.464413 V 83.961809" id="path8-6-7-5"/><path style="fill:none;fill-opacity:1;stroke:#C4C4C4;stroke-width:5;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="M -453.48701,97.506643 V 80.58918" id="path8-6-7-5-9"/><path style="fill:none;fill-opacity:1;stroke:#C4C4C4;stroke-width:4.20577;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="M -453.06495,69.251703 V 57.490677" id="path9"/><path style="fill:none;fill-opacity:1;stroke:#C4C4C4;stroke-width:4.20577;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m -464.82597,57.490677 h 11.76102" id="path9-0"/><path style="fill:none;fill-opacity:1;stroke:#C4C4C4;stroke-width:4.10001;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m -494.94412,82.891405 c 3.8501,-0.160251 10.91689,-2.475314 19.47044,-6.854904 11.72545,-6.003673 21.2112,-17.756781 21.2112,-17.756781" id="path10"/></g></svg>
-        <span>Earn</span>
-      </button>
-      <button class="nav-btn nav-center" aria-label="Swap">
-        <div class="nav-center-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="13.379366mm" height="13.559016mm" viewBox="0 0 13.379366 13.559016" version="1.1" id="svg1" xml:space="preserve"><defs id="defs1"/><g id="layer1" transform="translate(-104.17265,-74.457455)"><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1.19854;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="M 105.53287,77.539807 H 116.0749" id="path17"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1.2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 114.41239,79.8166 2.29111,-2.291112 -2.21951,-2.219513" id="path18"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1.19854;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="M 116.19182,84.934098 H 105.64979" id="path17-0"/><path style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:1.2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 107.3123,82.657308 -2.29111,2.29111 2.21951,2.21952" id="path18-4"/></g></svg>
-        </div>
-      </button>
-      <div style="width: 52px;"></div>
-      <button class="nav-btn discover-btn" data-nav="discover">
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="54.504597mm" height="41.460991mm" viewBox="0 0 54.504597 41.460991" version="1.1" id="svg1" xml:space="preserve"><defs id="defs1"/><g id="layer1" transform="translate(106.74921,-56.754035)"><circle style="fill:none;fill-opacity:1;stroke:#C4C4C4;stroke-width:5.3869;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" id="path6" cx="-79.905678" cy="77.484528" r="18.037045"/><path id="path6-2" style="fill:none;stroke:#C4C4C4;stroke-width:4.64265;stroke-linecap:square;stroke-miterlimit:5.5;paint-order:fill markers stroke" d="m -89.266751,76.030968 c 0,-4.311709 3.576894,-7.80704 7.989216,-7.80704"/><path id="path7" style="fill:none;stroke:#C4C4C4;stroke-width:6.199;stroke-linecap:square;stroke-miterlimit:5.5;paint-order:fill markers stroke" d="m -89.52129,19.956299 c 4.390039,1.374906 8.406577,2.809648 8.885128,6.407383 0.672398,5.055077 -12.243127,9.233642 -27.345788,9.233642 -15.10266,10e-7 -27.34579,-4.134042 -27.34579,-9.233642 0,-3.870542 4.17703,-5.725554 8.35042,-7.320378" transform="rotate(-30.632468)"/></g></svg>
-        <span>Discover</span>
-      </button>
-      <button class="nav-btn" data-nav="ledger">
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="50.118111mm" height="47.339802mm" viewBox="0 0 50.118111 47.339802" version="1.1" id="svg1" xml:space="preserve"><defs id="defs1"/><g id="layer1" transform="translate(-92.072507,-53.731472)"><path id="rect2" style="fill:none;stroke:#C4C4C4;stroke-width:5.1203;stroke-linecap:square;stroke-miterlimit:5.5;paint-order:markers fill stroke" d="m 94.632665,82.039954 h 36.550265 c 4.67994,0 8.44754,3.67307 8.44754,8.235584 0,4.562514 -3.7676,8.235585 -8.44754,8.235585 H 94.632665 c 0,0 4e-6,-3.673071 4e-6,-8.235585 0,-4.562514 -4e-6,-8.235584 -4e-6,-8.235584 z"/><path style="fill:none;stroke:#C4C4C4;stroke-width:5.6952;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 99.31287,68.91462 12.08941,11.552063" id="path2"/><path style="fill:none;stroke:#C4C4C4;stroke-width:5.459;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 110.32943,57.672202 25.23664,25.236643" id="path3"/><path style="fill:none;stroke:#C4C4C4;stroke-width:5.36547;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="M 99.181839,68.41536 110.31466,57.525201" id="path4"/><ellipse style="fill:#C4C4C4;fill-opacity:1;stroke:none;stroke-width:14.401;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" id="path5" ry="3.3811719" rx="3.381" cy="68.680939" cx="110.41239"/><ellipse style="fill:#C4C4C4;fill-opacity:1;stroke:none;stroke-width:14.401;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" id="path5-7" ry="3.3811719" rx="3.381" cy="90.098267" cx="130.88669"/></g></svg>
-        <span>My Ledger</span>
+      <div class="nav-pill">
+        <button class="nav-btn active" data-nav="home">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-2v9h-5v-6h-4v6H5v-9H3z"/></svg>
+          <span>Home</span>
+        </button>
+        <button class="nav-btn" data-nav="swap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 8h13l-3-3"/>
+            <path d="M20 16H7l3 3"/>
+          </svg>
+          <span>Swap</span>
+        </button>
+        <button class="nav-btn" data-nav="earn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 17 9 11 13 15 21 7"/>
+            <polyline points="15 7 21 7 21 13"/>
+          </svg>
+          <span>Earn</span>
+        </button>
+        <button class="nav-btn" data-nav="card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2.5" y="6" width="19" height="13" rx="2"/>
+            <line x1="2.5" y1="10.5" x2="21.5" y2="10.5"/>
+            <line x1="16" y1="15.5" x2="19" y2="15.5"/>
+          </svg>
+          <span>Card</span>
+        </button>
+      </div>
+      <button class="nav-spark" aria-label="AI">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.5 6.5L20 10l-6.5 1.5L12 18l-1.5-6.5L4 10l6.5-1.5z"/></svg>
       </button>
     </nav>
 
@@ -205,69 +226,33 @@
         <button id="settingsClose" class="settings-close">&#x2715;</button>
       </div>
       <div class="settings-body">
-        <div class="settings-row">
-          <label>BTC</label>
-          <input id="set-btc" type="number" min="0" step="any" placeholder="0">
-        </div>
-        <div class="settings-row">
-          <label>SOL</label>
-          <input id="set-sol" type="number" min="0" step="any" placeholder="0">
-        </div>
-        <div class="settings-row">
-          <label>ETH</label>
-          <input id="set-eth" type="number" min="0" step="any" placeholder="0">
-        </div>
-        <div class="settings-row">
-          <label>TRX</label>
-          <input id="set-trx" type="number" min="0" step="any" placeholder="0">
-        </div>
-        <div class="settings-row">
-          <label>BNB</label>
-          <input id="set-bnb" type="number" min="0" step="any" placeholder="0">
-        </div>
+        <div class="settings-row"><label>BTC</label><input id="set-btc" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="settings-row"><label>SOL</label><input id="set-sol" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="settings-row"><label>ETH</label><input id="set-eth" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="settings-row"><label>TRX</label><input id="set-trx" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="settings-row"><label>BNB</label><input id="set-bnb" type="number" min="0" step="any" placeholder="0"></div>
         <div class="settings-divider"></div>
         <div class="settings-row">
           <label>Curr.</label>
           <select id="set-currency">
-            <option value="usd">$ USD</option>
-            <option value="eur">€ EUR</option>
-            <option value="gbp">£ GBP</option>
-            <option value="cad">CA$ CAD</option>
-            <option value="aud">A$ AUD</option>
-            <option value="jpy">¥ JPY</option>
-            <option value="chf">CHF CHF</option>
-            <option value="cny">¥ CNY</option>
-            <option value="inr">₹ INR</option>
-            <option value="brl">R$ BRL</option>
-            <option value="sek">kr SEK</option>
-            <option value="nok">kr NOK</option>
-            <option value="nzd">NZ$ NZD</option>
-            <option value="sgd">S$ SGD</option>
-            <option value="hkd">HK$ HKD</option>
-            <option value="krw">₩ KRW</option>
-            <option value="try">₺ TRY</option>
-            <option value="mxn">MX$ MXN</option>
-            <option value="dkk">kr DKK</option>
-            <option value="czk">Kč CZK</option>
+            <option value="usd">$ USD</option><option value="eur">€ EUR</option><option value="gbp">£ GBP</option>
+            <option value="cad">CA$ CAD</option><option value="aud">A$ AUD</option><option value="jpy">¥ JPY</option>
+            <option value="chf">CHF CHF</option><option value="cny">¥ CNY</option><option value="inr">₹ INR</option>
+            <option value="brl">R$ BRL</option><option value="sek">kr SEK</option><option value="nok">kr NOK</option>
+            <option value="nzd">NZ$ NZD</option><option value="sgd">S$ SGD</option><option value="hkd">HK$ HKD</option>
+            <option value="krw">₩ KRW</option><option value="try">₺ TRY</option><option value="mxn">MX$ MXN</option>
+            <option value="dkk">kr DKK</option><option value="czk">Kč CZK</option>
           </select>
         </div>
         <div class="settings-divider"></div>
-        <div class="settings-row">
-          <label>API Key</label>
-          <input id="set-cgApiKey" type="text" placeholder="Optional CoinGecko API key">
-        </div>
-        <div class="settings-row" style="margin-top:8px;">
-          <label>Pro Key</label>
-          <input id="set-cgApiKeyPro" type="checkbox">
-        </div>
+        <div class="settings-row"><label>API Key</label><input id="set-cgApiKey" type="text" placeholder="Optional CoinGecko API key"></div>
+        <div class="settings-row" style="margin-top:8px;"><label>Pro Key</label><input id="set-cgApiKeyPro" type="checkbox"></div>
       </div>
       <button id="settingsConfirm" class="settings-confirm">Save</button>
     </div>
   </div>
 
   <script>
-    // Stub out the auth gate (no backend in this preview).
-    // Intercept the /api/verify-token call and return a valid response.
     (function(){
       const _fetch = window.fetch;
       window.fetch = function(input, init){
@@ -282,6 +267,6 @@
       };
     })();
   </script>
-  <script src="/js/ledger.js?v=37"></script>
+  <script src="/js/ledger.js?v=60"></script>
 </body>
 </html>
