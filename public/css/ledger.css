@@ -135,28 +135,68 @@ img{display:block;max-width:100%}
 }
 .promo-carousel::-webkit-scrollbar{display:none}
 .promo-card{
+  position:relative;
   flex:0 0 100%;
   scroll-snap-align:center;
-  border-radius:12px;
+  border-radius:14px;
   overflow:hidden;
-  height:64px;
-  background:linear-gradient(135deg, var(--pc-from,#1f3a2e), var(--pc-to,#0f2a20));
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 14px;gap:12px;
-  border:1px solid rgba(255,255,255,0.05);
+  height:78px;
+  background:#1a1a1f;
+  display:flex;align-items:center;
+  padding:0 16px;gap:12px;
 }
-.promo-card .pc-text{min-width:0;flex:1}
-.promo-card .pc-eyebrow{
-  font-size:10px;font-weight:600;letter-spacing:.6px;
-  text-transform:uppercase;color:rgba(255,255,255,0.55);
-  margin-bottom:3px;
-}
+.promo-card .pc-text{min-width:0;flex:1;padding-right:60px}
 .promo-card .pc-title{
-  font-size:13px;font-weight:600;color:#fff;line-height:1.25;
+  font-size:15px;font-weight:700;color:#fff;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.promo-card .pc-sub{
+  font-size:12.5px;color:rgba(255,255,255,0.5);margin-top:3px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .promo-card .pc-logo{
-  width:40px;height:40px;object-fit:contain;flex-shrink:0;
+  position:absolute;right:30px;top:50%;transform:translateY(-50%);
+  width:64px;height:64px;object-fit:contain;
+}
+.promo-card .pc-close{
+  position:absolute;top:8px;right:8px;
+  width:20px;height:20px;color:rgba(255,255,255,0.55);
+  display:flex;align-items:center;justify-content:center;padding:0;
+}
+.promo-card .pc-close svg{width:14px;height:14px}
+
+/* OFFER ROW */
+.offer-row{
+  display:flex;gap:10px;padding:4px 16px 0;
+  overflow-x:auto;scrollbar-width:none;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+}
+.offer-row::-webkit-scrollbar{display:none}
+.offer-card{
+  position:relative;flex:0 0 44%;
+  background:#1a1a1f;border-radius:16px;
+  padding:12px 12px 14px;scroll-snap-align:start;
+  display:flex;flex-direction:column;
+  border:1px solid rgba(255,255,255,0.04);
+}
+.offer-chip{
+  align-self:flex-start;
+  background:rgba(187,174,252,0.18);color:#BBAEFC;
+  font-size:12px;font-weight:700;
+  padding:4px 9px;border-radius:6px;
+}
+.offer-close{
+  position:absolute;top:10px;right:10px;
+  width:22px;height:22px;color:rgba(255,255,255,0.7);
+  display:flex;align-items:center;justify-content:center;padding:0;
+}
+.offer-close svg{width:14px;height:14px}
+.offer-img{
+  width:100%;height:110px;object-fit:contain;margin:8px 0;
+}
+.offer-name{
+  font-size:13.5px;font-weight:600;color:#fff;text-align:center;
+  line-height:1.2;
 }
 .promo-dots{
   display:flex;justify-content:center;gap:6px;
