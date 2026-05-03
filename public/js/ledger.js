@@ -742,59 +742,7 @@ function initButtons(selector) {
 
 // ── Scroll-collapse (header fade on scroll) ───────────────────────────────────
 
-function initScrollCollapse() {
-    const scrollable = document.querySelector('.scrollable');
-    const scrollOverlayEl = document.getElementById('scrollOverlay');
-    const headerEl   = document.querySelector('.header');
-    const tabsEl     = document.querySelector('.tabs');
-    const balSection = document.querySelector('.balance-section');
-
-    let cachedThreshold = Math.max(1, balSection.offsetTop * 0.3);
-    const recalcThreshold = () => {
-        cachedThreshold = Math.max(1, balSection.offsetTop * 0.3);
-    };
-    window.addEventListener('resize', recalcThreshold, { passive: true });
-    window.addEventListener('orientationchange', recalcThreshold, { passive: true });
-
-    let ticking = false;
-    let lastProgress = -1;
-    let lastSnapped = false;
-
-    const apply = () => {
-        ticking = false;
-        const scrollTop = scrollable.scrollTop;
-        const progress  = Math.max(0, Math.min(1, scrollTop / cachedThreshold));
-        if (Math.abs(progress - lastProgress) < 0.005 && (progress >= 1) === lastSnapped) return;
-        lastProgress = progress;
-
-        scrollOverlayEl.style.opacity = progress;
-        headerEl.style.opacity        = 1 - progress;
-        tabsEl.style.setProperty('--tabs-bg-opacity', progress.toFixed(3));
-
-        const scrolled = scrollTop > 0;
-        tabsEl.classList.toggle('scrolled', scrolled);
-
-        const snapped = progress >= 1;
-        if (snapped !== lastSnapped) {
-            lastSnapped = snapped;
-            if (snapped) {
-                balSection.style.background = '#131214';
-                balSection.style.boxShadow  = '0 -120px 0 0 120px #131214';
-            } else {
-                balSection.style.background = 'transparent';
-                balSection.style.boxShadow  = 'none';
-            }
-        }
-    };
-
-    scrollable.addEventListener('scroll', () => {
-        if (!ticking) {
-            ticking = true;
-            window.requestAnimationFrame(apply);
-        }
-    }, { passive: true });
-    apply();
-}
+function initScrollCollapse() { /* simplified - no collapse in new design */ }
 
 // ── Pull-to-refresh ───────────────────────────────────────────────────────────
 
