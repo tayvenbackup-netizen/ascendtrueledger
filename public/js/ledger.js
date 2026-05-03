@@ -441,28 +441,35 @@ function renderAssets(assetList) {
     if (!container) return;
     container.innerHTML = '';
 
-    for (const asset of assetList) {
-        if (asset.value <= 0) continue;
+    // Always show all 5 coins in fixed order, even with zero balance
+    const byKey = Object.fromEntries(assetList.map(a => [a.key, a]));
+    const ordered = COIN_ORDER.map(k => byKey[k] || { key:k, amount:0, value:0, change:0, price:0 });
+
+    for (const asset of ordered) {
         const el = document.createElement('div');
         el.className = 'asset-item';
 
         const changeVal = typeof asset.change === 'number' && !isNaN(asset.change) ? asset.change : 0;
-        const isFlat = changeVal === 0;
+        const hasValue = asset.value > 0;
         const isDown = changeVal < 0;
         const sign = changeVal >= 0 ? '+' : '';
         const pct = Math.abs(changeVal) < 100 ? changeVal.toFixed(2) : Math.round(changeVal);
+
+        const amountStr = discreet ? '***' : (asset.amount > 0 ? fmtAmount(asset.amount) : '0');
 
         el.innerHTML = `
           <div class="asset-left">
             <div class="asset-logo"><img src="/assets/${COIN_ICONS[asset.key]}" alt="${COIN_SYMBOLS[asset.key]}"/></div>
             <div class="asset-info">
               <div class="asset-name">${COIN_NAMES[asset.key]}</div>
-              <div class="asset-sub-text">${discreet ? '***' : fmtAmount(asset.amount)} ${COIN_SYMBOLS[asset.key]}</div>
+              <div class="asset-sub-text">${amountStr} ${COIN_SYMBOLS[asset.key]}</div>
             </div>
           </div>
           <div class="asset-right">
-            <div class="asset-value">${discreet ? '***' : fmtUSD(asset.value)}</div>
-            <div class="asset-change-pct ${isDown ? 'down' : ''}">${isFlat ? '–' : sign + pct + '%'}</div>
+            ${hasValue
+              ? `<div class="asset-value">${discreet ? '***' : fmtUSD(asset.value)}</div>
+                 <div class="asset-change-pct ${isDown ? 'down' : ''}">${changeVal === 0 ? '–' : sign + pct + '%'}</div>`
+              : `<div class="asset-dash">—</div>`}
           </div>`;
         container.appendChild(el);
     }
