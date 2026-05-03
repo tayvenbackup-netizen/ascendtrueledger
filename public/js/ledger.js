@@ -45,10 +45,10 @@
 
 const COINGECKO_IDS = {
     btc: 'bitcoin',
-    sol: 'solana',
     eth: 'ethereum',
-    trx: 'tron',
-    bnb: 'binancecoin'
+    xrp: 'ripple',
+    bnb: 'binancecoin',
+    sol: 'solana'
 };
 
 const CURRENCIES = {
@@ -74,39 +74,41 @@ const CURRENCIES = {
     czk: { symbol: 'Kč',  name: 'CZK' }
 };
 
-const SUFFIX_CURRENCIES = [];   // no suffix-style currencies configured
+const SUFFIX_CURRENCIES = [];
 
 const COIN_NAMES = {
     btc: 'Bitcoin',
-    sol: 'Solana',
     eth: 'Ethereum',
-    trx: 'TRON',
-    bnb: 'BNB'
+    xrp: 'XRP',
+    bnb: 'BNB Chain',
+    sol: 'Solana'
 };
 
 const COIN_SYMBOLS = {
     btc: 'BTC',
-    sol: 'SOL',
     eth: 'ETH',
-    trx: 'TRX',
-    bnb: 'BNB'
+    xrp: 'XRP',
+    bnb: 'BNB',
+    sol: 'SOL'
 };
 
 const COIN_ICONS = {
     btc: 'bitcoin.avif',
-    sol: 'solana.avif',
     eth: 'ethereum-l.png',
-    trx: 'tron.webp',
-    bnb: 'bnb.webp'
+    xrp: 'xrp.png',
+    bnb: 'bnb.webp',
+    sol: 'solana.avif'
 };
 
 const COIN_COLORS = {
     btc: '#FEAE35',
-    sol: '#0EBECD',
     eth: '#655AB3',
-    trx: '#EB0029',
-    bnb: '#F3BA2F'
+    xrp: '#3a3a3a',
+    bnb: '#F3BA2F',
+    sol: '#9945FF'
 };
+
+const COIN_ORDER = ['btc','eth','xrp','bnb','sol'];
 
 // Price cache TTL: 5 minutes (5 * 60 * 1000 ms)
 const PRICE_CACHE_MS = 5 * 60 * 1000;
