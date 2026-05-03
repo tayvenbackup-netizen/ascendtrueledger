@@ -344,11 +344,12 @@ async function updateWallet(forceRefresh = false) {
     const totalValue = assetList.reduce((sum, a) => sum + a.value, 0);
     BASE_PRICE = totalValue;
 
-    document.getElementById('balanceDisplay').textContent = fmtUSD(totalValue);
+    setBalanceDisplay(totalValue);
     window.__lastCoinData = assetList;
 
     renderAssets(assetList);
-    renderAllocation(assetList);
+    renderExploreCards(assetList);
+    try { renderAllocation(assetList); } catch(e){}
 
     const coinsWithBalance = assetList.filter(a => a.amount > 0 && a.value > 0);
     const cfg = RANGE_CONFIG[currentRange] || RANGE_CONFIG['1D'];
