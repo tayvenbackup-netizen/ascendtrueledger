@@ -730,12 +730,14 @@ function confirmSettings() {
     s.cgApiKeyPro = document.getElementById('set-cgApiKeyPro').checked;
     s.currency    = document.getElementById('set-currency').value || 'usd';
 
-    // Bust caches for both old and new currency
-    for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
-        localStorage.removeItem('lchart_' + coin + '_' + oldCurrency);
-        localStorage.removeItem('lprice_' + coin + '_' + oldCurrency);
-        localStorage.removeItem('lchart_' + coin + '_' + s.currency);
-        localStorage.removeItem('lprice_' + coin + '_' + s.currency);
+    // Only bust caches when currency actually changes
+    if (oldCurrency !== s.currency) {
+        for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
+            localStorage.removeItem('lchart_' + coin + '_' + oldCurrency);
+            localStorage.removeItem('lprice_' + coin + '_' + oldCurrency);
+            localStorage.removeItem('lchart_' + coin + '_' + s.currency);
+            localStorage.removeItem('lprice_' + coin + '_' + s.currency);
+        }
     }
 
     saveSettings(s);
