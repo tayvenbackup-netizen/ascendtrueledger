@@ -78,7 +78,7 @@ img{display:block;max-width:100%}
 /* BALANCE */
 .balance-section{text-align:center;padding:34px 20px 6px}
 .balance-amount{
-  font-size:54px;font-weight:700;letter-spacing:-1.8px;
+  font-size:54px;font-weight:600;letter-spacing:-1.8px;
   line-height:1;color:#fff;
 }
 .balance-amount .cents{color:rgba(255,255,255,0.35);font-weight:700}
