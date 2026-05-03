@@ -616,27 +616,25 @@ function updateDot(idx) {
 }
 
 function clearDot() {
-    document.getElementById('chartDot').style.display       = 'none';
-    document.getElementById('chartCrosshair').style.display = 'none';
-    document.getElementById('balanceDisplay').textContent   = discreet ? '***' : fmtUSD(BASE_PRICE);
+    const dot = document.getElementById('chartDot');
+    const ch = document.getElementById('chartCrosshair');
+    if (dot) dot.style.display = 'none';
+    if (ch) ch.style.display = 'none';
+    setBalanceDisplay(BASE_PRICE);
 
-    const amt       = BASE_CHANGE_AMT;
-    const sign      = amt >= 0 ? '+' : '-';
-    const color     = amt >= 0 ? 'var(--green)' : '#BB5454';
-    const pct       = BASE_PRICE > 0
-        ? Math.round(Math.abs(amt / (BASE_PRICE - amt) * 100))
-        : 0;
+    const amt = BASE_CHANGE_AMT;
+    const pctNum = BASE_PRICE > 0 ? (amt / (BASE_PRICE - amt) * 100) : 0;
+    const isDown = amt < 0;
+    const sign = amt >= 0 ? '+' : '';
+    const pctStr = `${sign}${(isNaN(pctNum) ? 0 : pctNum).toFixed(2)}%`;
 
-    const arrowUpSVG = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="5.2114229mm" height="5.2307897mm" viewBox="0 0 5.2114229 5.2307897" version="1.1" id="svg1" xml:space="preserve"><defs id="defs1"/><g id="layer1" transform="translate(-186.93514,-57.110186)"><path style="fill:none;fill-opacity:1;stroke:#619D55;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 187.53619,61.739932 3.96721,-3.98051" id="path27"/><path style="fill:none;fill-opacity:1;stroke:#619D55;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 191.72158,61.445892 v -3.91071 h -3.93731" id="path28"/></g></svg>';
-    const arrowDownSVG = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="5.2307854mm" height="5.211431mm" viewBox="0 0 5.2307854 5.211431" version="1.1" id="svg1" xml:space="preserve"><defs id="defs1"/><g id="layer1" transform="translate(-186.92547,-57.119865)"><path style="fill:none;fill-opacity:1;stroke:#BB5454;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 187.52651,57.720901 3.98051,3.967207" id="path27"/><path style="fill:none;fill-opacity:1;stroke:#BB5454;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 187.82055,61.906292 h 3.91071 v -3.937315" id="path28"/></g></svg>';
-
-    const arrow      = amt >= 0 ? arrowUpSVG : arrowDownSVG;
-    const amtDisplay = discreet ? '***' : fmtUSD(Math.abs(amt));
-    const pctPart    = pct >= 1 ? `${arrow}${sign}${pct}% ` : '';
-
-    document.getElementById('balanceChange').innerHTML =
-        `<span style="color:${color}">${pctPart}</span>` +
-        `<span style="color:${color}">(${sign}${amtDisplay})</span>`;
+    const pillEl = document.getElementById('balanceChange');
+    if (!pillEl) return;
+    pillEl.innerHTML =
+        `<span class="bp-pct ${isDown ? 'down':''}">${pctStr}</span>` +
+        `<span class="bp-dot">·</span>` +
+        `<span class="bp-period">Today</span>` +
+        `<span class="bp-arrow">›</span>`;
 }
 
 function getIdx(clientX) {
