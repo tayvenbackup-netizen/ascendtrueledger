@@ -64,6 +64,7 @@ img{display:block;max-width:100%}
   background:rgba(10,10,12,0.55);
   backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
 }
+.header-right{display:flex;gap:10px;align-items:center}
 .circle-btn{
   width:42px;height:42px;border-radius:50%;
   background:rgba(255,255,255,0.08);
