@@ -125,7 +125,7 @@ function loadSettings() {
         if (!saved.currency)                          saved.currency    = 'usd';
         if (!saved.coins)                             saved.coins       = defaults().coins;
 
-        for (const coin of ['btc', 'sol', 'eth', 'trx', 'bnb']) {
+        for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
             if (typeof saved.coins[coin] === 'undefined') saved.coins[coin] = 0;
         }
         return saved;
@@ -143,7 +143,7 @@ function defaults() {
         cgApiKey:    '',
         cgApiKeyPro: false,
         currency:    'usd',
-        coins: { btc: 0, sol: 0, eth: 0, trx: 0, bnb: 0 }
+        coins: { btc: 0, eth: 0, xrp: 0, bnb: 0, sol: 0 }
     };
 }
 
@@ -331,7 +331,7 @@ async function updateWallet(forceRefresh = false) {
     const currency  = settings.currency || 'usd';
     const assetList = [];
 
-    for (const coin of ['btc', 'sol', 'eth', 'trx', 'bnb']) {
+    for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
         const amount   = parseFloat(coins[coin]) || 0;
         const cached   = getCachedPrice(coin, currency);
         const price    = cached ? cached.price    : 0;
@@ -693,7 +693,7 @@ function openSettings() {
     document.getElementById('set-btc').value         = s.coins.btc || '';
     document.getElementById('set-sol').value         = s.coins.sol || '';
     document.getElementById('set-eth').value         = s.coins.eth || '';
-    document.getElementById('set-trx').value         = s.coins.trx || '';
+    document.getElementById('set-xrp').value         = s.coins.xrp || '';
     document.getElementById('set-bnb').value         = s.coins.bnb || '';
     document.getElementById('set-cgApiKey').value    = s.cgApiKey  || '';
     document.getElementById('set-cgApiKeyPro').checked = !!s.cgApiKeyPro;
@@ -712,14 +712,14 @@ function confirmSettings() {
     s.coins.btc   = parseFloat(document.getElementById('set-btc').value)   || 0;
     s.coins.sol   = parseFloat(document.getElementById('set-sol').value)   || 0;
     s.coins.eth   = parseFloat(document.getElementById('set-eth').value)   || 0;
-    s.coins.trx   = parseFloat(document.getElementById('set-trx').value)   || 0;
+    s.coins.xrp   = parseFloat(document.getElementById('set-xrp').value)   || 0;
     s.coins.bnb   = parseFloat(document.getElementById('set-bnb').value)   || 0;
     s.cgApiKey    = document.getElementById('set-cgApiKey').value.trim();
     s.cgApiKeyPro = document.getElementById('set-cgApiKeyPro').checked;
     s.currency    = document.getElementById('set-currency').value || 'usd';
 
     // Bust caches for both old and new currency
-    for (const coin of ['btc', 'sol', 'eth', 'trx', 'bnb']) {
+    for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
         localStorage.removeItem('lchart_' + coin + '_' + oldCurrency);
         localStorage.removeItem('lprice_' + coin + '_' + oldCurrency);
         localStorage.removeItem('lchart_' + coin + '_' + s.currency);
@@ -904,7 +904,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
     // Live, instant balance updates as the user types in the editor
-    ['set-btc', 'set-sol', 'set-eth', 'set-trx', 'set-bnb'].forEach(id => {
+    ['set-btc', 'set-eth', 'set-xrp', 'set-bnb', 'set-sol'].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener('input', () => {
@@ -912,7 +912,7 @@ document.addEventListener('DOMContentLoaded', () => {
             s.coins.btc = parseFloat(document.getElementById('set-btc').value) || 0;
             s.coins.sol = parseFloat(document.getElementById('set-sol').value) || 0;
             s.coins.eth = parseFloat(document.getElementById('set-eth').value) || 0;
-            s.coins.trx = parseFloat(document.getElementById('set-trx').value) || 0;
+            s.coins.xrp = parseFloat(document.getElementById('set-xrp').value) || 0;
             s.coins.bnb = parseFloat(document.getElementById('set-bnb').value) || 0;
             saveSettings(s);
             updateWallet();
@@ -925,7 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const s = loadSettings();
             const oldCurrency = s.currency || 'usd';
             s.currency = curSel.value || 'usd';
-            for (const coin of ['btc', 'sol', 'eth', 'trx', 'bnb']) {
+            for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
                 localStorage.removeItem('lchart_' + coin + '_' + oldCurrency);
                 localStorage.removeItem('lprice_' + coin + '_' + oldCurrency);
                 localStorage.removeItem('lchart_' + coin + '_' + s.currency);
