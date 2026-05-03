@@ -12,7 +12,7 @@
   --safe-top:env(safe-area-inset-top, 0px);
   --safe-bottom:env(safe-area-inset-bottom, 0px);
 }
-html,body{height:100%;background:#0a0a0c;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none;overflow:hidden}
+html,body{height:100%;background:#000;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none;overflow:hidden}
 button{background:none;border:none;color:inherit;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 img{display:block;max-width:100%}
 
@@ -22,8 +22,9 @@ img{display:block;max-width:100%}
   margin:0 auto;
   height:100dvh;
   overflow:hidden;
-  background:#0a0a0c url('/assets/bg-purple.jpeg') no-repeat top center;
+  background:#000 url('/assets/bg-purple.jpeg') no-repeat top center;
   background-size:100% auto;
+  background-color:#000;
   padding-left:env(safe-area-inset-left);
   padding-right:env(safe-area-inset-right);
 }

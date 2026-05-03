@@ -441,9 +441,8 @@ function renderAssets(assetList) {
     if (!container) return;
     container.innerHTML = '';
 
-    // Always show all 5 coins in fixed order, even with zero balance
-    const byKey = Object.fromEntries(assetList.map(a => [a.key, a]));
-    const ordered = COIN_ORDER.map(k => byKey[k] || { key:k, amount:0, value:0, change:0, price:0 });
+    // Show only coins with a balance, sorted by value descending (assetList already sorted)
+    const ordered = assetList.filter(a => a.amount > 0);
 
     for (const asset of ordered) {
         const el = document.createElement('div');
