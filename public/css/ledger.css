@@ -124,6 +124,38 @@ img{display:block;max-width:100%}
 .qa-btn .qa-icon-img{width:62px;height:62px;object-fit:contain;opacity:.95;margin:-20px 0}
 .qa-btn span{font-size:14px;font-weight:500}
 
+/* PROMO CAROUSEL */
+.promo-carousel-wrap{padding:18px 0 0;}
+.promo-carousel{
+  display:flex;gap:10px;
+  padding:0 16px;
+  overflow-x:auto;scrollbar-width:none;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+}
+.promo-carousel::-webkit-scrollbar{display:none}
+.promo-card{
+  flex:0 0 100%;
+  scroll-snap-align:center;
+  border-radius:14px;
+  overflow:hidden;
+  aspect-ratio: 360 / 92;
+  background:#1a1a1f;
+}
+.promo-card img{
+  width:100%;height:100%;object-fit:cover;display:block;
+}
+.promo-dots{
+  display:flex;justify-content:center;gap:6px;
+  padding:10px 0 0;
+}
+.promo-dots .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:rgba(255,255,255,0.25);
+  transition:background .2s ease;
+}
+.promo-dots .dot.active{background:rgba(255,255,255,0.85)}
+
 /* SECTION HEADER */
 .section-header{
   display:flex;align-items:center;gap:6px;
