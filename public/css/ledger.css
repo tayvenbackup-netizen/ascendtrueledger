@@ -139,11 +139,24 @@ img{display:block;max-width:100%}
   scroll-snap-align:center;
   border-radius:12px;
   overflow:hidden;
-  aspect-ratio: 360 / 64;
-  background:#1a1a1f;
+  height:64px;
+  background:linear-gradient(135deg, var(--pc-from,#1f3a2e), var(--pc-to,#0f2a20));
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;gap:12px;
+  border:1px solid rgba(255,255,255,0.05);
 }
-.promo-card img{
-  width:100%;height:100%;object-fit:cover;display:block;
+.promo-card .pc-text{min-width:0;flex:1}
+.promo-card .pc-eyebrow{
+  font-size:10px;font-weight:600;letter-spacing:.6px;
+  text-transform:uppercase;color:rgba(255,255,255,0.55);
+  margin-bottom:3px;
+}
+.promo-card .pc-title{
+  font-size:13px;font-weight:600;color:#fff;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.promo-card .pc-logo{
+  width:40px;height:40px;object-fit:contain;flex-shrink:0;
 }
 .promo-dots{
   display:flex;justify-content:center;gap:6px;
