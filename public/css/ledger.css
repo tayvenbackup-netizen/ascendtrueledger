@@ -238,3 +238,9 @@ img{display:block;max-width:100%}
 .settings-row input[type=checkbox]{flex:0 0 auto;width:20px;height:20px;padding:0;background:0 0;appearance:auto;accent-color:var(--purple)}
 .settings-divider{height:8px}
 .settings-confirm{width:100%;margin-top:18px;padding:14px;background:var(--purple);border-radius:12px;color:#0a0a0c;font-size:15px;font-weight:700}
+
+.crypto-header{display:flex;align-items:baseline;gap:6px;padding:32px 18px 8px}
+.ch-title{font-size:22px;font-weight:700;letter-spacing:-.4px;color:#fff}
+.ch-count{font-size:18px;font-weight:600;color:var(--text-mute)}
+.ch-chevron{font-size:22px;color:#fff;line-height:.7;margin-left:2px;align-self:center}
+.asset-dash{font-size:18px;color:var(--text-mute);font-weight:400}
