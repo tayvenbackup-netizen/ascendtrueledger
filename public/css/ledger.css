@@ -22,7 +22,7 @@ img{display:block;max-width:100%}
   margin:0 auto;
   height:100dvh;
   overflow:hidden;
-  background:#000 url('/assets/bg-purple.jpeg') no-repeat top center;
+  background:#000 url('/assets/bg-purple.jpeg?v=2') no-repeat top center;
   background-size:100% auto;
   background-color:#000;
   padding-left:env(safe-area-inset-left);
@@ -111,7 +111,7 @@ img{display:block;max-width:100%}
 }
 .qa-btn:active{transform:scale(0.97);background:rgba(40,40,46,0.9)}
 .qa-btn svg{width:22px;height:22px;opacity:.95}
-.qa-btn .qa-icon-img{width:68px;height:68px;object-fit:contain;opacity:.95;margin:-23px 0}
+.qa-btn .qa-icon-img{width:62px;height:62px;object-fit:contain;opacity:.95;margin:-20px 0}
 .qa-btn span{font-size:14px;font-weight:500}
 
 /* SECTION HEADER */
