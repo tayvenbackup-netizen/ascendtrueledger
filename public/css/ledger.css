@@ -111,7 +111,7 @@ img{display:block;max-width:100%}
 }
 .qa-btn:active{transform:scale(0.97);background:rgba(40,40,46,0.9)}
 .qa-btn svg{width:22px;height:22px;opacity:.95}
-.qa-btn .qa-icon-img{width:22px;height:22px;object-fit:contain;opacity:.95}
+.qa-btn .qa-icon-img{width:76px;height:76px;object-fit:contain;opacity:.95;margin:-27px 0}
 .qa-btn span{font-size:14px;font-weight:500}
 
 /* SECTION HEADER */
