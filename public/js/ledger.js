@@ -896,8 +896,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('eyeBtn')
         .addEventListener('click', toggleDiscreet);
 
-    document.querySelector('.icon-btn[aria-label="Settings"]')
-        .addEventListener('click', openSettings);
+    const settingsBtn = document.querySelector('.circle-btn[aria-label="Settings"]');
+    if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
 
     document.getElementById('settingsClose')
         .addEventListener('click', closeSettings);
