@@ -131,7 +131,7 @@ img{display:block;max-width:100%}
 }
 .explore-row::-webkit-scrollbar{display:none}
 .explore-card{
-  flex:0 0 101px;height:121px;
+  flex:0 0 110px;height:130px;
   background:rgba(28,28,32,0.85);
   border:1px solid rgba(255,255,255,0.04);
   border-radius:16px;
