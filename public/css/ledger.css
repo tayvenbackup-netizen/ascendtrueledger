@@ -137,9 +137,9 @@ img{display:block;max-width:100%}
 .promo-card{
   flex:0 0 100%;
   scroll-snap-align:center;
-  border-radius:14px;
+  border-radius:12px;
   overflow:hidden;
-  aspect-ratio: 360 / 92;
+  aspect-ratio: 360 / 64;
   background:#1a1a1f;
 }
 .promo-card img{
