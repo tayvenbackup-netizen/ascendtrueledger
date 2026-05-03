@@ -112,6 +112,7 @@ const COIN_ORDER = ['btc','eth','xrp','bnb','sol'];
 
 // Price cache TTL: 5 minutes (5 * 60 * 1000 ms)
 const PRICE_CACHE_MS = 10 * 1000;
+const CHART_CACHE_MS = 5 * 60 * 1000;
 
 // ── Settings helpers ─────────────────────────────────────────────────────────
 
@@ -182,7 +183,7 @@ function getCachedChart(coin, currency, range) {
         const raw = localStorage.getItem('lchart_' + coin + '_' + currency + '_' + range);
         if (!raw) return null;
         const cached = JSON.parse(raw);
-        if (Date.now() - cached.ts > PRICE_CACHE_MS) return null;
+        if (Date.now() - cached.ts > CHART_CACHE_MS) return null;
         return cached.prices;
     } catch {
         return null;
