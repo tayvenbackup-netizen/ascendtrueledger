@@ -399,37 +399,69 @@ async function updateWallet(forceRefresh = false) {
 
 // ── Asset list renderer ──────────────────────────────────────────────────────
 
+function setBalanceDisplay(amount){
+    const el = document.getElementById('balanceDisplay');
+    if (!el) return;
+    if (discreet) { el.textContent = '***'; return; }
+    const symbol = getCurrencySymbol();
+    const settings = loadSettings();
+    const isSuffix = SUFFIX_CURRENCIES.includes(settings.currency);
+    const abs = Math.abs(amount);
+    const whole = Math.floor(abs).toLocaleString('en-US');
+    const cents = abs.toFixed(2).split('.')[1];
+    el.innerHTML = isSuffix
+      ? `${whole}<span class="cents">.${cents}</span> ${symbol}`
+      : `${symbol}${whole}<span class="cents">.${cents}</span>`;
+}
+
+function renderExploreCards(assetList){
+    const map = Object.fromEntries(assetList.map(a => [a.key, a.change]));
+    const fmt = v => {
+        if (typeof v !== 'number' || isNaN(v)) return '+0.00%';
+        const sign = v >= 0 ? '+' : '';
+        return `${sign}${v.toFixed(2)}%`;
+    };
+    const setPct = (id, key) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const v = map[key];
+        el.textContent = fmt(v);
+        el.classList.toggle('down', typeof v === 'number' && v < 0);
+        el.classList.toggle('up', !(typeof v === 'number' && v < 0));
+    };
+    setPct('exploreEthPct','eth');
+    setPct('exploreBtcPct','btc');
+    setPct('exploreSolPct','sol');
+}
+
 function renderAssets(assetList) {
     const container = document.getElementById('assetList');
+    if (!container) return;
     container.innerHTML = '';
 
     for (const asset of assetList) {
         if (asset.value <= 0) continue;
+        const el = document.createElement('div');
+        el.className = 'asset-item';
 
-        const el         = document.createElement('div');
-        el.className     = 'asset-item';
+        const changeVal = typeof asset.change === 'number' && !isNaN(asset.change) ? asset.change : 0;
+        const isFlat = changeVal === 0;
+        const isDown = changeVal < 0;
+        const sign = changeVal >= 0 ? '+' : '';
+        const pct = Math.abs(changeVal) < 100 ? changeVal.toFixed(2) : Math.round(changeVal);
 
-        const changeVal  = typeof asset.change === 'number' && !isNaN(asset.change) ? asset.change : 0;
-        const changePct  = Math.abs(changeVal) < 10 ? changeVal.toFixed(2) : Math.round(changeVal);
-        const isFlat     = changeVal === 0;
-        const color      = isFlat ? '#666' : changeVal >= 0 ? '#619D55' : '#BB5454';
-        const sign       = changeVal >= 0 ? '+' : '';
-
-        // Up / down arrow SVGs (inline, already decoded from the string table)
-        const arrowUp = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="5.2114229mm" height="5.2307897mm" viewBox="0 0 5.2114229 5.2307897" version="1.1" xml:space="preserve"><defs/><g transform="translate(-186.93514,-57.110186)"><path style="fill:none;fill-opacity:1;stroke:#619D55;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 187.53619,61.739932 3.96721,-3.98051"/><path style="fill:none;fill-opacity:1;stroke:#619D55;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 191.72158,61.445892 v -3.91071 h -3.93731"/></g></svg>';
-        const arrowDown = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="5.2307854mm" height="5.211431mm" viewBox="0 0 5.2307854 5.211431" version="1.1" xml:space="preserve"><defs/><g transform="translate(-186.92547,-57.119865)"><path style="fill:none;fill-opacity:1;stroke:#BB5454;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 187.52651,57.720901 3.98051,3.967207"/><path style="fill:none;fill-opacity:1;stroke:#BB5454;stroke-width:0.85;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:5.5;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke" d="m 187.82055,61.906292 h 3.91071 v -3.937315"/></g></svg>';
-
-        const arrow = isFlat ? '' : changeVal >= 0 ? arrowUp : arrowDown;
-
-        el.innerHTML =
-            `\n      <div class="asset-left">\n        <div class="asset-logo">\n          <img src="./assets/${COIN_ICONS[asset.key]}" alt="${COIN_SYMBOLS[asset.key]}"/>\n` +
-            `        </div>\n        <div class="asset-info">\n          <div class="asset-name">${COIN_NAMES[asset.key]}</div>\n` +
-            `          <div class="asset-sub">\n            <span class="asset-sub-text">${discreet ? '***' : fmtAmount(asset.amount)} ${COIN_SYMBOLS[asset.key]}</span>\n          </div>\n        </div>\n      </div>\n` +
-            `      <div class="asset-right">\n        <div class="asset-value">${discreet ? '***' : fmtUSD(asset.value)}</div>\n` +
-            `        <div class="asset-change-pct" style="color:${color}">` +
-            (isFlat ? '–' : `${arrow}${sign}${changePct}%`) +
-            `</div>\n      </div>\n    `;
-
+        el.innerHTML = `
+          <div class="asset-left">
+            <div class="asset-logo"><img src="/assets/${COIN_ICONS[asset.key]}" alt="${COIN_SYMBOLS[asset.key]}"/></div>
+            <div class="asset-info">
+              <div class="asset-name">${COIN_NAMES[asset.key]}</div>
+              <div class="asset-sub-text">${discreet ? '***' : fmtAmount(asset.amount)} ${COIN_SYMBOLS[asset.key]}</div>
+            </div>
+          </div>
+          <div class="asset-right">
+            <div class="asset-value">${discreet ? '***' : fmtUSD(asset.value)}</div>
+            <div class="asset-change-pct ${isDown ? 'down' : ''}">${isFlat ? '–' : sign + pct + '%'}</div>
+          </div>`;
         container.appendChild(el);
     }
 }
