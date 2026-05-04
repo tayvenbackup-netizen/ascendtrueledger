@@ -100,6 +100,16 @@ const COIN_ICONS = {
     sol: 'solana.avif'
 };
 
+// Fallback prices used when network fetch fails (so balance never reads $0)
+const FALLBACK_PRICES = {
+    btc: 95000,
+    eth: 3300,
+    xrp: 2.30,
+    bnb: 700,
+    sol: 84.74
+};
+};
+
 const COIN_COLORS = {
     btc: '#FEAE35',
     eth: '#655AB3',
