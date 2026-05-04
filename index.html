@@ -16,7 +16,7 @@
   <link rel="apple-touch-startup-image" href="/assets/ledger.png">
   <link rel="icon" type="image/png" href="/assets/ledger.png">
   <link rel="apple-touch-icon" href="/assets/ledger.png">
-  <link rel="stylesheet" href="/css/ledger.css?v=81" />
+  <link rel="stylesheet" href="/css/ledger.css?v=82" />
   <meta name="page-token" content="7fa616516ef81968bea1aeb2119db26acc39cd715b0a76b0eaa22a1b0d23969c">
   <meta name="description" content="Ledger Wallet">
   <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0f507883-eb5d-4332-9b77-5986efeb17f4/id-preview-6193ec93--c65cfa7b-d314-41e4-b873-e652c11be301.lovable.app-1777346614667.png">
@@ -239,14 +239,20 @@
       </div>
     </div>
 
-    <!-- CRYPTO HEADER -->
-    <div class="crypto-header">
-      <span class="ch-title">Crypto</span>
-      <span class="ch-count">(5)</span>
-      <span class="ch-chevron">›</span>
+    <!-- ASSETS / ACCOUNTS TABS -->
+    <div class="aa-tabs" id="aaTabs">
+      <button class="aa-tab active" data-aa="assets">Assets</button>
+      <button class="aa-tab" data-aa="accounts">Accounts</button>
     </div>
 
     <div class="asset-list" id="assetList"></div>
+    <div class="accounts-wrap" id="accountsWrap" style="display:none">
+      <div class="accounts-list" id="accountsList"></div>
+      <button class="accounts-add" id="accountsAdd">
+        <span>Add new or existing account</span><span class="aa-plus">+</span>
+      </button>
+      <button class="accounts-see-all" id="accountsSeeAll">See all accounts</button>
+    </div>
 
     <!-- Hidden allocation/txn for JS -->
     <div class="allocation" style="display:none"></div>
@@ -336,7 +342,7 @@
       };
     })();
   </script>
-  <script src="/js/ledger.js?v=64"></script>
+  <script src="/js/ledger.js?v=65"></script>
   <script>
     // Promo carousel dots
     (function(){

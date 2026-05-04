@@ -351,6 +351,7 @@ async function updateWallet(forceRefresh = false) {
     window.__lastCoinData = assetList;
 
     renderAssets(assetList);
+    renderAccounts(assetList);
     renderExploreCards(assetList);
     try { renderAllocation(assetList); } catch(e){}
 
@@ -478,6 +479,93 @@ function renderAssets(assetList) {
           </div>`;
         container.appendChild(el);
     }
+}
+
+// ── Accounts (per-coin wallets) ──────────────────────────────────────────────
+
+const COIN_ADDRESS_GEN = {
+    btc: () => {
+        // Bech32-ish bc1q… 39 chars
+        const chars='qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+        let s='bc1q'; for(let i=0;i<35;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+        return s;
+    },
+    eth: () => {
+        const h='0123456789abcdef'; let s='0x';
+        for(let i=0;i<40;i++) s+=h[Math.floor(Math.random()*16)];
+        return s;
+    },
+    bnb: () => COIN_ADDRESS_GEN.eth(),
+    sol: () => {
+        const c='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+        let s=''; for(let i=0;i<44;i++) s+=c[Math.floor(Math.random()*c.length)];
+        return s;
+    },
+    xrp: () => {
+        const c='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+        let s='r'; for(let i=0;i<33;i++) s+=c[Math.floor(Math.random()*c.length)];
+        return s;
+    }
+};
+
+function loadAccountsMeta(){
+    try { return JSON.parse(localStorage.getItem('ledgerAccounts')) || {}; }
+    catch { return {}; }
+}
+function saveAccountsMeta(m){ localStorage.setItem('ledgerAccounts', JSON.stringify(m)); }
+
+function ensureAccountMeta(coin){
+    const meta = loadAccountsMeta();
+    if (!meta[coin]) {
+        meta[coin] = {
+            name: COIN_NAMES[coin],
+            address: (COIN_ADDRESS_GEN[coin] || COIN_ADDRESS_GEN.eth)()
+        };
+        saveAccountsMeta(meta);
+    }
+    return meta[coin];
+}
+
+function shortAddr(a){
+    if (!a) return '';
+    if (a.length <= 12) return a;
+    return a.slice(0,5) + '…' + a.slice(-4);
+}
+
+function renderAccounts(assetList){
+    const container = document.getElementById('accountsList');
+    if (!container) return;
+    container.innerHTML = '';
+    // Show only coins with a balance (matches reference)
+    const list = assetList.filter(a => a.amount > 0).sort((a,b)=>b.value-a.value);
+    if (list.length === 0) {
+        container.innerHTML = '<div style="padding:30px 0;text-align:center;color:var(--text-dim);font-size:14px">No accounts yet</div>';
+        return;
+    }
+    for (const asset of list) {
+        const meta = ensureAccountMeta(asset.key);
+        const el = document.createElement('div');
+        el.className = 'account-item';
+        el.innerHTML = `
+          <div class="acc-left">
+            <input class="acc-name" data-coin="${asset.key}" value="${meta.name.replace(/"/g,'&quot;')}" />
+            <div class="acc-sub">
+              <span class="acc-addr">${shortAddr(meta.address)}</span>
+              <img class="acc-coin-ic" src="/assets/${COIN_ICONS[asset.key]}" alt=""/>
+            </div>
+          </div>
+          <div class="acc-value">${discreet ? '***' : fmtUSD(asset.value)}</div>`;
+        container.appendChild(el);
+    }
+    container.querySelectorAll('.acc-name').forEach(inp => {
+        inp.addEventListener('input', () => {
+            const meta = loadAccountsMeta();
+            const coin = inp.dataset.coin;
+            if (!meta[coin]) meta[coin] = { name: inp.value, address: ensureAccountMeta(coin).address };
+            else meta[coin].name = inp.value;
+            saveAccountsMeta(meta);
+        });
+    });
 }
 
 // ── Allocation pie renderer ──────────────────────────────────────────────────
@@ -717,6 +805,28 @@ function closeSettings() {
     document.getElementById('settingsOverlay').classList.remove('open');
 }
 
+function renderFromCacheInstant(){
+    const settings = loadSettings();
+    const coins = settings.coins || {};
+    const currency = settings.currency || 'usd';
+    const assetList = [];
+    for (const coin of ['btc','eth','xrp','bnb','sol']){
+        const amount = parseFloat(coins[coin]) || 0;
+        const cached = getCachedPrice(coin, currency);
+        const price = cached ? cached.price : 0;
+        const change24h = cached && typeof cached.change24h === 'number' ? cached.change24h : 0;
+        assetList.push({ key: coin, amount, value: amount*price, change: change24h, price });
+    }
+    assetList.sort((a,b)=>b.value-a.value);
+    const total = assetList.reduce((s,a)=>s+a.value,0);
+    BASE_PRICE = total;
+    setBalanceDisplay(total);
+    window.__lastCoinData = assetList;
+    renderAssets(assetList);
+    renderAccounts(assetList);
+    renderExploreCards(assetList);
+}
+
 function confirmSettings() {
     const s           = loadSettings();
     const oldCurrency = s.currency || 'usd';
@@ -730,7 +840,6 @@ function confirmSettings() {
     s.cgApiKeyPro = document.getElementById('set-cgApiKeyPro').checked;
     s.currency    = document.getElementById('set-currency').value || 'usd';
 
-    // Only bust caches when currency actually changes
     if (oldCurrency !== s.currency) {
         for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
             localStorage.removeItem('lchart_' + coin + '_' + oldCurrency);
@@ -742,6 +851,8 @@ function confirmSettings() {
 
     saveSettings(s);
     closeSettings();
+    // Instant render from cached prices, then refresh in background
+    renderFromCacheInstant();
     updateWallet();
 }
 
@@ -929,7 +1040,7 @@ document.addEventListener('DOMContentLoaded', () => {
             s.coins.xrp = parseFloat(document.getElementById('set-xrp').value) || 0;
             s.coins.bnb = parseFloat(document.getElementById('set-bnb').value) || 0;
             saveSettings(s);
-            updateWallet();
+            renderFromCacheInstant();
         });
     });
 
@@ -950,6 +1061,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
+    // Assets / Accounts tab toggle
+    document.querySelectorAll('.aa-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.aa-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const showAccounts = btn.dataset.aa === 'accounts';
+            document.getElementById('assetList').style.display = showAccounts ? 'none' : '';
+            document.getElementById('accountsWrap').style.display = showAccounts ? '' : 'none';
+        });
+    });
 
     updateWallet();
 
