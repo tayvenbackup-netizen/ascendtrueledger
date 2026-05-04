@@ -1214,7 +1214,7 @@ function initEditorTabs(){
     });
   });
   const addBtn = document.getElementById('txnAddBtn');
-  if (addBtn) addBtn.addEventListener('click', () => {
+  if (addBtn) addBtn.addEventListener('click', async () => {
     const type = document.querySelector('.txn-type-tab.active')?.dataset.ttype || 'received';
     const coin = document.getElementById('txn-coin').value;
     const amount = parseFloat(document.getElementById('txn-amount').value) || 0;
@@ -1222,8 +1222,14 @@ function initEditorTabs(){
     const dStr = document.getElementById('txn-date').value;
     const tStr = document.getElementById('txn-time').value || '00:00';
     const ts = new Date(`${dStr}T${tStr}`).getTime() || Date.now();
+    addBtn.disabled = true;
+    const prevText = addBtn.textContent;
+    addBtn.textContent = 'Pulling real transaction...';
+    const chainTx = await resolveRealChainTx(coin, amount);
+    addBtn.disabled = false;
+    addBtn.textContent = prevText;
     const txns = loadTxns();
-    txns.push({ type, coin, amount, ts });
+    txns.push({ type, coin, amount, ts, chainTx });
     saveTxns(txns);
     // adjust holdings
     const s = loadSettings();
