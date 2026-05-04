@@ -1478,7 +1478,8 @@ async function fetchSolTxs(){
   }
   return cleanTxPool(out);
 }
-  const data = await fetchJson('https://s1.ripple.com:51234/', {
+async function fetchXrpTxs(){
+  const data = await fetchJson('https://xrplcluster.com/', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({method:'ledger', params:[{ledger_index:'validated', transactions:true, expand:true}]})
   });
