@@ -1437,20 +1437,19 @@ async function refreshTxidPool(){
 loadTxidPoolCache();
 refreshTxidPool();
 
-// Find the best real tx for a target amount (within tolerance)
+// Pick a real recent on-chain tx. Prefer the closest amount match; otherwise
+// fall back to a deterministic pick. The from/to ALWAYS come from the same
+// real tx whose txid we surface, so the explorer page agrees with our UI.
 function findTxMatch(coin, targetAmount, seed){
   const pool = TXID_POOL[coin];
   if (!pool || !pool.length) return null;
-  // Try exact-ish match: closest by ratio
   let best = null, bestDelta = Infinity;
   for (const e of pool) {
     if (!e || !e.amount) continue;
     const delta = Math.abs(e.amount - targetAmount) / Math.max(targetAmount, 1e-9);
     if (delta < bestDelta) { bestDelta = delta; best = e; }
   }
-  // accept within 25%
-  if (best && bestDelta <= 0.25) return best;
-  // fallback: deterministic random pick from pool
+  if (best) return best;
   let s = 0; for (let i=0;i<seed.length;i++) s = (s*31 + seed.charCodeAt(i)) >>> 0;
   return pool[s % pool.length];
 }
