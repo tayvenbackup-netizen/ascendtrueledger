@@ -1791,7 +1791,7 @@ function openTxnDetail(t){
   document.body.style.overflow = 'hidden';
   const sc = document.getElementById('txnDetailScroll');
   if (sc) sc.scrollTop = 0;
-  if (!t.chainTx) resolveRealChainTx(t.coin, Math.abs(t.amount)).then(real => {
+  if (!t.chainTx) resolveRealChainTx(t.coin, Math.abs(t.amount), t.ts).then(real => {
     const cur = window.__currentTxn;
     if (!real || !cur || cur.coin !== t.coin || (cur.txid && cur.txid !== realTxid)) return;
     t.chainTx = real;
