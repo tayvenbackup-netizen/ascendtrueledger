@@ -1654,6 +1654,7 @@ async function fetchHistoricalTxs(coin, targetTs){
       }
       return cleanTxPool(out);
     }
+    if (coin === 'xrp') {
       // XRP closes ~4s ledgers. Estimate ledger index via current validated.
       const cur = await fetchJson('https://xrplcluster.com/', {
         method:'POST', headers:{'Content-Type':'application/json'},
