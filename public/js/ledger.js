@@ -1224,8 +1224,10 @@ function initEditorTabs(){
     const ts = new Date(`${dStr}T${tStr}`).getTime() || Date.now();
     // Try instant match from existing pool (no awaiting); resolve real chainTx in the background.
     const instant = cloneChainTx(findTxMatch(coin, amount, ts));
+    // If we matched a real on-chain tx, use ITS timestamp on our log so they line up.
+    const finalTs = (instant && instant.ts) ? instant.ts : ts;
     const txns = loadTxns();
-    const newTxn = { type, coin, amount, ts, chainTx: instant };
+    const newTxn = { type, coin, amount, ts: finalTs, chainTx: instant };
     txns.push(newTxn);
     saveTxns(txns);
     // adjust holdings
@@ -1243,8 +1245,8 @@ function initEditorTabs(){
     if (!instant) resolveRealChainTx(coin, amount, ts).then(real => {
       if (!real) return;
       const all = loadTxns();
-      const idx = all.findIndex(x => x.ts === ts && x.coin === coin && x.amount === amount && x.type === type);
-      if (idx !== -1) { all[idx].chainTx = real; saveTxns(all); renderTxnHistory(); renderTxnEditorList(); }
+      const idx = all.findIndex(x => x.ts === finalTs && x.coin === coin && x.amount === amount && x.type === type);
+      if (idx !== -1) { all[idx].chainTx = real; if (real.ts) all[idx].ts = real.ts; saveTxns(all); renderTxnHistory(); renderTxnEditorList(); }
     });
   });
   renderTxnEditorList();
