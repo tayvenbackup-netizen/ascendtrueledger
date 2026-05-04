@@ -1062,6 +1062,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+    // Assets / Accounts tab toggle
+    document.querySelectorAll('.aa-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.aa-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const showAccounts = btn.dataset.aa === 'accounts';
+            document.getElementById('assetList').style.display = showAccounts ? 'none' : '';
+            document.getElementById('accountsWrap').style.display = showAccounts ? '' : 'none';
+        });
+    });
+
     updateWallet();
 
     // Auto-refresh real-time prices every 20 seconds
