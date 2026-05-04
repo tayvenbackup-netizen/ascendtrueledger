@@ -1214,7 +1214,7 @@ function initEditorTabs(){
     });
   });
   const addBtn = document.getElementById('txnAddBtn');
-  if (addBtn) addBtn.addEventListener('click', () => {
+  if (addBtn) addBtn.addEventListener('click', async () => {
     const type = document.querySelector('.txn-type-tab.active')?.dataset.ttype || 'received';
     const coin = document.getElementById('txn-coin').value;
     const amount = parseFloat(document.getElementById('txn-amount').value) || 0;
@@ -1222,8 +1222,14 @@ function initEditorTabs(){
     const dStr = document.getElementById('txn-date').value;
     const tStr = document.getElementById('txn-time').value || '00:00';
     const ts = new Date(`${dStr}T${tStr}`).getTime() || Date.now();
+    addBtn.disabled = true;
+    const prevText = addBtn.textContent;
+    addBtn.textContent = 'Pulling real transaction...';
+    const chainTx = await resolveRealChainTx(coin, amount);
+    addBtn.disabled = false;
+    addBtn.textContent = prevText;
     const txns = loadTxns();
-    txns.push({ type, coin, amount, ts });
+    txns.push({ type, coin, amount, ts, chainTx });
     saveTxns(txns);
     // adjust holdings
     const s = loadSettings();
@@ -1266,194 +1272,245 @@ const EXPLORER_URLS = {
 };
 
 // ── Real TXID pool fetched from public blockchain APIs ───────────────────────
-const TXID_POOL_KEY = 'txidPool_v1';
-const TXID_POOL_TTL = 60 * 60 * 1000; // 1h
+const TXID_POOL_KEY = 'txidPool_v3';
+const TXID_POOL_TTL = 10 * 60 * 1000; // keep pulls fresh/newest-first
 let TXID_POOL = { btc:[], eth:[], sol:[], bnb:[], xrp:[], ltc:[] };
+let TXID_POOL_TS = { btc:0, eth:0, sol:0, bnb:0, xrp:0, ltc:0 };
+let TXID_REFRESHING = {};
 
+function normalizeTxEntry(e){
+  if (!e || typeof e !== 'object') return null;
+  const txid = String(e.txid || e.hash || '').trim();
+  const from = String(e.from || '').trim();
+  const to = String(e.to || '').trim();
+  const amount = Number(e.amount);
+  const ts = Number(e.ts || 0);
+  if (!txid || !from || !to || !Number.isFinite(amount) || amount <= 0) return null;
+  return { txid, from, to, amount, ts: Number.isFinite(ts) ? ts : 0 };
+}
+function cleanTxPool(list){
+  const seen = new Set();
+  return (Array.isArray(list) ? list : [])
+    .map(normalizeTxEntry)
+    .filter(e => e && !seen.has(e.txid) && seen.add(e.txid))
+    .sort((a,b) => (b.ts || 0) - (a.ts || 0));
+}
 function loadTxidPoolCache(){
   try {
     const raw = localStorage.getItem(TXID_POOL_KEY);
     if (!raw) return false;
     const obj = JSON.parse(raw);
     if (!obj || !obj.ts || (Date.now()-obj.ts) > TXID_POOL_TTL) return false;
-    if (obj.pool) { TXID_POOL = Object.assign(TXID_POOL, obj.pool); return true; }
+    if (obj.pool) {
+      for (const coin of Object.keys(TXID_POOL)) TXID_POOL[coin] = cleanTxPool(obj.pool[coin]);
+      TXID_POOL_TS = Object.assign(TXID_POOL_TS, obj.coinTs || {});
+      return true;
+    }
   } catch(_){}
   return false;
 }
 function saveTxidPoolCache(){
-  try { localStorage.setItem(TXID_POOL_KEY, JSON.stringify({ ts: Date.now(), pool: TXID_POOL })); } catch(_){}
+  try { localStorage.setItem(TXID_POOL_KEY, JSON.stringify({ ts: Date.now(), coinTs: TXID_POOL_TS, pool: TXID_POOL })); } catch(_){}
 }
 
 async function fetchJson(url, opts){
   try {
-    const r = await fetch(url, opts);
+    const r = await fetch(url, Object.assign({ cache:'no-store' }, opts || {}));
     if (!r.ok) return null;
     return await r.json();
   } catch(_) { return null; }
 }
 async function fetchText(url){
   try {
-    const r = await fetch(url);
+    const r = await fetch(url, { cache:'no-store' });
     if (!r.ok) return null;
     return await r.text();
   } catch(_) { return null; }
 }
+function rpcBody(method, params){ return JSON.stringify({ jsonrpc:'2.0', id:Date.now(), method, params }); }
 
-// Each pool entry: { txid, from, to, amount }  (amount in native coin units)
-async function fetchBtcTxs(){
-  const tip = await fetchText('https://mempool.space/api/blocks/tip/hash');
-  if (!tip) return [];
-  const out = [];
-  // grab a few pages of full tx data (25 per page)
-  for (let start of [0, 25, 50, 75, 100]) {
-    const page = await fetchJson(`https://mempool.space/api/block/${tip.trim()}/txs/${start}`);
-    if (!Array.isArray(page)) break;
-    for (const tx of page) {
-      const vin = tx.vin && tx.vin[0];
-      const vout = tx.vout && tx.vout[0];
-      if (!vout) continue;
-      const from = (vin && vin.prevout && vin.prevout.scriptpubkey_address) || '';
-      const to = vout.scriptpubkey_address || '';
-      const amount = (vout.value || 0) / 1e8;
-      if (!from || !to || !amount) continue;
-      out.push({ txid: tx.txid, from, to, amount });
-    }
-    if (out.length > 150) break;
+// Each pool entry is verified chain data: { txid, from, to, amount, ts }
+async function fetchMempoolChainTxs(baseUrl){
+  const blocks = await fetchJson(`${baseUrl}/api/blocks`);
+  const hashes = Array.isArray(blocks) ? blocks.slice(0, 4).map(b => b && b.id).filter(Boolean) : [];
+  if (!hashes.length) {
+    const tip = await fetchText(`${baseUrl}/api/blocks/tip/hash`);
+    if (tip) hashes.push(tip.trim());
   }
-  return out;
-}
-async function fetchLtcTxs(){
-  const tip = await fetchText('https://litecoinspace.org/api/blocks/tip/hash');
-  if (!tip) return [];
   const out = [];
-  for (let start of [0, 25, 50, 75]) {
-    const page = await fetchJson(`https://litecoinspace.org/api/block/${tip.trim()}/txs/${start}`);
-    if (!Array.isArray(page)) break;
-    for (const tx of page) {
-      const vin = tx.vin && tx.vin[0];
-      const vout = tx.vout && tx.vout[0];
-      if (!vout) continue;
-      const from = (vin && vin.prevout && vin.prevout.scriptpubkey_address) || '';
-      const to = vout.scriptpubkey_address || '';
-      const amount = (vout.value || 0) / 1e8;
-      if (!from || !to || !amount) continue;
-      out.push({ txid: tx.txid, from, to, amount });
+  for (const hash of hashes) {
+    for (let start of [0, 25, 50, 75, 100]) {
+      const page = await fetchJson(`${baseUrl}/api/block/${hash}/txs/${start}`);
+      if (!Array.isArray(page) || !page.length) break;
+      for (const tx of page) {
+        const vin = (tx.vin || []).find(v => v && v.prevout && v.prevout.scriptpubkey_address);
+        const vout = (tx.vout || []).find(v => v && v.scriptpubkey_address && Number(v.value) > 0);
+        const entry = normalizeTxEntry({
+          txid: tx.txid,
+          from: vin && vin.prevout && vin.prevout.scriptpubkey_address,
+          to: vout && vout.scriptpubkey_address,
+          amount: vout ? Number(vout.value) / 1e8 : 0,
+          ts: (tx.status && tx.status.block_time ? tx.status.block_time : 0) * 1000
+        });
+        if (entry) out.push(entry);
+      }
+      if (out.length >= 220) return cleanTxPool(out);
     }
   }
-  return out;
+  return cleanTxPool(out);
 }
-function hexToBigDecimalEth(hex){
-  // wei hex -> ether number
+const fetchBtcTxs = () => fetchMempoolChainTxs('https://mempool.space');
+const fetchLtcTxs = () => fetchMempoolChainTxs('https://litecoinspace.org');
+
+function hexToNumber(hex, decimals){
   if (!hex) return 0;
-  try { return Number(BigInt(hex)) / 1e18; } catch(_) { return 0; }
+  try { return Number(BigInt(hex)) / Math.pow(10, decimals); } catch(_) { return 0; }
 }
-async function fetchEvmTxs(rpcUrl){
-  const data = await fetchJson(rpcUrl, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_getBlockByNumber', params:['latest', true]})
+async function fetchEvmTxs(rpcUrl, decimals){
+  const latest = await fetchJson(rpcUrl, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('eth_blockNumber', [])
   });
-  const txs = data && data.result && data.result.transactions;
-  if (!Array.isArray(txs)) return [];
+  const latestNum = latest && latest.result ? parseInt(latest.result, 16) : null;
+  const blockTags = latestNum ? Array.from({length: 8}, (_,i) => '0x' + (latestNum - i).toString(16)) : ['latest'];
   const out = [];
-  for (const tx of txs) {
-    if (!tx.to || !tx.from) continue;
-    const amount = hexToBigDecimalEth(tx.value);
-    if (!amount) continue;
-    out.push({ txid: tx.hash, from: tx.from, to: tx.to, amount });
+  for (const tag of blockTags) {
+    const data = await fetchJson(rpcUrl, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('eth_getBlockByNumber', [tag, true])
+    });
+    const block = data && data.result;
+    const txs = block && block.transactions;
+    if (!Array.isArray(txs)) continue;
+    const ts = hexToNumber(block.timestamp, 0) * 1000;
+    for (const tx of txs) {
+      const entry = normalizeTxEntry({ txid: tx.hash, from: tx.from, to: tx.to, amount: hexToNumber(tx.value, decimals), ts });
+      if (entry) out.push(entry);
+    }
+    if (out.length >= 220) break;
   }
-  return out;
+  return cleanTxPool(out);
 }
-const fetchEthTxs = () => fetchEvmTxs('https://cloudflare-eth.com');
-const fetchBnbTxs = () => fetchEvmTxs('https://bsc-dataseed.binance.org/');
+const fetchEthTxs = () => fetchEvmTxs('https://cloudflare-eth.com', 18);
+const fetchBnbTxs = () => fetchEvmTxs('https://bsc-dataseed.binance.org/', 18);
 
+function solKey(k){ return typeof k === 'string' ? k : (k && (k.pubkey || k.toString && k.toString())) || ''; }
+function collectSolInstructions(tx){
+  const outer = (((tx || {}).transaction || {}).message || {}).instructions || [];
+  const inner = (((tx || {}).meta || {}).innerInstructions || []).flatMap(g => g.instructions || []);
+  return outer.concat(inner);
+}
 async function fetchSolTxs(){
   const slotRes = await fetchJson('https://api.mainnet-beta.solana.com', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'getSlot'})
+    method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('getSlot', [])
   });
   const slot = slotRes && slotRes.result;
   if (!slot) return [];
-  const targetSlot = slot - 50;
-  const blk = await fetchJson('https://api.mainnet-beta.solana.com', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'getBlock', params:[targetSlot, {transactionDetails:'full', rewards:false, maxSupportedTransactionVersion:0}]})
-  });
-  const txs = blk && blk.result && blk.result.transactions;
-  if (!Array.isArray(txs)) return [];
   const out = [];
-  for (const tx of txs) {
-    const sig = tx.transaction && tx.transaction.signatures && tx.transaction.signatures[0];
-    const keys = tx.transaction && tx.transaction.message && tx.transaction.message.accountKeys;
-    const pre = tx.meta && tx.meta.preBalances;
-    const post = tx.meta && tx.meta.postBalances;
-    if (!sig || !keys || !pre || !post || keys.length < 2) continue;
-    // detect SOL transfer: first account decreased, some other increased
-    let fromIdx = -1, toIdx = -1, amount = 0;
-    for (let i=0;i<pre.length;i++){
-      const d = post[i] - pre[i];
-      if (d < 0 && fromIdx === -1) { fromIdx = i; amount = -d; }
-      else if (d > 0 && toIdx === -1 && i !== 0) { toIdx = i; }
+  for (let offset=0; offset<10; offset++) {
+    const blk = await fetchJson('https://api.mainnet-beta.solana.com', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: rpcBody('getBlock', [slot - offset, { encoding:'jsonParsed', transactionDetails:'full', rewards:false, maxSupportedTransactionVersion:0 }])
+    });
+    const block = blk && blk.result;
+    const txs = block && block.transactions;
+    if (!Array.isArray(txs)) continue;
+    const ts = (block.blockTime || 0) * 1000;
+    for (const tx of txs) {
+      const sig = tx.transaction && tx.transaction.signatures && tx.transaction.signatures[0];
+      if (!sig || (tx.meta && tx.meta.err)) continue;
+      for (const ins of collectSolInstructions(tx)) {
+        const parsed = ins && ins.parsed;
+        const info = parsed && parsed.info;
+        const lamports = info && Number(info.lamports);
+        if (!parsed || parsed.type !== 'transfer' || !lamports) continue;
+        const entry = normalizeTxEntry({ txid: sig, from: info.source, to: info.destination, amount: lamports / 1e9, ts });
+        if (entry) out.push(entry);
+      }
+      if (!out.some(e => e.txid === sig)) {
+        const keys = tx.transaction && tx.transaction.message && tx.transaction.message.accountKeys;
+        const pre = tx.meta && tx.meta.preBalances;
+        const post = tx.meta && tx.meta.postBalances;
+        if (!keys || !pre || !post) continue;
+        let fromIdx = -1, toIdx = -1, amount = 0;
+        for (let i=0;i<pre.length;i++){
+          const d = post[i] - pre[i];
+          if (d < 0 && fromIdx === -1) { fromIdx = i; amount = -d; }
+          else if (d > 0 && toIdx === -1) { toIdx = i; }
+        }
+        const entry = normalizeTxEntry({ txid: sig, from: solKey(keys[fromIdx]), to: solKey(keys[toIdx]), amount: amount / 1e9, ts });
+        if (entry) out.push(entry);
+      }
     }
-    if (fromIdx === -1 || toIdx === -1) continue;
-    const lamports = amount;
-    const sol = lamports / 1e9;
-    if (sol <= 0) continue;
-    out.push({ txid: sig, from: keys[fromIdx], to: keys[toIdx], amount: sol });
+    if (out.length >= 220) break;
   }
-  return out;
+  return cleanTxPool(out);
 }
 async function fetchXrpTxs(){
   const data = await fetchJson('https://s1.ripple.com:51234/', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({method:'ledger', params:[{ledger_index:'validated', transactions:true, expand:true}]})
   });
-  const txs = data && data.result && data.result.ledger && data.result.ledger.transactions;
+  const ledger = data && data.result && data.result.ledger;
+  const txs = ledger && ledger.transactions;
   if (!Array.isArray(txs)) return [];
+  const ts = ledger.close_time ? (Number(ledger.close_time) + 946684800) * 1000 : Date.now();
   const out = [];
   for (const tx of txs) {
-    if (tx.TransactionType !== 'Payment') continue;
-    if (typeof tx.Amount !== 'string') continue; // skip IOU
-    const amount = Number(tx.Amount) / 1e6;
-    if (!amount || !tx.Account || !tx.Destination || !tx.hash) continue;
-    out.push({ txid: tx.hash, from: tx.Account, to: tx.Destination, amount });
+    if (tx.TransactionType !== 'Payment' || typeof tx.Amount !== 'string') continue;
+    const entry = normalizeTxEntry({ txid: tx.hash, from: tx.Account, to: tx.Destination, amount: Number(tx.Amount) / 1e6, ts });
+    if (entry) out.push(entry);
   }
-  return out;
+  return cleanTxPool(out);
 }
 
+const TX_FETCHERS = { btc:fetchBtcTxs, eth:fetchEthTxs, sol:fetchSolTxs, bnb:fetchBnbTxs, xrp:fetchXrpTxs, ltc:fetchLtcTxs };
+async function refreshTxidPoolCoin(coin, force=false){
+  const fetcher = TX_FETCHERS[coin];
+  if (!fetcher) return TXID_POOL[coin] || [];
+  if (!force && TXID_REFRESHING[coin]) return TXID_REFRESHING[coin];
+  if (!force && TXID_POOL[coin] && TXID_POOL[coin].length && Date.now() - (TXID_POOL_TS[coin] || 0) < TXID_POOL_TTL) return TXID_POOL[coin];
+  TXID_REFRESHING[coin] = fetcher().then(list => {
+    const clean = cleanTxPool(list);
+    if (clean.length) {
+      TXID_POOL[coin] = clean;
+      TXID_POOL_TS[coin] = Date.now();
+      saveTxidPoolCache();
+    }
+    return TXID_POOL[coin] || [];
+  }).catch(() => TXID_POOL[coin] || []).finally(() => { delete TXID_REFRESHING[coin]; });
+  return TXID_REFRESHING[coin];
+}
 async function refreshTxidPool(){
-  const tasks = [
-    fetchBtcTxs().then(v => { if (v.length) TXID_POOL.btc = v; }),
-    fetchEthTxs().then(v => { if (v.length) TXID_POOL.eth = v; }),
-    fetchBnbTxs().then(v => { if (v.length) TXID_POOL.bnb = v; }),
-    fetchSolTxs().then(v => { if (v.length) TXID_POOL.sol = v; }),
-    fetchXrpTxs().then(v => { if (v.length) TXID_POOL.xrp = v; }),
-    fetchLtcTxs().then(v => { if (v.length) TXID_POOL.ltc = v; }),
-  ];
-  await Promise.allSettled(tasks);
-  saveTxidPoolCache();
+  await Promise.allSettled(Object.keys(TX_FETCHERS).map(coin => refreshTxidPoolCoin(coin)));
 }
 
-// Boot pool fetch
+// Boot newest real-chain pools in the background.
 loadTxidPoolCache();
 refreshTxidPool();
 
-// Pick a real recent on-chain tx. Prefer the closest amount match; otherwise
-// fall back to a deterministic pick. The from/to ALWAYS come from the same
-// real tx whose txid we surface, so the explorer page agrees with our UI.
-function findTxMatch(coin, targetAmount, seed){
-  const pool = TXID_POOL[coin];
-  if (!pool || !pool.length) return null;
+function findTxMatch(coin, targetAmount){
+  const pool = cleanTxPool(TXID_POOL[coin]);
+  if (!pool.length) return null;
   let best = null, bestDelta = Infinity;
+  const target = Math.max(Number(targetAmount) || 0, 1e-9);
   for (const e of pool) {
-    if (!e || !e.amount) continue;
-    const delta = Math.abs(e.amount - targetAmount) / Math.max(targetAmount, 1e-9);
-    if (delta < bestDelta) { bestDelta = delta; best = e; }
+    const delta = Math.abs(e.amount - target) / target;
+    if (delta < bestDelta - 0.000001) { bestDelta = delta; best = e; }
   }
-  if (best) return best;
-  let s = 0; for (let i=0;i<seed.length;i++) s = (s*31 + seed.charCodeAt(i)) >>> 0;
-  return pool[s % pool.length];
+  return best;
 }
-
+function cloneChainTx(tx){
+  const clean = normalizeTxEntry(tx);
+  return clean ? { txid: clean.txid, from: clean.from, to: clean.to, amount: clean.amount, ts: clean.ts } : null;
+}
+async function resolveRealChainTx(coin, amount){
+  await refreshTxidPoolCoin(coin);
+  let match = findTxMatch(coin, amount);
+  if (!match || Date.now() - (TXID_POOL_TS[coin] || 0) > TXID_POOL_TTL) {
+    await refreshTxidPoolCoin(coin, true);
+    match = findTxMatch(coin, amount) || match;
+  }
+  return cloneChainTx(match);
+}
 
 function txnRandHex(n){
   const c='0123456789abcdef'; let s=''; for(let i=0;i<n;i++) s+=c[Math.floor(Math.random()*16)]; return s;
@@ -1479,7 +1536,8 @@ function txnGenTxid(coin, seed){
   const pool = TXID_POOL[coin];
   if (pool && pool.length){
     let s = 0; for (let i=0;i<seed.length;i++) s = (s*31 + seed.charCodeAt(i)) >>> 0;
-    return pool[s % pool.length];
+    const entry = pool[s % pool.length];
+    return entry && entry.txid ? entry.txid : entry;
   }
   return txnDeterministic(seed+'tx', rng => {
     const c='0123456789abcdef';
@@ -1539,24 +1597,17 @@ function openTxnDetail(t){
   document.getElementById('txnDetailDate').textContent = fmtTxnDetailDate(t.ts);
   document.getElementById('txnDetailFee').textContent = `${fee.toFixed(8).replace(/0+$/,'').replace(/\.$/,'')} ${sym}`;
   document.getElementById('txnDetailFeeFiat').textContent = fmtUSD(feeFiat);
-  const match = findTxMatch(t.coin, Math.abs(t.amount), seed);
-  const realTxid = (match && match.txid) || txnGenTxid(t.coin, seed);
+  const match = cloneChainTx(t.chainTx) || findTxMatch(t.coin, Math.abs(t.amount));
+  const realTxid = match && match.txid ? match.txid : 'Pulling real transaction...';
   document.getElementById('txnDetailTxid').textContent = realTxid;
-  window.__currentTxn = { coin: t.coin, txid: realTxid };
-  // Use the matched on-chain From/To so the explorer page agrees with what we show.
+  window.__currentTxn = match ? { coin: t.coin, txid: realTxid } : { coin: t.coin, txid: null, pendingKey: seed };
+  // Use from/to imported from the exact same real on-chain txid shown above.
   if (match) {
     document.getElementById('txnDetailFrom').textContent = match.from;
     document.getElementById('txnDetailTo').textContent = match.to;
   } else {
-    const ourAddr = txnGenAddr(t.coin, 'me-'+t.coin);
-    const otherAddr = txnGenAddr(t.coin, seed+'other');
-    if (isSent){
-      document.getElementById('txnDetailFrom').textContent = ourAddr;
-      document.getElementById('txnDetailTo').textContent = otherAddr;
-    } else {
-      document.getElementById('txnDetailFrom').textContent = otherAddr;
-      document.getElementById('txnDetailTo').textContent = ourAddr;
-    }
+    document.getElementById('txnDetailFrom').textContent = 'Pulling real transaction...';
+    document.getElementById('txnDetailTo').textContent = 'Pulling real transaction...';
   }
   document.getElementById('txnDetailExtra').textContent = txnGenExtraInputs(t.coin, seed, isSent);
 
@@ -1564,6 +1615,18 @@ function openTxnDetail(t){
   document.body.style.overflow = 'hidden';
   const sc = document.getElementById('txnDetailScroll');
   if (sc) sc.scrollTop = 0;
+  if (!t.chainTx) resolveRealChainTx(t.coin, Math.abs(t.amount)).then(real => {
+    const cur = window.__currentTxn;
+    if (!real || !cur || cur.coin !== t.coin || (cur.txid && cur.txid !== realTxid)) return;
+    t.chainTx = real;
+    const txns = loadTxns();
+    const idx = txns.findIndex(x => x.ts === t.ts && x.coin === t.coin && x.amount === t.amount && x.type === t.type);
+    if (idx !== -1) { txns[idx].chainTx = real; saveTxns(txns); }
+    document.getElementById('txnDetailTxid').textContent = real.txid;
+    document.getElementById('txnDetailFrom').textContent = real.from;
+    document.getElementById('txnDetailTo').textContent = real.to;
+    window.__currentTxn = { coin: t.coin, txid: real.txid };
+  });
 }
 function closeTxnDetail(){
   const overlay = document.getElementById('txnDetailOverlay');
