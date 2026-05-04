@@ -1129,6 +1129,7 @@ function fmtTxnTime(ts){
 const TXN_ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/></svg>';
 const TXN_ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="18 13 12 19 6 13"/></svg>';
 
+let txnExpanded = false;
 function renderTxnHistory(){
   const list = document.getElementById('txnList');
   const seeAll = document.getElementById('txnSeeAll');
@@ -1143,7 +1144,8 @@ function renderTxnHistory(){
   const settings = loadSettings();
   const currency = settings.currency || 'usd';
   let lastDate = '';
-  const shown = txns.slice(0, 8);
+  const COLLAPSED = 3;
+  const shown = txnExpanded ? txns : txns.slice(0, COLLAPSED);
   for (const t of shown){
     const dateStr = fmtTxnDate(t.ts);
     if (dateStr !== lastDate){
@@ -1154,7 +1156,7 @@ function renderTxnHistory(){
       lastDate = dateStr;
     }
     const cached = getCachedPrice(t.coin, currency);
-    const price = cached ? cached.price : 0;
+    const price = cached ? cached.price : (currency === 'usd' ? (FALLBACK_PRICES[t.coin] || 0) : 0);
     const fiat = Math.abs(t.amount) * price;
     const isSent = t.type === 'sent';
     const sign = isSent ? '-' : '+';
@@ -1172,7 +1174,14 @@ function renderTxnHistory(){
       </div>`;
     list.appendChild(row);
   }
-  if (seeAll) seeAll.style.display = txns.length > 8 ? 'block' : 'none';
+  if (seeAll){
+    if (txns.length > COLLAPSED){
+      seeAll.style.display = 'block';
+      seeAll.textContent = txnExpanded ? 'Show less' : 'See all';
+    } else {
+      seeAll.style.display = 'none';
+    }
+  }
 }
 
 function pad2(n){ return n<10 ? '0'+n : ''+n; }
@@ -1228,6 +1237,8 @@ function initEditorTabs(){
 document.addEventListener('DOMContentLoaded', () => {
   initEditorTabs();
   renderTxnHistory();
+  const sa = document.getElementById('txnSeeAll');
+  if (sa) sa.addEventListener('click', () => { txnExpanded = !txnExpanded; renderTxnHistory(); });
 });
 
 // Hook into wallet updates
