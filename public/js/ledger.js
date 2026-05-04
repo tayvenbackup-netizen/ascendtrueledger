@@ -100,6 +100,15 @@ const COIN_ICONS = {
     sol: 'solana.avif'
 };
 
+// Fallback prices used when network fetch fails (so balance never reads $0)
+const FALLBACK_PRICES = {
+    btc: 95000,
+    eth: 3300,
+    xrp: 2.30,
+    bnb: 700,
+    sol: 84.74
+};
+
 const COIN_COLORS = {
     btc: '#FEAE35',
     eth: '#655AB3',
@@ -335,7 +344,7 @@ async function updateWallet(forceRefresh = false) {
     for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
         const amount   = parseFloat(coins[coin]) || 0;
         const cached   = getCachedPrice(coin, currency);
-        const price    = cached ? cached.price    : 0;
+        const price    = cached ? cached.price    : (currency === 'usd' ? (FALLBACK_PRICES[coin] || 0) : 0);
         const change24h = cached && typeof cached.change24h === 'number' ? cached.change24h : 0;
         const value    = amount * price;
         assetList.push({ key: coin, amount, value, change: change24h, price });
@@ -813,7 +822,7 @@ function renderFromCacheInstant(){
     for (const coin of ['btc','eth','xrp','bnb','sol']){
         const amount = parseFloat(coins[coin]) || 0;
         const cached = getCachedPrice(coin, currency);
-        const price = cached ? cached.price : 0;
+        const price = cached ? cached.price : (currency === 'usd' ? (FALLBACK_PRICES[coin] || 0) : 0);
         const change24h = cached && typeof cached.change24h === 'number' ? cached.change24h : 0;
         assetList.push({ key: coin, amount, value: amount*price, change: change24h, price });
     }

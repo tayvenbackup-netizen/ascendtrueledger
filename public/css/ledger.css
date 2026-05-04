@@ -12,7 +12,7 @@
   --safe-top:env(safe-area-inset-top, 0px);
   --safe-bottom:env(safe-area-inset-bottom, 0px);
 }
-html,body{height:100%;background:#000;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none;overflow:hidden}
+html,body{height:100%;width:100%;background:#000;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none;overflow:hidden;touch-action:pan-y;overflow-x:hidden}
 button{background:none;border:none;color:inherit;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 img{display:block;max-width:100%}
 
@@ -29,10 +29,11 @@ img{display:block;max-width:100%}
 
 .scrollable{
   position:relative;z-index:2;
-  height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  height:100%;width:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
   scrollbar-width:none;padding-bottom:100px;
   overscroll-behavior:none;
   background:#0a0a0c;
+  touch-action:pan-y;
 }
 #ptr-wrapper{position:relative;z-index:1}
 .bg-glow{
