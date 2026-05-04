@@ -1431,8 +1431,8 @@ async function fetchEvmTxs(rpcUrl, decimals){
   }
   return cleanTxPool(out);
 }
-const fetchEthTxs = () => fetchEvmTxs('https://cloudflare-eth.com', 18);
-const fetchBnbTxs = () => fetchEvmTxs('https://bsc-dataseed.binance.org/', 18);
+const fetchEthTxs = () => fetchEvmTxs('https://ethereum-rpc.publicnode.com', 18);
+const fetchBnbTxs = () => fetchEvmTxs('https://bsc-rpc.publicnode.com', 18);
 
 function solKey(k){ return typeof k === 'string' ? k : (k && (k.pubkey || k.toString && k.toString())) || ''; }
 function collectSolInstructions(tx){
