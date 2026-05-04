@@ -16,7 +16,7 @@
   <link rel="apple-touch-startup-image" href="/assets/ledger.png">
   <link rel="icon" type="image/png" href="/assets/ledger.png">
   <link rel="apple-touch-icon" href="/assets/ledger.png">
-  <link rel="stylesheet" href="/css/ledger.css?v=87" />
+  <link rel="stylesheet" href="/css/ledger.css?v=88" />
   <meta name="page-token" content="7fa616516ef81968bea1aeb2119db26acc39cd715b0a76b0eaa22a1b0d23969c">
   <meta name="description" content="Ledger Wallet">
   <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0f507883-eb5d-4332-9b77-5986efeb17f4/id-preview-6193ec93--c65cfa7b-d314-41e4-b873-e652c11be301.lovable.app-1777346614667.png">
@@ -383,6 +383,47 @@
     </div>
   </div>
 
+  <!-- TRANSACTION DETAIL OVERLAY -->
+  <div id="txnDetailOverlay" class="txn-detail-overlay">
+    <div class="txn-detail-screen">
+      <div class="txn-detail-header">
+        <button class="txn-detail-back" id="txnDetailBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+        <div class="txn-detail-titles">
+          <div class="txn-detail-eyebrow">Transaction details</div>
+          <div class="txn-detail-title" id="txnDetailType">Received</div>
+        </div>
+      </div>
+      <div class="txn-detail-scroll" id="txnDetailScroll">
+        <div class="txn-detail-hero">
+          <div class="txn-detail-arrow" id="txnDetailArrow"></div>
+          <div class="txn-detail-amt" id="txnDetailAmt">+0 BTC</div>
+          <div class="txn-detail-fiat">
+            <span id="txnDetailFiat">+$0</span>
+            <span class="txn-detail-info">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9.5"/><line x1="12" y1="11" x2="12" y2="17"/><circle cx="12" cy="7.6" r="1" fill="currentColor"/></svg>
+            </span>
+          </div>
+          <div class="txn-detail-confirm">
+            <span class="txn-confirm-dot"></span>
+            <span id="txnDetailConfirm">Confirmed (0)</span>
+          </div>
+        </div>
+        <div class="txn-field"><div class="txn-field-label">Account</div><div class="txn-field-value" id="txnDetailAccount">Bitcoin 1</div></div>
+        <div class="txn-field"><div class="txn-field-label">Date</div><div class="txn-field-value" id="txnDetailDate">—</div></div>
+        <div class="txn-field"><div class="txn-field-label">Network fees</div><div class="txn-field-fee"><span id="txnDetailFee">0 BTC</span><span class="txn-fee-approx">≈</span><span id="txnDetailFeeFiat">$0.00</span></div></div>
+        <div class="txn-field"><div class="txn-field-label">Transaction ID</div><div class="txn-field-value mono" id="txnDetailTxid">—</div></div>
+        <div class="txn-field"><div class="txn-field-label">From</div><div class="txn-field-value mono" id="txnDetailFrom">—</div></div>
+        <div class="txn-field"><div class="txn-field-label">To</div><div class="txn-field-value mono" id="txnDetailTo">—</div></div>
+        <div class="txn-field"><div class="txn-field-label">operationDetails.extra.inputs</div><div class="txn-field-value mono" id="txnDetailExtra">—</div></div>
+      </div>
+      <div class="txn-detail-footer">
+        <button class="txn-detail-explorer">View in explorer</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function(){
       const _fetch = window.fetch;
@@ -398,7 +439,7 @@
       };
     })();
   </script>
-  <script src="/js/ledger.js?v=69"></script>
+  <script src="/js/ledger.js?v=70"></script>
   <script>
     // Promo carousel dots
     (function(){
