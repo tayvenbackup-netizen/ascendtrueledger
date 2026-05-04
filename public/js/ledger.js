@@ -1096,3 +1096,133 @@ document.addEventListener('keydown', e => {
         e.preventDefault();
     }
 });
+// ── Transactions ─────────────────────────────────────────────────────────────
+function loadTxns(){
+  try { return JSON.parse(localStorage.getItem('ledgerTxns')) || []; }
+  catch { return []; }
+}
+function saveTxns(t){ localStorage.setItem('ledgerTxns', JSON.stringify(t)); }
+
+function fmtTxnDate(ts){
+  const d = new Date(ts);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const day = new Date(d); day.setHours(0,0,0,0);
+  const diff = Math.round((today - day)/86400000);
+  const base = `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`;
+  if (diff === 0) return base + ' - TODAY';
+  if (diff === 1) return base + ' - YESTERDAY';
+  return base;
+}
+function fmtTxnTime(ts){
+  return new Date(ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+
+const TXN_ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/></svg>';
+const TXN_ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="18 13 12 19 6 13"/></svg>';
+
+function renderTxnHistory(){
+  const list = document.getElementById('txnList');
+  const seeAll = document.getElementById('txnSeeAll');
+  if (!list) return;
+  const txns = loadTxns().slice().sort((a,b)=>b.ts-a.ts);
+  list.innerHTML = '';
+  if (txns.length === 0){
+    list.innerHTML = '<div class="txn-empty">No transactions yet</div>';
+    if (seeAll) seeAll.style.display = 'none';
+    return;
+  }
+  const settings = loadSettings();
+  const currency = settings.currency || 'usd';
+  let lastDate = '';
+  const shown = txns.slice(0, 8);
+  for (const t of shown){
+    const dateStr = fmtTxnDate(t.ts);
+    if (dateStr !== lastDate){
+      const pill = document.createElement('div');
+      pill.className = 'txn-date-pill';
+      pill.textContent = dateStr;
+      list.appendChild(pill);
+      lastDate = dateStr;
+    }
+    const cached = getCachedPrice(t.coin, currency);
+    const price = cached ? cached.price : 0;
+    const fiat = Math.abs(t.amount) * price;
+    const isSent = t.type === 'sent';
+    const sign = isSent ? '-' : '+';
+    const row = document.createElement('div');
+    row.className = 'txn-row';
+    row.innerHTML = `
+      <div class="txn-icon">${isSent ? TXN_ARROW_UP : TXN_ARROW_DOWN}</div>
+      <div class="txn-mid">
+        <div class="txn-name">${COIN_NAMES[t.coin]} 1</div>
+        <div class="txn-sub">${isSent ? 'Sent' : 'Received'} ${fmtTxnTime(t.ts)}</div>
+      </div>
+      <div class="txn-right">
+        <div class="txn-amt">${sign}${fmtAmount(Math.abs(t.amount))} ${COIN_SYMBOLS[t.coin]}</div>
+        <div class="txn-fiat">${sign}${fmtUSD(fiat)}</div>
+      </div>`;
+    list.appendChild(row);
+  }
+  if (seeAll) seeAll.style.display = txns.length > 8 ? 'block' : 'none';
+}
+
+function pad2(n){ return n<10 ? '0'+n : ''+n; }
+
+function initEditorTabs(){
+  document.querySelectorAll('.editor-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.editor-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const isTxn = btn.dataset.etab === 'txn';
+      document.getElementById('editorPaneCrypto').style.display = isTxn ? 'none' : '';
+      document.getElementById('editorPaneTxn').style.display = isTxn ? '' : 'none';
+      if (isTxn){
+        const now = new Date();
+        const dEl = document.getElementById('txn-date');
+        const tEl = document.getElementById('txn-time');
+        if (dEl && !dEl.value) dEl.value = `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
+        if (tEl && !tEl.value) tEl.value = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+      }
+    });
+  });
+  document.querySelectorAll('.txn-type-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.txn-type-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  const addBtn = document.getElementById('txnAddBtn');
+  if (addBtn) addBtn.addEventListener('click', () => {
+    const type = document.querySelector('.txn-type-tab.active')?.dataset.ttype || 'received';
+    const coin = document.getElementById('txn-coin').value;
+    const amount = parseFloat(document.getElementById('txn-amount').value) || 0;
+    if (amount <= 0) return;
+    const dStr = document.getElementById('txn-date').value;
+    const tStr = document.getElementById('txn-time').value || '00:00';
+    const ts = new Date(`${dStr}T${tStr}`).getTime() || Date.now();
+    const txns = loadTxns();
+    txns.push({ type, coin, amount, ts });
+    saveTxns(txns);
+    // adjust holdings
+    const s = loadSettings();
+    s.coins[coin] = (parseFloat(s.coins[coin])||0) + (type === 'sent' ? -amount : amount);
+    if (s.coins[coin] < 0) s.coins[coin] = 0;
+    saveSettings(s);
+    document.getElementById('txn-amount').value = '';
+    renderFromCacheInstant();
+    renderTxnHistory();
+    closeSettings();
+    updateWallet();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initEditorTabs();
+  renderTxnHistory();
+});
+
+// Hook into wallet updates
+const _origUpdateWallet = updateWallet;
+window.addEventListener('load', () => {
+  setInterval(renderTxnHistory, 12000);
+});
