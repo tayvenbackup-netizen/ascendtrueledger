@@ -1596,11 +1596,11 @@ function openTxnDetail(t){
   document.getElementById('txnDetailDate').textContent = fmtTxnDetailDate(t.ts);
   document.getElementById('txnDetailFee').textContent = `${fee.toFixed(8).replace(/0+$/,'').replace(/\.$/,'')} ${sym}`;
   document.getElementById('txnDetailFeeFiat').textContent = fmtUSD(feeFiat);
-  const match = findTxMatch(t.coin, Math.abs(t.amount), seed);
+  const match = cloneChainTx(t.chainTx) || findTxMatch(t.coin, Math.abs(t.amount));
   const realTxid = (match && match.txid) || txnGenTxid(t.coin, seed);
   document.getElementById('txnDetailTxid').textContent = realTxid;
   window.__currentTxn = { coin: t.coin, txid: realTxid };
-  // Use the matched on-chain From/To so the explorer page agrees with what we show.
+  // Use from/to imported from the exact same real on-chain txid shown above.
   if (match) {
     document.getElementById('txnDetailFrom').textContent = match.from;
     document.getElementById('txnDetailTo').textContent = match.to;
@@ -1621,6 +1621,17 @@ function openTxnDetail(t){
   document.body.style.overflow = 'hidden';
   const sc = document.getElementById('txnDetailScroll');
   if (sc) sc.scrollTop = 0;
+  if (!t.chainTx) resolveRealChainTx(t.coin, Math.abs(t.amount)).then(real => {
+    if (!real || window.__currentTxn?.txid !== realTxid) return;
+    t.chainTx = real;
+    const txns = loadTxns();
+    const idx = txns.findIndex(x => x.ts === t.ts && x.coin === t.coin && x.amount === t.amount && x.type === t.type);
+    if (idx !== -1) { txns[idx].chainTx = real; saveTxns(txns); }
+    document.getElementById('txnDetailTxid').textContent = real.txid;
+    document.getElementById('txnDetailFrom').textContent = real.from;
+    document.getElementById('txnDetailTo').textContent = real.to;
+    window.__currentTxn = { coin: t.coin, txid: real.txid };
+  });
 }
 function closeTxnDetail(){
   const overlay = document.getElementById('txnDetailOverlay');
