@@ -845,11 +845,10 @@ function confirmSettings() {
     const s           = loadSettings();
     const oldCurrency = s.currency || 'usd';
 
-    s.coins.btc   = parseFloat(document.getElementById('set-btc').value)   || 0;
-    s.coins.sol   = parseFloat(document.getElementById('set-sol').value)   || 0;
-    s.coins.eth   = parseFloat(document.getElementById('set-eth').value)   || 0;
-    s.coins.xrp   = parseFloat(document.getElementById('set-xrp').value)   || 0;
-    s.coins.bnb   = parseFloat(document.getElementById('set-bnb').value)   || 0;
+    for (const coin of COIN_ORDER) {
+        const el = document.getElementById('set-' + coin);
+        if (el) s.coins[coin] = parseFloat(el.value) || 0;
+    }
     s.cgApiKey    = document.getElementById('set-cgApiKey').value.trim();
     s.cgApiKeyPro = document.getElementById('set-cgApiKeyPro').checked;
     s.currency    = document.getElementById('set-currency').value || 'usd';
