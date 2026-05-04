@@ -1487,14 +1487,25 @@ async function refreshTxidPool(){
 loadTxidPoolCache();
 refreshTxidPool();
 
-function findTxMatch(coin, targetAmount){
+function findTxMatch(coin, targetAmount, targetTs){
   const pool = cleanTxPool(TXID_POOL[coin]);
   if (!pool.length) return null;
-  let best = null, bestDelta = Infinity;
   const target = Math.max(Number(targetAmount) || 0, 1e-9);
-  for (const e of pool) {
-    const delta = Math.abs(e.amount - target) / target;
-    if (delta < bestDelta - 0.000001) { bestDelta = delta; best = e; }
+  const wantTs = Number(targetTs) || 0;
+  // Time window candidates: only consider txs within ±36h of target time when ts provided.
+  let candidates = pool;
+  if (wantTs) {
+    const win = 36 * 3600 * 1000;
+    const near = pool.filter(e => e.ts && Math.abs(e.ts - wantTs) <= win);
+    if (near.length) candidates = near;
+  }
+  let best = null, bestScore = Infinity;
+  for (const e of candidates) {
+    const amtDelta = Math.abs(e.amount - target) / target; // relative price diff
+    const tDelta = wantTs && e.ts ? Math.abs(e.ts - wantTs) / (3600*1000) : 0; // hours
+    // Price dominates; time is a tiebreaker.
+    const score = amtDelta * 1000 + tDelta * 0.01;
+    if (score < bestScore) { bestScore = score; best = e; }
   }
   return best;
 }
@@ -1502,18 +1513,178 @@ function cloneChainTx(tx){
   const clean = normalizeTxEntry(tx);
   return clean ? { txid: clean.txid, from: clean.from, to: clean.to, amount: clean.amount, ts: clean.ts } : null;
 }
-async function resolveRealChainTx(coin, amount){
-  // Instant path: use cached pool immediately if available.
-  let match = findTxMatch(coin, amount);
-  if (match) {
-    // Refresh in background for next call, never blocking.
-    if (Date.now() - (TXID_POOL_TS[coin] || 0) > TXID_POOL_TTL) refreshTxidPoolCoin(coin, true);
+// Fetch historical txs near a specific timestamp (ms). Returns cleaned list; does NOT overwrite live pool.
+async function fetchHistoricalTxs(coin, targetTs){
+  try {
+    if (coin === 'btc' || coin === 'ltc') {
+      const base = coin === 'btc' ? 'https://mempool.space' : 'https://litecoinspace.org';
+      const tipHeight = await fetchText(`${base}/api/blocks/tip/height`);
+      const tipH = parseInt(tipHeight, 10);
+      if (!tipH) return [];
+      // Estimate block height by avg 10min (btc) / 2.5min (ltc) spacing
+      const now = Date.now();
+      const spacing = coin === 'btc' ? 600 : 150; // seconds
+      const secAgo = Math.max(0, (now - targetTs) / 1000);
+      let height = Math.max(1, Math.floor(tipH - secAgo / spacing));
+      // Fetch 3 nearby blocks
+      const heights = [height, height - 1, height + 1].filter(h => h > 0 && h <= tipH);
+      const hashes = await Promise.all(heights.map(h => fetchText(`${base}/api/block-height/${h}`)));
+      const validHashes = hashes.map(h => h && h.trim()).filter(Boolean);
+      const pageJobs = [];
+      for (const hash of validHashes) {
+        for (const start of [0, 25]) pageJobs.push(fetchJson(`${base}/api/block/${hash}/txs/${start}`));
+      }
+      const pages = await Promise.all(pageJobs);
+      const out = [];
+      for (const page of pages) {
+        if (!Array.isArray(page)) continue;
+        for (const tx of page) {
+          const vin = (tx.vin || []).find(v => v && v.prevout && v.prevout.scriptpubkey_address);
+          const vout = (tx.vout || []).find(v => v && v.scriptpubkey_address && Number(v.value) > 0);
+          const entry = normalizeTxEntry({
+            txid: tx.txid,
+            from: vin && vin.prevout && vin.prevout.scriptpubkey_address,
+            to: vout && vout.scriptpubkey_address,
+            amount: vout ? Number(vout.value) / 1e8 : 0,
+            ts: (tx.status && tx.status.block_time ? tx.status.block_time : 0) * 1000
+          });
+          if (entry) out.push(entry);
+        }
+      }
+      return cleanTxPool(out);
+    }
+    if (coin === 'eth' || coin === 'bnb') {
+      const rpc = coin === 'eth' ? 'https://cloudflare-eth.com' : 'https://bsc-dataseed.binance.org/';
+      const decimals = 18;
+      const latest = await fetchJson(rpc, { method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('eth_blockNumber', []) });
+      const tipNum = latest && latest.result ? parseInt(latest.result, 16) : null;
+      if (!tipNum) return [];
+      const spacing = coin === 'eth' ? 12 : 3; // seconds per block
+      const secAgo = Math.max(0, (Date.now() - targetTs) / 1000);
+      const guess = Math.max(1, tipNum - Math.floor(secAgo / spacing));
+      const nums = [guess, guess - 1, guess + 1, guess - 2, guess + 2].filter(n => n > 0 && n <= tipNum);
+      const blocks = await Promise.all(nums.map(n => fetchJson(rpc, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: rpcBody('eth_getBlockByNumber', ['0x' + n.toString(16), true])
+      })));
+      const out = [];
+      for (const data of blocks) {
+        const block = data && data.result;
+        const txs = block && block.transactions;
+        if (!Array.isArray(txs)) continue;
+        const ts = hexToNumber(block.timestamp, 0) * 1000;
+        for (const tx of txs) {
+          const entry = normalizeTxEntry({ txid: tx.hash, from: tx.from, to: tx.to, amount: hexToNumber(tx.value, decimals), ts });
+          if (entry) out.push(entry);
+        }
+      }
+      return cleanTxPool(out);
+    }
+    if (coin === 'sol') {
+      const slotRes = await fetchJson('https://api.mainnet-beta.solana.com', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('getSlot', [])
+      });
+      const tipSlot = slotRes && slotRes.result;
+      if (!tipSlot) return [];
+      const spacing = 0.4; // ~400ms per slot
+      const secAgo = Math.max(0, (Date.now() - targetTs) / 1000);
+      const guess = Math.max(1, tipSlot - Math.floor(secAgo / spacing));
+      const slots = [guess, guess - 1, guess + 1, guess - 2, guess + 2];
+      const blocks = await Promise.all(slots.map(s => fetchJson('https://api.mainnet-beta.solana.com', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: rpcBody('getBlock', [s, { encoding:'jsonParsed', transactionDetails:'full', rewards:false, maxSupportedTransactionVersion:0 }])
+      })));
+      const out = [];
+      for (const blk of blocks) {
+        const block = blk && blk.result;
+        const txs = block && block.transactions;
+        if (!Array.isArray(txs)) continue;
+        const ts = (block.blockTime || 0) * 1000;
+        for (const tx of txs) {
+          const sig = tx.transaction && tx.transaction.signatures && tx.transaction.signatures[0];
+          if (!sig || (tx.meta && tx.meta.err)) continue;
+          for (const ins of collectSolInstructions(tx)) {
+            const parsed = ins && ins.parsed;
+            const info = parsed && parsed.info;
+            const lamports = info && Number(info.lamports);
+            if (!parsed || parsed.type !== 'transfer' || !lamports) continue;
+            const entry = normalizeTxEntry({ txid: sig, from: info.source, to: info.destination, amount: lamports / 1e9, ts });
+            if (entry) out.push(entry);
+          }
+        }
+      }
+      return cleanTxPool(out);
+    }
+    if (coin === 'xrp') {
+      // XRP closes ~4s ledgers. Estimate ledger index via current validated.
+      const cur = await fetchJson('https://s1.ripple.com:51234/', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({method:'ledger_current', params:[{}]})
+      });
+      const tipIdx = cur && cur.result && (cur.result.ledger_current_index || (cur.result.ledger && cur.result.ledger.ledger_index));
+      if (!tipIdx) return [];
+      const secAgo = Math.max(0, (Date.now() - targetTs) / 1000);
+      const guess = Math.max(1, tipIdx - Math.floor(secAgo / 4));
+      const idxs = [guess, guess - 1, guess + 1];
+      const ledgers = await Promise.all(idxs.map(i => fetchJson('https://s1.ripple.com:51234/', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({method:'ledger', params:[{ledger_index:i, transactions:true, expand:true}]})
+      })));
+      const out = [];
+      for (const data of ledgers) {
+        const ledger = data && data.result && data.result.ledger;
+        const txs = ledger && ledger.transactions;
+        if (!Array.isArray(txs)) continue;
+        const ts = ledger.close_time ? (Number(ledger.close_time) + 946684800) * 1000 : 0;
+        for (const tx of txs) {
+          if (tx.TransactionType !== 'Payment' || typeof tx.Amount !== 'string') continue;
+          const entry = normalizeTxEntry({ txid: tx.hash, from: tx.Account, to: tx.Destination, amount: Number(tx.Amount) / 1e6, ts });
+          if (entry) out.push(entry);
+        }
+      }
+      return cleanTxPool(out);
+    }
+  } catch(_){}
+  return [];
+}
+// Merge historical txs into the pool so subsequent matches benefit too.
+function mergeIntoPool(coin, list){
+  if (!list || !list.length) return;
+  const combined = (TXID_POOL[coin] || []).concat(list);
+  TXID_POOL[coin] = cleanTxPool(combined);
+  saveTxidPoolCache();
+}
+async function resolveRealChainTx(coin, amount, targetTs){
+  const wantTs = Number(targetTs) || 0;
+  const now = Date.now();
+  // If targetTs is recent (<2h), the live pool already covers it.
+  const isRecent = wantTs && (now - wantTs) < 2 * 3600 * 1000;
+  // Try instant match from current pool.
+  let match = findTxMatch(coin, amount, wantTs);
+  // Determine if existing match is "in the requested time window"
+  const winOk = !wantTs || (match && match.ts && Math.abs(match.ts - wantTs) <= 36*3600*1000);
+  if (match && winOk) {
+    if (Date.now() - (TXID_POOL_TS[coin] || 0) > TXID_POOL_TTL && isRecent) refreshTxidPoolCoin(coin, true);
     return cloneChainTx(match);
   }
-  // Pool empty: race the fetch against a short timeout so UI never stalls.
-  const fetchP = refreshTxidPoolCoin(coin, true);
-  await Promise.race([fetchP, new Promise(r => setTimeout(r, 1500))]);
-  match = findTxMatch(coin, amount);
+  // Need historical fetch for the target time.
+  if (wantTs && !isRecent) {
+    const hist = await Promise.race([
+      fetchHistoricalTxs(coin, wantTs),
+      new Promise(r => setTimeout(() => r([]), 6000))
+    ]);
+    if (hist && hist.length) {
+      mergeIntoPool(coin, hist);
+      const m2 = findTxMatch(coin, amount, wantTs);
+      if (m2) return cloneChainTx(m2);
+    }
+  }
+  // Fall back to recent pool refresh if nothing else.
+  if (!match) {
+    const fetchP = refreshTxidPoolCoin(coin, true);
+    await Promise.race([fetchP, new Promise(r => setTimeout(r, 1500))]);
+    match = findTxMatch(coin, amount, wantTs);
+  }
   return cloneChainTx(match);
 }
 
