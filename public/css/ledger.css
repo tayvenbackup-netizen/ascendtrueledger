@@ -297,7 +297,7 @@ img{display:block;max-width:100%}
 .bottom-nav{
   position:fixed;left:0;right:0;bottom:0;
   max-width:500px;margin:0 auto;
-  padding:0 14px calc(var(--safe-bottom) + 14px);
+  padding:0 14px max(var(--safe-bottom), 6px);
   display:flex;align-items:center;gap:10px;
   z-index:50;pointer-events:none;
 }
