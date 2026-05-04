@@ -35,12 +35,12 @@ img{display:block;max-width:100%}
   background:#0a0a0c;
   touch-action:pan-y;
 }
-#ptr-wrapper{position:relative;z-index:1}
+#ptr-wrapper{position:relative;z-index:1;isolation:isolate}
 .bg-glow{
   position:absolute;top:0;left:0;right:0;height:560px;
   background:url('/assets/bg-purple.jpeg?v=2') no-repeat top center;
   background-size:100% auto;
-  pointer-events:none;z-index:0;
+  pointer-events:none;z-index:-1;
 }
 .bg-glow::after{
   content:"";position:absolute;inset:0;
