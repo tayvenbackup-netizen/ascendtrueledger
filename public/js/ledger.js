@@ -1598,23 +1598,16 @@ function openTxnDetail(t){
   document.getElementById('txnDetailFee').textContent = `${fee.toFixed(8).replace(/0+$/,'').replace(/\.$/,'')} ${sym}`;
   document.getElementById('txnDetailFeeFiat').textContent = fmtUSD(feeFiat);
   const match = cloneChainTx(t.chainTx) || findTxMatch(t.coin, Math.abs(t.amount));
-  const realTxid = (match && match.txid) || txnGenTxid(t.coin, seed);
+  const realTxid = match && match.txid ? match.txid : 'Pulling real transaction...';
   document.getElementById('txnDetailTxid').textContent = realTxid;
-  window.__currentTxn = { coin: t.coin, txid: realTxid };
+  window.__currentTxn = match ? { coin: t.coin, txid: realTxid } : { coin: t.coin, txid: null, pendingKey: seed };
   // Use from/to imported from the exact same real on-chain txid shown above.
   if (match) {
     document.getElementById('txnDetailFrom').textContent = match.from;
     document.getElementById('txnDetailTo').textContent = match.to;
   } else {
-    const ourAddr = txnGenAddr(t.coin, 'me-'+t.coin);
-    const otherAddr = txnGenAddr(t.coin, seed+'other');
-    if (isSent){
-      document.getElementById('txnDetailFrom').textContent = ourAddr;
-      document.getElementById('txnDetailTo').textContent = otherAddr;
-    } else {
-      document.getElementById('txnDetailFrom').textContent = otherAddr;
-      document.getElementById('txnDetailTo').textContent = ourAddr;
-    }
+    document.getElementById('txnDetailFrom').textContent = 'Pulling real transaction...';
+    document.getElementById('txnDetailTo').textContent = 'Pulling real transaction...';
   }
   document.getElementById('txnDetailExtra').textContent = txnGenExtraInputs(t.coin, seed, isSent);
 
@@ -1623,7 +1616,8 @@ function openTxnDetail(t){
   const sc = document.getElementById('txnDetailScroll');
   if (sc) sc.scrollTop = 0;
   if (!t.chainTx) resolveRealChainTx(t.coin, Math.abs(t.amount)).then(real => {
-    if (!real || window.__currentTxn?.txid !== realTxid) return;
+    const cur = window.__currentTxn;
+    if (!real || !cur || cur.coin !== t.coin || (cur.txid && cur.txid !== realTxid)) return;
     t.chainTx = real;
     const txns = loadTxns();
     const idx = txns.findIndex(x => x.ts === t.ts && x.coin === t.coin && x.amount === t.amount && x.type === t.type);
