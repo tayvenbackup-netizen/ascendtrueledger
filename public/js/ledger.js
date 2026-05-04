@@ -1503,12 +1503,17 @@ function cloneChainTx(tx){
   return clean ? { txid: clean.txid, from: clean.from, to: clean.to, amount: clean.amount, ts: clean.ts } : null;
 }
 async function resolveRealChainTx(coin, amount){
-  await refreshTxidPoolCoin(coin);
+  // Instant path: use cached pool immediately if available.
   let match = findTxMatch(coin, amount);
-  if (!match || Date.now() - (TXID_POOL_TS[coin] || 0) > TXID_POOL_TTL) {
-    await refreshTxidPoolCoin(coin, true);
-    match = findTxMatch(coin, amount) || match;
+  if (match) {
+    // Refresh in background for next call, never blocking.
+    if (Date.now() - (TXID_POOL_TS[coin] || 0) > TXID_POOL_TTL) refreshTxidPoolCoin(coin, true);
+    return cloneChainTx(match);
   }
+  // Pool empty: race the fetch against a short timeout so UI never stalls.
+  const fetchP = refreshTxidPoolCoin(coin, true);
+  await Promise.race([fetchP, new Promise(r => setTimeout(r, 1500))]);
+  match = findTxMatch(coin, amount);
   return cloneChainTx(match);
 }
 
