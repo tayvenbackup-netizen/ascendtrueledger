@@ -480,7 +480,91 @@ function renderAssets(assetList) {
     }
 }
 
-// ── Allocation pie renderer ──────────────────────────────────────────────────
+// ── Accounts (per-coin wallets) ──────────────────────────────────────────────
+
+const COIN_ADDRESS_GEN = {
+    btc: () => {
+        // Bech32-ish bc1q… 39 chars
+        const chars='qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+        let s='bc1q'; for(let i=0;i<35;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+        return s;
+    },
+    eth: () => {
+        const h='0123456789abcdef'; let s='0x';
+        for(let i=0;i<40;i++) s+=h[Math.floor(Math.random()*16)];
+        return s;
+    },
+    bnb: () => COIN_ADDRESS_GEN.eth(),
+    sol: () => {
+        const c='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+        let s=''; for(let i=0;i<44;i++) s+=c[Math.floor(Math.random()*c.length)];
+        return s;
+    },
+    xrp: () => {
+        const c='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+        let s='r'; for(let i=0;i<33;i++) s+=c[Math.floor(Math.random()*c.length)];
+        return s;
+    }
+};
+
+function loadAccountsMeta(){
+    try { return JSON.parse(localStorage.getItem('ledgerAccounts')) || {}; }
+    catch { return {}; }
+}
+function saveAccountsMeta(m){ localStorage.setItem('ledgerAccounts', JSON.stringify(m)); }
+
+function ensureAccountMeta(coin){
+    const meta = loadAccountsMeta();
+    if (!meta[coin]) {
+        meta[coin] = {
+            name: COIN_NAMES[coin],
+            address: (COIN_ADDRESS_GEN[coin] || COIN_ADDRESS_GEN.eth)()
+        };
+        saveAccountsMeta(meta);
+    }
+    return meta[coin];
+}
+
+function shortAddr(a){
+    if (!a) return '';
+    if (a.length <= 12) return a;
+    return a.slice(0,5) + '…' + a.slice(-4);
+}
+
+function renderAccounts(assetList){
+    const container = document.getElementById('accountsList');
+    if (!container) return;
+    container.innerHTML = '';
+    // Show only coins with a balance (matches reference)
+    const list = assetList.filter(a => a.amount > 0).sort((a,b)=>b.value-a.value);
+    if (list.length === 0) {
+        container.innerHTML = '<div style="padding:30px 0;text-align:center;color:var(--text-dim);font-size:14px">No accounts yet</div>';
+        return;
+    }
+    for (const asset of list) {
+        const meta = ensureAccountMeta(asset.key);
+        const el = document.createElement('div');
+        el.className = 'account-item';
+        el.innerHTML = `
+          <div class="acc-left">
+            <input class="acc-name" data-coin="${asset.key}" value="${meta.name.replace(/"/g,'&quot;')}" />
+            <div class="acc-sub">
+              <span class="acc-addr">${shortAddr(meta.address)}</span>
+              <img class="acc-coin-ic" src="/assets/${COIN_ICONS[asset.key]}" alt=""/>
+            </div>
+          </div>
+          <div class="acc-value">${discreet ? '***' : fmtUSD(asset.value)}</div>`;
+        container.appendChild(el);
+    }
+    container.querySelectorAll('.acc-name').forEach(inp => {
+        inp.addEventListener('input', () => {
+            const meta = loadAccountsMeta();
+            const coin = inp.dataset.coin;
+            if (!meta[coin]) meta[coin] = { name: inp.value, address: ensureAccountMeta(coin).address };
+            else meta[coin].name = inp.value;
+            saveAccountsMeta(meta);
+        });
+    });
 
 function arcPath(cx, cy, outerR, innerR, startAngle, endAngle) {
     const start    = startAngle - Math.PI / 2;
