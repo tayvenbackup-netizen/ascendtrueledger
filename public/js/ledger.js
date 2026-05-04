@@ -952,7 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
             s.coins.xrp = parseFloat(document.getElementById('set-xrp').value) || 0;
             s.coins.bnb = parseFloat(document.getElementById('set-bnb').value) || 0;
             saveSettings(s);
-            updateWallet();
+            renderFromCacheInstant();
         });
     });
 
