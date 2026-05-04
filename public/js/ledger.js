@@ -1372,12 +1372,12 @@ async function fetchEvmTxs(rpcUrl, decimals){
     method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('eth_blockNumber', [])
   });
   const latestNum = latest && latest.result ? parseInt(latest.result, 16) : null;
-  const blockTags = latestNum ? Array.from({length: 8}, (_,i) => '0x' + (latestNum - i).toString(16)) : ['latest'];
+  const blockTags = latestNum ? Array.from({length: 6}, (_,i) => '0x' + (latestNum - i).toString(16)) : ['latest'];
+  const blocks = await Promise.all(blockTags.map(tag => fetchJson(rpcUrl, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('eth_getBlockByNumber', [tag, true])
+  })));
   const out = [];
-  for (const tag of blockTags) {
-    const data = await fetchJson(rpcUrl, {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('eth_getBlockByNumber', [tag, true])
-    });
+  for (const data of blocks) {
     const block = data && data.result;
     const txs = block && block.transactions;
     if (!Array.isArray(txs)) continue;
@@ -1386,7 +1386,6 @@ async function fetchEvmTxs(rpcUrl, decimals){
       const entry = normalizeTxEntry({ txid: tx.hash, from: tx.from, to: tx.to, amount: hexToNumber(tx.value, decimals), ts });
       if (entry) out.push(entry);
     }
-    if (out.length >= 220) break;
   }
   return cleanTxPool(out);
 }
