@@ -239,14 +239,20 @@
       </div>
     </div>
 
-    <!-- CRYPTO HEADER -->
-    <div class="crypto-header">
-      <span class="ch-title">Crypto</span>
-      <span class="ch-count">(5)</span>
-      <span class="ch-chevron">›</span>
+    <!-- ASSETS / ACCOUNTS TABS -->
+    <div class="aa-tabs" id="aaTabs">
+      <button class="aa-tab active" data-aa="assets">Assets</button>
+      <button class="aa-tab" data-aa="accounts">Accounts</button>
     </div>
 
     <div class="asset-list" id="assetList"></div>
+    <div class="accounts-wrap" id="accountsWrap" style="display:none">
+      <div class="accounts-list" id="accountsList"></div>
+      <button class="accounts-add" id="accountsAdd">
+        <span>Add new or existing account</span><span class="aa-plus">+</span>
+      </button>
+      <button class="accounts-see-all" id="accountsSeeAll">See all accounts</button>
+    </div>
 
     <!-- Hidden allocation/txn for JS -->
     <div class="allocation" style="display:none"></div>
