@@ -805,11 +805,10 @@ function initInteraction() {
 
 function openSettings() {
     const s = loadSettings();
-    document.getElementById('set-btc').value         = s.coins.btc || '';
-    document.getElementById('set-sol').value         = s.coins.sol || '';
-    document.getElementById('set-eth').value         = s.coins.eth || '';
-    document.getElementById('set-xrp').value         = s.coins.xrp || '';
-    document.getElementById('set-bnb').value         = s.coins.bnb || '';
+    for (const coin of COIN_ORDER) {
+        const el = document.getElementById('set-' + coin);
+        if (el) el.value = s.coins[coin] || '';
+    }
     document.getElementById('set-cgApiKey').value    = s.cgApiKey  || '';
     document.getElementById('set-cgApiKeyPro').checked = !!s.cgApiKeyPro;
     document.getElementById('set-currency').value   = s.currency   || 'usd';
