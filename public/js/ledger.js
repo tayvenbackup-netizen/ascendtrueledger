@@ -1332,29 +1332,30 @@ function rpcBody(method, params){ return JSON.stringify({ jsonrpc:'2.0', id:Date
 // Each pool entry is verified chain data: { txid, from, to, amount, ts }
 async function fetchMempoolChainTxs(baseUrl){
   const blocks = await fetchJson(`${baseUrl}/api/blocks`);
-  const hashes = Array.isArray(blocks) ? blocks.slice(0, 4).map(b => b && b.id).filter(Boolean) : [];
+  let hashes = Array.isArray(blocks) ? blocks.slice(0, 3).map(b => b && b.id).filter(Boolean) : [];
   if (!hashes.length) {
     const tip = await fetchText(`${baseUrl}/api/blocks/tip/hash`);
-    if (tip) hashes.push(tip.trim());
+    if (tip) hashes = [tip.trim()];
   }
-  const out = [];
+  const pageJobs = [];
   for (const hash of hashes) {
-    for (let start of [0, 25, 50, 75, 100]) {
-      const page = await fetchJson(`${baseUrl}/api/block/${hash}/txs/${start}`);
-      if (!Array.isArray(page) || !page.length) break;
-      for (const tx of page) {
-        const vin = (tx.vin || []).find(v => v && v.prevout && v.prevout.scriptpubkey_address);
-        const vout = (tx.vout || []).find(v => v && v.scriptpubkey_address && Number(v.value) > 0);
-        const entry = normalizeTxEntry({
-          txid: tx.txid,
-          from: vin && vin.prevout && vin.prevout.scriptpubkey_address,
-          to: vout && vout.scriptpubkey_address,
-          amount: vout ? Number(vout.value) / 1e8 : 0,
-          ts: (tx.status && tx.status.block_time ? tx.status.block_time : 0) * 1000
-        });
-        if (entry) out.push(entry);
-      }
-      if (out.length >= 220) return cleanTxPool(out);
+    for (const start of [0, 25, 50]) pageJobs.push(fetchJson(`${baseUrl}/api/block/${hash}/txs/${start}`));
+  }
+  const pages = await Promise.all(pageJobs);
+  const out = [];
+  for (const page of pages) {
+    if (!Array.isArray(page)) continue;
+    for (const tx of page) {
+      const vin = (tx.vin || []).find(v => v && v.prevout && v.prevout.scriptpubkey_address);
+      const vout = (tx.vout || []).find(v => v && v.scriptpubkey_address && Number(v.value) > 0);
+      const entry = normalizeTxEntry({
+        txid: tx.txid,
+        from: vin && vin.prevout && vin.prevout.scriptpubkey_address,
+        to: vout && vout.scriptpubkey_address,
+        amount: vout ? Number(vout.value) / 1e8 : 0,
+        ts: (tx.status && tx.status.block_time ? tx.status.block_time : 0) * 1000
+      });
+      if (entry) out.push(entry);
     }
   }
   return cleanTxPool(out);
