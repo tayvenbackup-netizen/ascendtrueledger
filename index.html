@@ -16,7 +16,7 @@
   <link rel="apple-touch-startup-image" href="/assets/ledger.png">
   <link rel="icon" type="image/png" href="/assets/ledger.png">
   <link rel="apple-touch-icon" href="/assets/ledger.png">
-  <link rel="stylesheet" href="/css/ledger.css?v=84" />
+  <link rel="stylesheet" href="/css/ledger.css?v=85" />
   <meta name="page-token" content="7fa616516ef81968bea1aeb2119db26acc39cd715b0a76b0eaa22a1b0d23969c">
   <meta name="description" content="Ledger Wallet">
   <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0f507883-eb5d-4332-9b77-5986efeb17f4/id-preview-6193ec93--c65cfa7b-d314-41e4-b873-e652c11be301.lovable.app-1777346614667.png">
@@ -32,8 +32,9 @@
 
     <div class="scrollable">
     <div id="ptr-wrapper">
+    <div class="bg-glow"></div>
 
-    <!-- HEADER -->
+
     <header class="header">
       <button class="circle-btn" id="eyeBtn" aria-label="Device">
         <img src="/assets/header-device-icon.png" alt="Device" class="header-device-img"/>
@@ -251,6 +252,13 @@
       </div>
     </div>
 
+    <!-- TRANSACTION HISTORY -->
+    <div class="txn-section">
+      <div class="txn-heading">TRANSACTION HISTORY</div>
+      <div class="txn-list" id="txnList"></div>
+      <button class="txn-see-all" id="txnSeeAll" style="display:none">See all</button>
+    </div>
+
     <!-- Hidden allocation/txn for JS -->
     <div class="allocation" style="display:none"></div>
     <div class="transaction-history" style="display:none"></div>
@@ -297,7 +305,13 @@
         <span class="settings-title">Edit Portfolio - @Ascend2k on telegram</span>
         <button id="settingsClose" class="settings-close">&#x2715;</button>
       </div>
-      <div class="settings-body">
+
+      <div class="editor-tabs">
+        <button class="editor-tab active" data-etab="crypto">Add Crypto</button>
+        <button class="editor-tab" data-etab="txn">Add Transaction</button>
+      </div>
+
+      <div class="settings-body" id="editorPaneCrypto">
         <div class="settings-row"><label>BTC</label><input id="set-btc" type="number" min="0" step="any" placeholder="0"></div>
         <div class="settings-row"><label>SOL</label><input id="set-sol" type="number" min="0" step="any" placeholder="0"></div>
         <div class="settings-row"><label>ETH</label><input id="set-eth" type="number" min="0" step="any" placeholder="0"></div>
@@ -319,8 +333,53 @@
         <div class="settings-divider"></div>
         <div class="settings-row"><label>API Key</label><input id="set-cgApiKey" type="text" placeholder="Optional CoinGecko API key"></div>
         <div class="settings-row" style="margin-top:8px;"><label>Pro Key</label><input id="set-cgApiKeyPro" type="checkbox"></div>
+        <button id="settingsConfirm" class="settings-confirm">Save</button>
       </div>
-      <button id="settingsConfirm" class="settings-confirm">Save</button>
+
+      <div class="settings-body txn-editor" id="editorPaneTxn" style="display:none">
+        <div class="txn-form-row">
+          <span class="txn-form-label">Type</span>
+          <div class="txn-type-tabs">
+            <button class="txn-type-tab active" data-ttype="received">Received</button>
+            <button class="txn-type-tab" data-ttype="sent">Sent</button>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Crypto</span>
+          <div class="txn-input-wrap">
+            <select id="txn-coin" class="txn-input">
+              <option value="btc">BTC - Bitcoin</option>
+              <option value="eth">ETH - Ethereum</option>
+              <option value="sol">SOL - Solana</option>
+              <option value="xrp">XRP - Ripple</option>
+              <option value="bnb">BNB - BNB Chain</option>
+            </select>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Amount</span>
+          <div class="txn-input-wrap">
+            <input id="txn-amount" class="txn-input" type="number" min="0" step="any" placeholder="0.00"/>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Date</span>
+          <div class="txn-input-wrap">
+            <input id="txn-date" class="txn-input" type="date"/>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Time</span>
+          <div class="txn-input-wrap">
+            <input id="txn-time" class="txn-input" type="time"/>
+          </div>
+        </div>
+        <button id="txnAddBtn" class="txn-add-btn">Add Transaction</button>
+      </div>
     </div>
   </div>
 
@@ -339,7 +398,7 @@
       };
     })();
   </script>
-  <script src="/js/ledger.js?v=66"></script>
+  <script src="/js/ledger.js?v=67"></script>
   <script>
     // Promo carousel dots
     (function(){
