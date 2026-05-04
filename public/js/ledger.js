@@ -717,6 +717,28 @@ function closeSettings() {
     document.getElementById('settingsOverlay').classList.remove('open');
 }
 
+function renderFromCacheInstant(){
+    const settings = loadSettings();
+    const coins = settings.coins || {};
+    const currency = settings.currency || 'usd';
+    const assetList = [];
+    for (const coin of ['btc','eth','xrp','bnb','sol']){
+        const amount = parseFloat(coins[coin]) || 0;
+        const cached = getCachedPrice(coin, currency);
+        const price = cached ? cached.price : 0;
+        const change24h = cached && typeof cached.change24h === 'number' ? cached.change24h : 0;
+        assetList.push({ key: coin, amount, value: amount*price, change: change24h, price });
+    }
+    assetList.sort((a,b)=>b.value-a.value);
+    const total = assetList.reduce((s,a)=>s+a.value,0);
+    BASE_PRICE = total;
+    setBalanceDisplay(total);
+    window.__lastCoinData = assetList;
+    renderAssets(assetList);
+    renderAccounts(assetList);
+    renderExploreCards(assetList);
+}
+
 function confirmSettings() {
     const s           = loadSettings();
     const oldCurrency = s.currency || 'usd';
@@ -730,7 +752,6 @@ function confirmSettings() {
     s.cgApiKeyPro = document.getElementById('set-cgApiKeyPro').checked;
     s.currency    = document.getElementById('set-currency').value || 'usd';
 
-    // Only bust caches when currency actually changes
     if (oldCurrency !== s.currency) {
         for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
             localStorage.removeItem('lchart_' + coin + '_' + oldCurrency);
@@ -742,6 +763,8 @@ function confirmSettings() {
 
     saveSettings(s);
     closeSettings();
+    // Instant render from cached prices, then refresh in background
+    renderFromCacheInstant();
     updateWallet();
 }
 
