@@ -565,8 +565,10 @@ function renderAccounts(assetList){
             saveAccountsMeta(meta);
         });
     });
+}
 
-function arcPath(cx, cy, outerR, innerR, startAngle, endAngle) {
+// ── Allocation pie renderer ──────────────────────────────────────────────────
+
     const start    = startAngle - Math.PI / 2;
     const end      = endAngle   - Math.PI / 2;
     const x1 = cx + outerR * Math.cos(start);
