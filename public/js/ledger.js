@@ -569,6 +569,7 @@ function renderAccounts(assetList){
 
 // ── Allocation pie renderer ──────────────────────────────────────────────────
 
+function arcPath(cx, cy, outerR, innerR, startAngle, endAngle) {
     const start    = startAngle - Math.PI / 2;
     const end      = endAngle   - Math.PI / 2;
     const x1 = cx + outerR * Math.cos(start);
