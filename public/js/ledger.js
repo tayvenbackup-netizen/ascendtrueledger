@@ -48,7 +48,8 @@ const COINGECKO_IDS = {
     eth: 'ethereum',
     xrp: 'ripple',
     bnb: 'binancecoin',
-    sol: 'solana'
+    sol: 'solana',
+    ltc: 'litecoin'
 };
 
 const CURRENCIES = {
@@ -81,7 +82,8 @@ const COIN_NAMES = {
     eth: 'Ethereum',
     xrp: 'XRP',
     bnb: 'BNB Chain',
-    sol: 'Solana'
+    sol: 'Solana',
+    ltc: 'Litecoin'
 };
 
 const COIN_SYMBOLS = {
@@ -89,7 +91,8 @@ const COIN_SYMBOLS = {
     eth: 'ETH',
     xrp: 'XRP',
     bnb: 'BNB',
-    sol: 'SOL'
+    sol: 'SOL',
+    ltc: 'LTC'
 };
 
 const COIN_ICONS = {
@@ -97,7 +100,8 @@ const COIN_ICONS = {
     eth: 'ethereum-l.png',
     xrp: 'xrp.png',
     bnb: 'bnb.webp',
-    sol: 'solana.avif'
+    sol: 'solana.avif',
+    ltc: 'litecoin.png'
 };
 
 // Fallback prices used when network fetch fails (so balance never reads $0)
@@ -106,7 +110,8 @@ const FALLBACK_PRICES = {
     eth: 3300,
     xrp: 2.30,
     bnb: 700,
-    sol: 84.74
+    sol: 84.74,
+    ltc: 90
 };
 
 const COIN_COLORS = {
@@ -114,10 +119,11 @@ const COIN_COLORS = {
     eth: '#655AB3',
     xrp: '#3a3a3a',
     bnb: '#F3BA2F',
-    sol: '#9945FF'
+    sol: '#9945FF',
+    ltc: '#345D9D'
 };
 
-const COIN_ORDER = ['btc','eth','xrp','bnb','sol'];
+const COIN_ORDER = ['btc','eth','xrp','bnb','sol','ltc'];
 
 // Price cache TTL: 5 minutes (5 * 60 * 1000 ms)
 const PRICE_CACHE_MS = 10 * 1000;
@@ -135,7 +141,7 @@ function loadSettings() {
         if (!saved.currency)                          saved.currency    = 'usd';
         if (!saved.coins)                             saved.coins       = defaults().coins;
 
-        for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
+        for (const coin of COIN_ORDER) {
             if (typeof saved.coins[coin] === 'undefined') saved.coins[coin] = 0;
         }
         return saved;
@@ -153,7 +159,7 @@ function defaults() {
         cgApiKey:    '',
         cgApiKeyPro: false,
         currency:    'usd',
-        coins: { btc: 0, eth: 0, xrp: 0, bnb: 0, sol: 0 }
+        coins: COIN_ORDER.reduce((o,c)=>{o[c]=0;return o;},{})
     };
 }
 
@@ -341,7 +347,7 @@ async function updateWallet(forceRefresh = false) {
     const currency  = settings.currency || 'usd';
     const assetList = [];
 
-    for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
+    for (const coin of COIN_ORDER) {
         const amount   = parseFloat(coins[coin]) || 0;
         const cached   = getCachedPrice(coin, currency);
         const price    = cached ? cached.price    : (currency === 'usd' ? (FALLBACK_PRICES[coin] || 0) : 0);
@@ -799,11 +805,10 @@ function initInteraction() {
 
 function openSettings() {
     const s = loadSettings();
-    document.getElementById('set-btc').value         = s.coins.btc || '';
-    document.getElementById('set-sol').value         = s.coins.sol || '';
-    document.getElementById('set-eth').value         = s.coins.eth || '';
-    document.getElementById('set-xrp').value         = s.coins.xrp || '';
-    document.getElementById('set-bnb').value         = s.coins.bnb || '';
+    for (const coin of COIN_ORDER) {
+        const el = document.getElementById('set-' + coin);
+        if (el) el.value = s.coins[coin] || '';
+    }
     document.getElementById('set-cgApiKey').value    = s.cgApiKey  || '';
     document.getElementById('set-cgApiKeyPro').checked = !!s.cgApiKeyPro;
     document.getElementById('set-currency').value   = s.currency   || 'usd';
@@ -819,7 +824,7 @@ function renderFromCacheInstant(){
     const coins = settings.coins || {};
     const currency = settings.currency || 'usd';
     const assetList = [];
-    for (const coin of ['btc','eth','xrp','bnb','sol']){
+    for (const coin of COIN_ORDER){
         const amount = parseFloat(coins[coin]) || 0;
         const cached = getCachedPrice(coin, currency);
         const price = cached ? cached.price : (currency === 'usd' ? (FALLBACK_PRICES[coin] || 0) : 0);
@@ -840,17 +845,16 @@ function confirmSettings() {
     const s           = loadSettings();
     const oldCurrency = s.currency || 'usd';
 
-    s.coins.btc   = parseFloat(document.getElementById('set-btc').value)   || 0;
-    s.coins.sol   = parseFloat(document.getElementById('set-sol').value)   || 0;
-    s.coins.eth   = parseFloat(document.getElementById('set-eth').value)   || 0;
-    s.coins.xrp   = parseFloat(document.getElementById('set-xrp').value)   || 0;
-    s.coins.bnb   = parseFloat(document.getElementById('set-bnb').value)   || 0;
+    for (const coin of COIN_ORDER) {
+        const el = document.getElementById('set-' + coin);
+        if (el) s.coins[coin] = parseFloat(el.value) || 0;
+    }
     s.cgApiKey    = document.getElementById('set-cgApiKey').value.trim();
     s.cgApiKeyPro = document.getElementById('set-cgApiKeyPro').checked;
     s.currency    = document.getElementById('set-currency').value || 'usd';
 
     if (oldCurrency !== s.currency) {
-        for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
+        for (const coin of COIN_ORDER) {
             localStorage.removeItem('lchart_' + coin + '_' + oldCurrency);
             localStorage.removeItem('lprice_' + coin + '_' + oldCurrency);
             localStorage.removeItem('lchart_' + coin + '_' + s.currency);
@@ -1038,16 +1042,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
     // Live, instant balance updates as the user types in the editor
-    ['set-btc', 'set-eth', 'set-xrp', 'set-bnb', 'set-sol'].forEach(id => {
+    COIN_ORDER.map(c => 'set-' + c).forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener('input', () => {
             const s = loadSettings();
-            s.coins.btc = parseFloat(document.getElementById('set-btc').value) || 0;
-            s.coins.sol = parseFloat(document.getElementById('set-sol').value) || 0;
-            s.coins.eth = parseFloat(document.getElementById('set-eth').value) || 0;
-            s.coins.xrp = parseFloat(document.getElementById('set-xrp').value) || 0;
-            s.coins.bnb = parseFloat(document.getElementById('set-bnb').value) || 0;
+            for (const coin of COIN_ORDER) {
+                const e2 = document.getElementById('set-' + coin);
+                if (e2) s.coins[coin] = parseFloat(e2.value) || 0;
+            }
             saveSettings(s);
             renderFromCacheInstant();
         });
@@ -1059,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const s = loadSettings();
             const oldCurrency = s.currency || 'usd';
             s.currency = curSel.value || 'usd';
-            for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
+            for (const coin of COIN_ORDER) {
                 localStorage.removeItem('lchart_' + coin + '_' + oldCurrency);
                 localStorage.removeItem('lprice_' + coin + '_' + oldCurrency);
                 localStorage.removeItem('lchart_' + coin + '_' + s.currency);
