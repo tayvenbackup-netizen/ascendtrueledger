@@ -1252,8 +1252,124 @@ window.addEventListener('load', () => {
 });
 
 // ── Transaction Detail Overlay ───────────────────────────────────────────────
-const TXN_COIN_PREFIX = { btc:'bc1q', eth:'0x', sol:'', xrp:'r', bnb:'bnb1' };
-const TXN_COIN_FEE = { btc:0.00012, eth:0.0008, sol:0.000005, xrp:0.00001, bnb:0.00021 };
+const TXN_COIN_PREFIX = { btc:'bc1q', eth:'0x', sol:'', xrp:'r', bnb:'bnb1', ltc:'ltc1q' };
+const TXN_COIN_FEE = { btc:0.00012, eth:0.0008, sol:0.000005, xrp:0.00001, bnb:0.00021, ltc:0.0001 };
+
+// Explorer URL builders per coin
+const EXPLORER_URLS = {
+  btc: (id) => `https://mempool.space/tx/${id}`,
+  eth: (id) => `https://etherscan.io/tx/${id.startsWith('0x') ? id : '0x'+id}`,
+  sol: (id) => `https://solscan.io/tx/${id}`,
+  bnb: (id) => `https://bscscan.com/tx/${id.startsWith('0x') ? id : '0x'+id}`,
+  xrp: (id) => `https://xrpscan.com/tx/${id.toUpperCase()}`,
+  ltc: (id) => `https://litecoinspace.org/tx/${id}`,
+};
+
+// ── Real TXID pool fetched from public blockchain APIs ───────────────────────
+const TXID_POOL_KEY = 'txidPool_v1';
+const TXID_POOL_TTL = 60 * 60 * 1000; // 1h
+let TXID_POOL = { btc:[], eth:[], sol:[], bnb:[], xrp:[], ltc:[] };
+
+function loadTxidPoolCache(){
+  try {
+    const raw = localStorage.getItem(TXID_POOL_KEY);
+    if (!raw) return false;
+    const obj = JSON.parse(raw);
+    if (!obj || !obj.ts || (Date.now()-obj.ts) > TXID_POOL_TTL) return false;
+    if (obj.pool) { TXID_POOL = Object.assign(TXID_POOL, obj.pool); return true; }
+  } catch(_){}
+  return false;
+}
+function saveTxidPoolCache(){
+  try { localStorage.setItem(TXID_POOL_KEY, JSON.stringify({ ts: Date.now(), pool: TXID_POOL })); } catch(_){}
+}
+
+async function fetchJson(url, opts){
+  try {
+    const r = await fetch(url, opts);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch(_) { return null; }
+}
+async function fetchText(url){
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    return await r.text();
+  } catch(_) { return null; }
+}
+
+async function fetchBtcTxids(){
+  // mempool.space: latest block, then its txids
+  const tip = await fetchText('https://mempool.space/api/blocks/tip/hash');
+  if (!tip) return [];
+  const txids = await fetchJson(`https://mempool.space/api/block/${tip.trim()}/txids`);
+  return Array.isArray(txids) ? txids.slice(0, 200) : [];
+}
+async function fetchLtcTxids(){
+  const tip = await fetchText('https://litecoinspace.org/api/blocks/tip/hash');
+  if (!tip) return [];
+  const txids = await fetchJson(`https://litecoinspace.org/api/block/${tip.trim()}/txids`);
+  return Array.isArray(txids) ? txids.slice(0, 200) : [];
+}
+async function fetchEthTxids(){
+  const data = await fetchJson('https://cloudflare-eth.com', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_getBlockByNumber', params:['latest', false]})
+  });
+  const txs = data && data.result && data.result.transactions;
+  return Array.isArray(txs) ? txs.slice(0, 200) : [];
+}
+async function fetchBnbTxids(){
+  const data = await fetchJson('https://bsc-dataseed.binance.org/', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_getBlockByNumber', params:['latest', false]})
+  });
+  const txs = data && data.result && data.result.transactions;
+  return Array.isArray(txs) ? txs.slice(0, 200) : [];
+}
+async function fetchSolTxids(){
+  // get latest slot, then block txs (signatures)
+  const slotRes = await fetchJson('https://api.mainnet-beta.solana.com', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'getSlot'})
+  });
+  const slot = slotRes && slotRes.result;
+  if (!slot) return [];
+  // try a slot a bit older to ensure availability
+  const targetSlot = slot - 50;
+  const blk = await fetchJson('https://api.mainnet-beta.solana.com', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'getBlock', params:[targetSlot, {transactionDetails:'signatures', rewards:false, maxSupportedTransactionVersion:0}]})
+  });
+  const sigs = blk && blk.result && blk.result.signatures;
+  return Array.isArray(sigs) ? sigs.slice(0, 200) : [];
+}
+async function fetchXrpTxids(){
+  const data = await fetchJson('https://s1.ripple.com:51234/', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({method:'ledger', params:[{ledger_index:'validated', transactions:true, expand:false}]})
+  });
+  const txs = data && data.result && data.result.ledger && data.result.ledger.transactions;
+  return Array.isArray(txs) ? txs.slice(0, 200) : [];
+}
+
+async function refreshTxidPool(){
+  const tasks = [
+    fetchBtcTxids().then(v => { if (v.length) TXID_POOL.btc = v; }),
+    fetchEthTxids().then(v => { if (v.length) TXID_POOL.eth = v; }),
+    fetchBnbTxids().then(v => { if (v.length) TXID_POOL.bnb = v; }),
+    fetchSolTxids().then(v => { if (v.length) TXID_POOL.sol = v; }),
+    fetchXrpTxids().then(v => { if (v.length) TXID_POOL.xrp = v; }),
+    fetchLtcTxids().then(v => { if (v.length) TXID_POOL.ltc = v; }),
+  ];
+  await Promise.allSettled(tasks);
+  saveTxidPoolCache();
+}
+
+// Boot pool fetch
+loadTxidPoolCache();
+refreshTxidPool();
 
 function txnRandHex(n){
   const c='0123456789abcdef'; let s=''; for(let i=0;i<n;i++) s+=c[Math.floor(Math.random()*16)]; return s;
@@ -1276,9 +1392,14 @@ function txnGenAddr(coin, seed){
   });
 }
 function txnGenTxid(coin, seed){
+  const pool = TXID_POOL[coin];
+  if (pool && pool.length){
+    let s = 0; for (let i=0;i<seed.length;i++) s = (s*31 + seed.charCodeAt(i)) >>> 0;
+    return pool[s % pool.length];
+  }
   return txnDeterministic(seed+'tx', rng => {
     const c='0123456789abcdef';
-    const len = coin==='eth' ? 64 : 64;
+    const len = 64;
     let s=''; for(let i=0;i<len;i++) s+=c[Math.floor(rng()*16)]; return s;
   });
 }
@@ -1334,7 +1455,9 @@ function openTxnDetail(t){
   document.getElementById('txnDetailDate').textContent = fmtTxnDetailDate(t.ts);
   document.getElementById('txnDetailFee').textContent = `${fee.toFixed(8).replace(/0+$/,'').replace(/\.$/,'')} ${sym}`;
   document.getElementById('txnDetailFeeFiat').textContent = fmtUSD(feeFiat);
-  document.getElementById('txnDetailTxid').textContent = txnGenTxid(t.coin, seed);
+  const realTxid = txnGenTxid(t.coin, seed);
+  document.getElementById('txnDetailTxid').textContent = realTxid;
+  window.__currentTxn = { coin: t.coin, txid: realTxid };
   // For "received" we are the recipient (To = our address). For "sent" we are sender (From = our address).
   const ourAddr = txnGenAddr(t.coin, 'me-'+t.coin);
   const otherAddr = txnGenAddr(t.coin, seed+'other');
@@ -1360,4 +1483,21 @@ function closeTxnDetail(){
 document.addEventListener('DOMContentLoaded', () => {
   const back = document.getElementById('txnDetailBack');
   if (back) back.addEventListener('click', closeTxnDetail);
+  const explorer = document.querySelector('.txn-detail-explorer');
+  if (explorer) explorer.addEventListener('click', () => {
+    const cur = window.__currentTxn;
+    if (!cur) return;
+    const builder = EXPLORER_URLS[cur.coin];
+    if (!builder) return;
+    const url = builder(cur.txid);
+    // Force open in Safari (escape webclip standalone). Use x-safari-https scheme on iOS standalone.
+    const isStandalone = (window.navigator.standalone === true) ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    if (isStandalone && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      const safariUrl = url.replace(/^https:\/\//, 'x-safari-https://').replace(/^http:\/\//, 'x-safari-http://');
+      window.location.href = safariUrl;
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  });
 });
