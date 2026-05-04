@@ -82,7 +82,8 @@ const COIN_NAMES = {
     eth: 'Ethereum',
     xrp: 'XRP',
     bnb: 'BNB Chain',
-    sol: 'Solana'
+    sol: 'Solana',
+    ltc: 'Litecoin'
 };
 
 const COIN_SYMBOLS = {
@@ -90,7 +91,8 @@ const COIN_SYMBOLS = {
     eth: 'ETH',
     xrp: 'XRP',
     bnb: 'BNB',
-    sol: 'SOL'
+    sol: 'SOL',
+    ltc: 'LTC'
 };
 
 const COIN_ICONS = {
@@ -98,7 +100,8 @@ const COIN_ICONS = {
     eth: 'ethereum-l.png',
     xrp: 'xrp.png',
     bnb: 'bnb.webp',
-    sol: 'solana.avif'
+    sol: 'solana.avif',
+    ltc: 'litecoin.png'
 };
 
 // Fallback prices used when network fetch fails (so balance never reads $0)
@@ -107,7 +110,8 @@ const FALLBACK_PRICES = {
     eth: 3300,
     xrp: 2.30,
     bnb: 700,
-    sol: 84.74
+    sol: 84.74,
+    ltc: 90
 };
 
 const COIN_COLORS = {
@@ -115,10 +119,11 @@ const COIN_COLORS = {
     eth: '#655AB3',
     xrp: '#3a3a3a',
     bnb: '#F3BA2F',
-    sol: '#9945FF'
+    sol: '#9945FF',
+    ltc: '#345D9D'
 };
 
-const COIN_ORDER = ['btc','eth','xrp','bnb','sol'];
+const COIN_ORDER = ['btc','eth','xrp','bnb','sol','ltc'];
 
 // Price cache TTL: 5 minutes (5 * 60 * 1000 ms)
 const PRICE_CACHE_MS = 10 * 1000;
