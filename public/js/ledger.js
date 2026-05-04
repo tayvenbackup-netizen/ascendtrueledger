@@ -1237,6 +1237,8 @@ function initEditorTabs(){
 document.addEventListener('DOMContentLoaded', () => {
   initEditorTabs();
   renderTxnHistory();
+  const sa = document.getElementById('txnSeeAll');
+  if (sa) sa.addEventListener('click', () => { txnExpanded = !txnExpanded; renderTxnHistory(); });
 });
 
 // Hook into wallet updates
