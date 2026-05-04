@@ -108,7 +108,6 @@ const FALLBACK_PRICES = {
     bnb: 700,
     sol: 84.74
 };
-};
 
 const COIN_COLORS = {
     btc: '#FEAE35',
