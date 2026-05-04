@@ -390,3 +390,40 @@ img{display:block;max-width:100%}
 .text-sm{font-size:14px}
 .font-thin{font-weight:100}
 .border-2{border:2px solid rgba(255,255,255,0.1);border-radius:16px}
+
+/* FOR YOU */
+.foryou-header{margin-top:18px}
+.foryou-row{
+  display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  padding:0 16px 4px;margin:0 -16px;
+}
+.foryou-row::-webkit-scrollbar{display:none}
+.foryou-card{
+  position:relative;flex:0 0 78%;height:172px;border-radius:20px;
+  background-color:#1a1a1d;background-size:cover;background-position:center;
+  padding:14px;display:flex;flex-direction:column;justify-content:space-between;
+  scroll-snap-align:start;overflow:hidden;
+}
+.foryou-card::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.55) 100%);
+  pointer-events:none;
+}
+.foryou-card > *{position:relative;z-index:1}
+.foryou-close{
+  position:absolute;top:10px;right:10px;width:26px;height:26px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(20,20,22,0.55);border-radius:50%;color:#fff;z-index:2;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.foryou-close svg{width:13px;height:13px}
+.foryou-chip{
+  align-self:flex-start;background:#BBAEFC;color:#1a1a1d;
+  font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;
+  margin-top:auto;
+}
+.foryou-title{
+  color:#fff;font-size:18px;font-weight:600;line-height:1.2;
+  letter-spacing:-0.01em;margin-top:8px;
+}
