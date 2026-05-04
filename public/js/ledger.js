@@ -1042,16 +1042,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
     // Live, instant balance updates as the user types in the editor
-    ['set-btc', 'set-eth', 'set-xrp', 'set-bnb', 'set-sol'].forEach(id => {
+    COIN_ORDER.map(c => 'set-' + c).forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener('input', () => {
             const s = loadSettings();
-            s.coins.btc = parseFloat(document.getElementById('set-btc').value) || 0;
-            s.coins.sol = parseFloat(document.getElementById('set-sol').value) || 0;
-            s.coins.eth = parseFloat(document.getElementById('set-eth').value) || 0;
-            s.coins.xrp = parseFloat(document.getElementById('set-xrp').value) || 0;
-            s.coins.bnb = parseFloat(document.getElementById('set-bnb').value) || 0;
+            for (const coin of COIN_ORDER) {
+                const e2 = document.getElementById('set-' + coin);
+                if (e2) s.coins[coin] = parseFloat(e2.value) || 0;
+            }
             saveSettings(s);
             renderFromCacheInstant();
         });
