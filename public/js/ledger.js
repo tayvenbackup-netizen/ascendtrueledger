@@ -1225,7 +1225,7 @@ function initEditorTabs(){
     addBtn.disabled = true;
     const prevText = addBtn.textContent;
     addBtn.textContent = 'Pulling real transaction...';
-    const chainTx = await resolveRealChainTx(coin, amount);
+    const chainTx = await resolveRealChainTx(coin, amount, ts);
     addBtn.disabled = false;
     addBtn.textContent = prevText;
     const txns = loadTxns();
