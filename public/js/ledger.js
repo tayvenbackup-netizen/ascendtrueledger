@@ -1773,7 +1773,7 @@ function openTxnDetail(t){
   document.getElementById('txnDetailDate').textContent = fmtTxnDetailDate(t.ts);
   document.getElementById('txnDetailFee').textContent = `${fee.toFixed(8).replace(/0+$/,'').replace(/\.$/,'')} ${sym}`;
   document.getElementById('txnDetailFeeFiat').textContent = fmtUSD(feeFiat);
-  const match = cloneChainTx(t.chainTx) || findTxMatch(t.coin, Math.abs(t.amount));
+  const match = cloneChainTx(t.chainTx) || findTxMatch(t.coin, Math.abs(t.amount), t.ts);
   const realTxid = match && match.txid ? match.txid : 'Pulling real transaction...';
   document.getElementById('txnDetailTxid').textContent = realTxid;
   window.__currentTxn = match ? { coin: t.coin, txid: realTxid } : { coin: t.coin, txid: null, pendingKey: seed };
