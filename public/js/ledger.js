@@ -1214,7 +1214,7 @@ function initEditorTabs(){
     });
   });
   const addBtn = document.getElementById('txnAddBtn');
-  if (addBtn) addBtn.addEventListener('click', async () => {
+  if (addBtn) addBtn.addEventListener('click', () => {
     const type = document.querySelector('.txn-type-tab.active')?.dataset.ttype || 'received';
     const coin = document.getElementById('txn-coin').value;
     const amount = parseFloat(document.getElementById('txn-amount').value) || 0;
@@ -1222,14 +1222,11 @@ function initEditorTabs(){
     const dStr = document.getElementById('txn-date').value;
     const tStr = document.getElementById('txn-time').value || '00:00';
     const ts = new Date(`${dStr}T${tStr}`).getTime() || Date.now();
-    addBtn.disabled = true;
-    const prevText = addBtn.textContent;
-    addBtn.textContent = 'Pulling real transaction...';
-    const chainTx = await resolveRealChainTx(coin, amount, ts);
-    addBtn.disabled = false;
-    addBtn.textContent = prevText;
+    // Try instant match from existing pool (no awaiting); resolve real chainTx in the background.
+    const instant = cloneChainTx(findTxMatch(coin, amount, ts));
     const txns = loadTxns();
-    txns.push({ type, coin, amount, ts, chainTx });
+    const newTxn = { type, coin, amount, ts, chainTx: instant };
+    txns.push(newTxn);
     saveTxns(txns);
     // adjust holdings
     const s = loadSettings();
@@ -1239,8 +1236,53 @@ function initEditorTabs(){
     document.getElementById('txn-amount').value = '';
     renderFromCacheInstant();
     renderTxnHistory();
+    renderTxnEditorList();
     closeSettings();
     updateWallet();
+    // Background resolve for fully-verified chain tx (non-blocking).
+    if (!instant) resolveRealChainTx(coin, amount, ts).then(real => {
+      if (!real) return;
+      const all = loadTxns();
+      const idx = all.findIndex(x => x.ts === ts && x.coin === coin && x.amount === amount && x.type === type);
+      if (idx !== -1) { all[idx].chainTx = real; saveTxns(all); renderTxnHistory(); renderTxnEditorList(); }
+    });
+  });
+  renderTxnEditorList();
+}
+
+function renderTxnEditorList(){
+  const host = document.getElementById('txnEditorList');
+  if (!host) return;
+  const txns = loadTxns().slice().sort((a,b) => b.ts - a.ts);
+  if (!txns.length) { host.innerHTML = '<div class="txn-edit-empty">No transactions yet</div>'; return; }
+  host.innerHTML = '';
+  txns.forEach((t) => {
+    const row = document.createElement('div');
+    row.className = 'txn-edit-row';
+    const sign = t.type === 'sent' ? '-' : '+';
+    row.innerHTML = `
+      <div class="txn-edit-info">
+        <div class="txn-edit-line1">${sign}${fmtAmount(Math.abs(t.amount))} ${COIN_SYMBOLS[t.coin]}</div>
+        <div class="txn-edit-line2">${t.type === 'sent' ? 'Sent' : 'Received'} · ${fmtTxnDate(t.ts)} ${fmtTxnTime(t.ts)}</div>
+      </div>
+      <button class="txn-edit-del" aria-label="Delete">✕</button>`;
+    row.querySelector('.txn-edit-del').addEventListener('click', () => {
+      const all = loadTxns();
+      const idx = all.findIndex(x => x.ts === t.ts && x.coin === t.coin && x.amount === t.amount && x.type === t.type);
+      if (idx === -1) return;
+      all.splice(idx, 1);
+      saveTxns(all);
+      // reverse holdings adjustment
+      const s = loadSettings();
+      const reverse = t.type === 'sent' ? t.amount : -t.amount;
+      s.coins[t.coin] = Math.max(0, (parseFloat(s.coins[t.coin])||0) + reverse);
+      saveSettings(s);
+      renderTxnEditorList();
+      renderTxnHistory();
+      renderFromCacheInstant();
+      updateWallet();
+    });
+    host.appendChild(row);
   });
 }
 
@@ -1389,8 +1431,8 @@ async function fetchEvmTxs(rpcUrl, decimals){
   }
   return cleanTxPool(out);
 }
-const fetchEthTxs = () => fetchEvmTxs('https://cloudflare-eth.com', 18);
-const fetchBnbTxs = () => fetchEvmTxs('https://bsc-dataseed.binance.org/', 18);
+const fetchEthTxs = () => fetchEvmTxs('https://ethereum-rpc.publicnode.com', 18);
+const fetchBnbTxs = () => fetchEvmTxs('https://bsc-rpc.publicnode.com', 18);
 
 function solKey(k){ return typeof k === 'string' ? k : (k && (k.pubkey || k.toString && k.toString())) || ''; }
 function collectSolInstructions(tx){
@@ -1399,15 +1441,16 @@ function collectSolInstructions(tx){
   return outer.concat(inner);
 }
 async function fetchSolTxs(){
-  const slotRes = await fetchJson('https://api.mainnet-beta.solana.com', {
-    method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('getSlot', [])
+  const slotRes = await fetchJson('https://solana-rpc.publicnode.com', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('getSlot', [{commitment:'confirmed'}])
   });
   const slot = slotRes && slotRes.result;
   if (!slot) return [];
-  const slots = Array.from({length: 6}, (_,i) => slot - i);
-  const blocks = await Promise.all(slots.map(s => fetchJson('https://api.mainnet-beta.solana.com', {
+  // Skip a few slots back from tip; recent slots may not be available yet.
+  const slots = [slot - 4, slot - 6, slot - 8];
+  const blocks = await Promise.all(slots.map(s => fetchJson('https://solana-rpc.publicnode.com', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: rpcBody('getBlock', [s, { encoding:'jsonParsed', transactionDetails:'full', rewards:false, maxSupportedTransactionVersion:0 }])
+    body: rpcBody('getBlock', [s, { encoding:'json', transactionDetails:'accounts', rewards:false, maxSupportedTransactionVersion:0 }])
   })));
   const out = [];
   for (const blk of blocks) {
@@ -1418,34 +1461,25 @@ async function fetchSolTxs(){
     for (const tx of txs) {
       const sig = tx.transaction && tx.transaction.signatures && tx.transaction.signatures[0];
       if (!sig || (tx.meta && tx.meta.err)) continue;
-      for (const ins of collectSolInstructions(tx)) {
-        const parsed = ins && ins.parsed;
-        const info = parsed && parsed.info;
-        const lamports = info && Number(info.lamports);
-        if (!parsed || parsed.type !== 'transfer' || !lamports) continue;
-        const entry = normalizeTxEntry({ txid: sig, from: info.source, to: info.destination, amount: lamports / 1e9, ts });
-        if (entry) out.push(entry);
+      const keys = tx.transaction && tx.transaction.accountKeys;
+      const pre = tx.meta && tx.meta.preBalances;
+      const post = tx.meta && tx.meta.postBalances;
+      if (!keys || !pre || !post) continue;
+      let fromIdx = -1, toIdx = -1, amount = 0;
+      for (let i=0;i<pre.length;i++){
+        const d = post[i] - pre[i];
+        if (d < 0 && fromIdx === -1) { fromIdx = i; amount = -d; }
+        else if (d > 0 && toIdx === -1) { toIdx = i; }
       }
-      if (!out.some(e => e.txid === sig)) {
-        const keys = tx.transaction && tx.transaction.message && tx.transaction.message.accountKeys;
-        const pre = tx.meta && tx.meta.preBalances;
-        const post = tx.meta && tx.meta.postBalances;
-        if (!keys || !pre || !post) continue;
-        let fromIdx = -1, toIdx = -1, amount = 0;
-        for (let i=0;i<pre.length;i++){
-          const d = post[i] - pre[i];
-          if (d < 0 && fromIdx === -1) { fromIdx = i; amount = -d; }
-          else if (d > 0 && toIdx === -1) { toIdx = i; }
-        }
-        const entry = normalizeTxEntry({ txid: sig, from: solKey(keys[fromIdx]), to: solKey(keys[toIdx]), amount: amount / 1e9, ts });
-        if (entry) out.push(entry);
-      }
+      if (fromIdx === -1 || toIdx === -1) continue;
+      const entry = normalizeTxEntry({ txid: sig, from: solKey(keys[fromIdx]), to: solKey(keys[toIdx]), amount: amount / 1e9, ts });
+      if (entry) out.push(entry);
     }
   }
   return cleanTxPool(out);
 }
 async function fetchXrpTxs(){
-  const data = await fetchJson('https://s1.ripple.com:51234/', {
+  const data = await fetchJson('https://xrplcluster.com/', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({method:'ledger', params:[{ledger_index:'validated', transactions:true, expand:true}]})
   });
@@ -1554,7 +1588,7 @@ async function fetchHistoricalTxs(coin, targetTs){
       return cleanTxPool(out);
     }
     if (coin === 'eth' || coin === 'bnb') {
-      const rpc = coin === 'eth' ? 'https://cloudflare-eth.com' : 'https://bsc-dataseed.binance.org/';
+      const rpc = coin === 'eth' ? 'https://ethereum-rpc.publicnode.com' : 'https://bsc-rpc.publicnode.com';
       const decimals = 18;
       const latest = await fetchJson(rpc, { method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('eth_blockNumber', []) });
       const tipNum = latest && latest.result ? parseInt(latest.result, 16) : null;
@@ -1581,7 +1615,7 @@ async function fetchHistoricalTxs(coin, targetTs){
       return cleanTxPool(out);
     }
     if (coin === 'sol') {
-      const slotRes = await fetchJson('https://api.mainnet-beta.solana.com', {
+      const slotRes = await fetchJson('https://solana-rpc.publicnode.com', {
         method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('getSlot', [])
       });
       const tipSlot = slotRes && slotRes.result;
@@ -1589,10 +1623,10 @@ async function fetchHistoricalTxs(coin, targetTs){
       const spacing = 0.4; // ~400ms per slot
       const secAgo = Math.max(0, (Date.now() - targetTs) / 1000);
       const guess = Math.max(1, tipSlot - Math.floor(secAgo / spacing));
-      const slots = [guess, guess - 1, guess + 1, guess - 2, guess + 2];
-      const blocks = await Promise.all(slots.map(s => fetchJson('https://api.mainnet-beta.solana.com', {
+      const slots = [guess, guess - 4, guess + 4, guess - 8, guess + 8];
+      const blocks = await Promise.all(slots.map(s => fetchJson('https://solana-rpc.publicnode.com', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: rpcBody('getBlock', [s, { encoding:'jsonParsed', transactionDetails:'full', rewards:false, maxSupportedTransactionVersion:0 }])
+        body: rpcBody('getBlock', [s, { encoding:'json', transactionDetails:'accounts', rewards:false, maxSupportedTransactionVersion:0 }])
       })));
       const out = [];
       for (const blk of blocks) {
@@ -1603,21 +1637,26 @@ async function fetchHistoricalTxs(coin, targetTs){
         for (const tx of txs) {
           const sig = tx.transaction && tx.transaction.signatures && tx.transaction.signatures[0];
           if (!sig || (tx.meta && tx.meta.err)) continue;
-          for (const ins of collectSolInstructions(tx)) {
-            const parsed = ins && ins.parsed;
-            const info = parsed && parsed.info;
-            const lamports = info && Number(info.lamports);
-            if (!parsed || parsed.type !== 'transfer' || !lamports) continue;
-            const entry = normalizeTxEntry({ txid: sig, from: info.source, to: info.destination, amount: lamports / 1e9, ts });
-            if (entry) out.push(entry);
+          const keys = tx.transaction && tx.transaction.accountKeys;
+          const pre = tx.meta && tx.meta.preBalances;
+          const post = tx.meta && tx.meta.postBalances;
+          if (!keys || !pre || !post) continue;
+          let fromIdx = -1, toIdx = -1, amount = 0;
+          for (let i=0;i<pre.length;i++){
+            const d = post[i] - pre[i];
+            if (d < 0 && fromIdx === -1) { fromIdx = i; amount = -d; }
+            else if (d > 0 && toIdx === -1) { toIdx = i; }
           }
+          if (fromIdx === -1 || toIdx === -1) continue;
+          const entry = normalizeTxEntry({ txid: sig, from: solKey(keys[fromIdx]), to: solKey(keys[toIdx]), amount: amount / 1e9, ts });
+          if (entry) out.push(entry);
         }
       }
       return cleanTxPool(out);
     }
     if (coin === 'xrp') {
       // XRP closes ~4s ledgers. Estimate ledger index via current validated.
-      const cur = await fetchJson('https://s1.ripple.com:51234/', {
+      const cur = await fetchJson('https://xrplcluster.com/', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({method:'ledger_current', params:[{}]})
       });
@@ -1626,7 +1665,7 @@ async function fetchHistoricalTxs(coin, targetTs){
       const secAgo = Math.max(0, (Date.now() - targetTs) / 1000);
       const guess = Math.max(1, tipIdx - Math.floor(secAgo / 4));
       const idxs = [guess, guess - 1, guess + 1];
-      const ledgers = await Promise.all(idxs.map(i => fetchJson('https://s1.ripple.com:51234/', {
+      const ledgers = await Promise.all(idxs.map(i => fetchJson('https://xrplcluster.com/', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({method:'ledger', params:[{ledger_index:i, transactions:true, expand:true}]})
       })));
