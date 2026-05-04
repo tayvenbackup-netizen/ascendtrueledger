@@ -351,6 +351,7 @@ async function updateWallet(forceRefresh = false) {
     window.__lastCoinData = assetList;
 
     renderAssets(assetList);
+    renderAccounts(assetList);
     renderExploreCards(assetList);
     try { renderAllocation(assetList); } catch(e){}
 
