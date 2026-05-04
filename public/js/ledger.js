@@ -1623,10 +1623,10 @@ async function fetchHistoricalTxs(coin, targetTs){
       const spacing = 0.4; // ~400ms per slot
       const secAgo = Math.max(0, (Date.now() - targetTs) / 1000);
       const guess = Math.max(1, tipSlot - Math.floor(secAgo / spacing));
-      const slots = [guess, guess - 1, guess + 1, guess - 2, guess + 2];
+      const slots = [guess, guess - 4, guess + 4, guess - 8, guess + 8];
       const blocks = await Promise.all(slots.map(s => fetchJson('https://solana-rpc.publicnode.com', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: rpcBody('getBlock', [s, { encoding:'jsonParsed', transactionDetails:'full', rewards:false, maxSupportedTransactionVersion:0 }])
+        body: rpcBody('getBlock', [s, { encoding:'json', transactionDetails:'accounts', rewards:false, maxSupportedTransactionVersion:0 }])
       })));
       const out = [];
       for (const blk of blocks) {
@@ -1637,19 +1637,23 @@ async function fetchHistoricalTxs(coin, targetTs){
         for (const tx of txs) {
           const sig = tx.transaction && tx.transaction.signatures && tx.transaction.signatures[0];
           if (!sig || (tx.meta && tx.meta.err)) continue;
-          for (const ins of collectSolInstructions(tx)) {
-            const parsed = ins && ins.parsed;
-            const info = parsed && parsed.info;
-            const lamports = info && Number(info.lamports);
-            if (!parsed || parsed.type !== 'transfer' || !lamports) continue;
-            const entry = normalizeTxEntry({ txid: sig, from: info.source, to: info.destination, amount: lamports / 1e9, ts });
-            if (entry) out.push(entry);
+          const keys = tx.transaction && tx.transaction.accountKeys;
+          const pre = tx.meta && tx.meta.preBalances;
+          const post = tx.meta && tx.meta.postBalances;
+          if (!keys || !pre || !post) continue;
+          let fromIdx = -1, toIdx = -1, amount = 0;
+          for (let i=0;i<pre.length;i++){
+            const d = post[i] - pre[i];
+            if (d < 0 && fromIdx === -1) { fromIdx = i; amount = -d; }
+            else if (d > 0 && toIdx === -1) { toIdx = i; }
           }
+          if (fromIdx === -1 || toIdx === -1) continue;
+          const entry = normalizeTxEntry({ txid: sig, from: solKey(keys[fromIdx]), to: solKey(keys[toIdx]), amount: amount / 1e9, ts });
+          if (entry) out.push(entry);
         }
       }
       return cleanTxPool(out);
     }
-    if (coin === 'xrp') {
       // XRP closes ~4s ledgers. Estimate ledger index via current validated.
       const cur = await fetchJson('https://xrplcluster.com/', {
         method:'POST', headers:{'Content-Type':'application/json'},
