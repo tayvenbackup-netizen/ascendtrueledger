@@ -584,3 +584,15 @@ img{display:block;max-width:100%}
   border:1px solid rgba(255,255,255,.22);
   background:transparent;color:#fff;font-size:16px;font-weight:600;
 }
+
+/* Transaction editor list (delete existing transactions) */
+.txn-edit-section{margin-top:18px;padding:0 4px}
+.txn-edit-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.55);margin:0 0 8px 4px}
+.txn-edit-list{display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto}
+.txn-edit-empty{font-size:13px;color:rgba(255,255,255,.45);padding:10px 4px}
+.txn-edit-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05)}
+.txn-edit-info{flex:1;min-width:0}
+.txn-edit-line1{font-size:14px;font-weight:600;color:#fff}
+.txn-edit-line2{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
+.txn-edit-del{flex:none;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,80,80,.15);color:#ff6b6b;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.txn-edit-del:hover{background:rgba(255,80,80,.28)}
