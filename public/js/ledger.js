@@ -150,12 +150,12 @@ function defaults() {
 
 // ── Price / chart cache helpers ──────────────────────────────────────────────
 
-function getCachedPrice(coin, currency) {
+function getCachedPrice(coin, currency, allowStale = true) {
     try {
         const raw = localStorage.getItem('lprice_' + coin + '_' + currency);
         if (!raw) return null;
         const cached = JSON.parse(raw);
-        if (Date.now() - cached.ts > PRICE_CACHE_MS) return null;
+        if (!allowStale && Date.now() - cached.ts > PRICE_CACHE_MS) return null;
         return cached;
     } catch {
         return null;
