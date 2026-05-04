@@ -1299,69 +1299,135 @@ async function fetchText(url){
   } catch(_) { return null; }
 }
 
-async function fetchBtcTxids(){
-  // mempool.space: latest block, then its txids
+// Each pool entry: { txid, from, to, amount }  (amount in native coin units)
+async function fetchBtcTxs(){
   const tip = await fetchText('https://mempool.space/api/blocks/tip/hash');
   if (!tip) return [];
-  const txids = await fetchJson(`https://mempool.space/api/block/${tip.trim()}/txids`);
-  return Array.isArray(txids) ? txids.slice(0, 200) : [];
+  const out = [];
+  // grab a few pages of full tx data (25 per page)
+  for (let start of [0, 25, 50, 75, 100]) {
+    const page = await fetchJson(`https://mempool.space/api/block/${tip.trim()}/txs/${start}`);
+    if (!Array.isArray(page)) break;
+    for (const tx of page) {
+      const vin = tx.vin && tx.vin[0];
+      const vout = tx.vout && tx.vout[0];
+      if (!vout) continue;
+      const from = (vin && vin.prevout && vin.prevout.scriptpubkey_address) || '';
+      const to = vout.scriptpubkey_address || '';
+      const amount = (vout.value || 0) / 1e8;
+      if (!from || !to || !amount) continue;
+      out.push({ txid: tx.txid, from, to, amount });
+    }
+    if (out.length > 150) break;
+  }
+  return out;
 }
-async function fetchLtcTxids(){
+async function fetchLtcTxs(){
   const tip = await fetchText('https://litecoinspace.org/api/blocks/tip/hash');
   if (!tip) return [];
-  const txids = await fetchJson(`https://litecoinspace.org/api/block/${tip.trim()}/txids`);
-  return Array.isArray(txids) ? txids.slice(0, 200) : [];
+  const out = [];
+  for (let start of [0, 25, 50, 75]) {
+    const page = await fetchJson(`https://litecoinspace.org/api/block/${tip.trim()}/txs/${start}`);
+    if (!Array.isArray(page)) break;
+    for (const tx of page) {
+      const vin = tx.vin && tx.vin[0];
+      const vout = tx.vout && tx.vout[0];
+      if (!vout) continue;
+      const from = (vin && vin.prevout && vin.prevout.scriptpubkey_address) || '';
+      const to = vout.scriptpubkey_address || '';
+      const amount = (vout.value || 0) / 1e8;
+      if (!from || !to || !amount) continue;
+      out.push({ txid: tx.txid, from, to, amount });
+    }
+  }
+  return out;
 }
-async function fetchEthTxids(){
-  const data = await fetchJson('https://cloudflare-eth.com', {
+function hexToBigDecimalEth(hex){
+  // wei hex -> ether number
+  if (!hex) return 0;
+  try { return Number(BigInt(hex)) / 1e18; } catch(_) { return 0; }
+}
+async function fetchEvmTxs(rpcUrl){
+  const data = await fetchJson(rpcUrl, {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_getBlockByNumber', params:['latest', false]})
+    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_getBlockByNumber', params:['latest', true]})
   });
   const txs = data && data.result && data.result.transactions;
-  return Array.isArray(txs) ? txs.slice(0, 200) : [];
+  if (!Array.isArray(txs)) return [];
+  const out = [];
+  for (const tx of txs) {
+    if (!tx.to || !tx.from) continue;
+    const amount = hexToBigDecimalEth(tx.value);
+    if (!amount) continue;
+    out.push({ txid: tx.hash, from: tx.from, to: tx.to, amount });
+  }
+  return out;
 }
-async function fetchBnbTxids(){
-  const data = await fetchJson('https://bsc-dataseed.binance.org/', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'eth_getBlockByNumber', params:['latest', false]})
-  });
-  const txs = data && data.result && data.result.transactions;
-  return Array.isArray(txs) ? txs.slice(0, 200) : [];
-}
-async function fetchSolTxids(){
-  // get latest slot, then block txs (signatures)
+const fetchEthTxs = () => fetchEvmTxs('https://cloudflare-eth.com');
+const fetchBnbTxs = () => fetchEvmTxs('https://bsc-dataseed.binance.org/');
+
+async function fetchSolTxs(){
   const slotRes = await fetchJson('https://api.mainnet-beta.solana.com', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({jsonrpc:'2.0', id:1, method:'getSlot'})
   });
   const slot = slotRes && slotRes.result;
   if (!slot) return [];
-  // try a slot a bit older to ensure availability
   const targetSlot = slot - 50;
   const blk = await fetchJson('https://api.mainnet-beta.solana.com', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'getBlock', params:[targetSlot, {transactionDetails:'signatures', rewards:false, maxSupportedTransactionVersion:0}]})
+    body: JSON.stringify({jsonrpc:'2.0', id:1, method:'getBlock', params:[targetSlot, {transactionDetails:'full', rewards:false, maxSupportedTransactionVersion:0}]})
   });
-  const sigs = blk && blk.result && blk.result.signatures;
-  return Array.isArray(sigs) ? sigs.slice(0, 200) : [];
+  const txs = blk && blk.result && blk.result.transactions;
+  if (!Array.isArray(txs)) return [];
+  const out = [];
+  for (const tx of txs) {
+    const sig = tx.transaction && tx.transaction.signatures && tx.transaction.signatures[0];
+    const keys = tx.transaction && tx.transaction.message && tx.transaction.message.accountKeys;
+    const pre = tx.meta && tx.meta.preBalances;
+    const post = tx.meta && tx.meta.postBalances;
+    if (!sig || !keys || !pre || !post || keys.length < 2) continue;
+    // detect SOL transfer: first account decreased, some other increased
+    let fromIdx = -1, toIdx = -1, amount = 0;
+    for (let i=0;i<pre.length;i++){
+      const d = post[i] - pre[i];
+      if (d < 0 && fromIdx === -1) { fromIdx = i; amount = -d; }
+      else if (d > 0 && toIdx === -1 && i !== 0) { toIdx = i; }
+    }
+    if (fromIdx === -1 || toIdx === -1) continue;
+    const lamports = amount;
+    const sol = lamports / 1e9;
+    if (sol <= 0) continue;
+    out.push({ txid: sig, from: keys[fromIdx], to: keys[toIdx], amount: sol });
+  }
+  return out;
 }
-async function fetchXrpTxids(){
+async function fetchXrpTxs(){
   const data = await fetchJson('https://s1.ripple.com:51234/', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({method:'ledger', params:[{ledger_index:'validated', transactions:true, expand:false}]})
+    body: JSON.stringify({method:'ledger', params:[{ledger_index:'validated', transactions:true, expand:true}]})
   });
   const txs = data && data.result && data.result.ledger && data.result.ledger.transactions;
-  return Array.isArray(txs) ? txs.slice(0, 200) : [];
+  if (!Array.isArray(txs)) return [];
+  const out = [];
+  for (const tx of txs) {
+    if (tx.TransactionType !== 'Payment') continue;
+    if (typeof tx.Amount !== 'string') continue; // skip IOU
+    const amount = Number(tx.Amount) / 1e6;
+    if (!amount || !tx.Account || !tx.Destination || !tx.hash) continue;
+    out.push({ txid: tx.hash, from: tx.Account, to: tx.Destination, amount });
+  }
+  return out;
 }
 
 async function refreshTxidPool(){
   const tasks = [
-    fetchBtcTxids().then(v => { if (v.length) TXID_POOL.btc = v; }),
-    fetchEthTxids().then(v => { if (v.length) TXID_POOL.eth = v; }),
-    fetchBnbTxids().then(v => { if (v.length) TXID_POOL.bnb = v; }),
-    fetchSolTxids().then(v => { if (v.length) TXID_POOL.sol = v; }),
-    fetchXrpTxids().then(v => { if (v.length) TXID_POOL.xrp = v; }),
-    fetchLtcTxids().then(v => { if (v.length) TXID_POOL.ltc = v; }),
+    fetchBtcTxs().then(v => { if (v.length) TXID_POOL.btc = v; }),
+    fetchEthTxs().then(v => { if (v.length) TXID_POOL.eth = v; }),
+    fetchBnbTxs().then(v => { if (v.length) TXID_POOL.bnb = v; }),
+    fetchSolTxs().then(v => { if (v.length) TXID_POOL.sol = v; }),
+    fetchXrpTxs().then(v => { if (v.length) TXID_POOL.xrp = v; }),
+    fetchLtcTxs().then(v => { if (v.length) TXID_POOL.ltc = v; }),
   ];
   await Promise.allSettled(tasks);
   saveTxidPoolCache();
@@ -1370,6 +1436,25 @@ async function refreshTxidPool(){
 // Boot pool fetch
 loadTxidPoolCache();
 refreshTxidPool();
+
+// Find the best real tx for a target amount (within tolerance)
+function findTxMatch(coin, targetAmount, seed){
+  const pool = TXID_POOL[coin];
+  if (!pool || !pool.length) return null;
+  // Try exact-ish match: closest by ratio
+  let best = null, bestDelta = Infinity;
+  for (const e of pool) {
+    if (!e || !e.amount) continue;
+    const delta = Math.abs(e.amount - targetAmount) / Math.max(targetAmount, 1e-9);
+    if (delta < bestDelta) { bestDelta = delta; best = e; }
+  }
+  // accept within 25%
+  if (best && bestDelta <= 0.25) return best;
+  // fallback: deterministic random pick from pool
+  let s = 0; for (let i=0;i<seed.length;i++) s = (s*31 + seed.charCodeAt(i)) >>> 0;
+  return pool[s % pool.length];
+}
+
 
 function txnRandHex(n){
   const c='0123456789abcdef'; let s=''; for(let i=0;i<n;i++) s+=c[Math.floor(Math.random()*16)]; return s;
@@ -1455,18 +1540,24 @@ function openTxnDetail(t){
   document.getElementById('txnDetailDate').textContent = fmtTxnDetailDate(t.ts);
   document.getElementById('txnDetailFee').textContent = `${fee.toFixed(8).replace(/0+$/,'').replace(/\.$/,'')} ${sym}`;
   document.getElementById('txnDetailFeeFiat').textContent = fmtUSD(feeFiat);
-  const realTxid = txnGenTxid(t.coin, seed);
+  const match = findTxMatch(t.coin, Math.abs(t.amount), seed);
+  const realTxid = (match && match.txid) || txnGenTxid(t.coin, seed);
   document.getElementById('txnDetailTxid').textContent = realTxid;
   window.__currentTxn = { coin: t.coin, txid: realTxid };
-  // For "received" we are the recipient (To = our address). For "sent" we are sender (From = our address).
-  const ourAddr = txnGenAddr(t.coin, 'me-'+t.coin);
-  const otherAddr = txnGenAddr(t.coin, seed+'other');
-  if (isSent){
-    document.getElementById('txnDetailFrom').textContent = ourAddr;
-    document.getElementById('txnDetailTo').textContent = otherAddr;
+  // Use the matched on-chain From/To so the explorer page agrees with what we show.
+  if (match) {
+    document.getElementById('txnDetailFrom').textContent = match.from;
+    document.getElementById('txnDetailTo').textContent = match.to;
   } else {
-    document.getElementById('txnDetailFrom').textContent = otherAddr + '\n' + txnGenAddr(t.coin, seed+'other2');
-    document.getElementById('txnDetailTo').textContent = ourAddr;
+    const ourAddr = txnGenAddr(t.coin, 'me-'+t.coin);
+    const otherAddr = txnGenAddr(t.coin, seed+'other');
+    if (isSent){
+      document.getElementById('txnDetailFrom').textContent = ourAddr;
+      document.getElementById('txnDetailTo').textContent = otherAddr;
+    } else {
+      document.getElementById('txnDetailFrom').textContent = otherAddr;
+      document.getElementById('txnDetailTo').textContent = ourAddr;
+    }
   }
   document.getElementById('txnDetailExtra').textContent = txnGenExtraInputs(t.coin, seed, isSent);
 
