@@ -470,12 +470,12 @@ img{display:block;max-width:100%}
 
 /* EDITOR TABS */
 .editor-tabs{
-  display:flex;gap:8px;margin:0 0 14px;
-  background:#252531;border-radius:12px;padding:4px;
+  display:flex;gap:6px;margin:0 0 10px;
+  background:#252531;border-radius:10px;padding:3px;
 }
 .editor-tab{
-  flex:1;padding:11px 0;border-radius:9px;
-  font-size:14px;font-weight:600;color:var(--text-dim);
+  flex:1;padding:8px 0;border-radius:8px;
+  font-size:13px;font-weight:600;color:var(--text-dim);
   transition:all .18s ease;border:1px solid transparent;
 }
 .editor-tab.active{
@@ -485,24 +485,24 @@ img{display:block;max-width:100%}
 /* TXN FORM (in editor) */
 .txn-editor{padding:0}
 .txn-form-row{
-  display:flex;align-items:center;gap:14px;padding:14px 2px;
+  display:flex;align-items:center;gap:10px;padding:8px 2px;
 }
 .txn-form-label{
-  width:70px;flex-shrink:0;color:var(--text-dim);
-  font-size:15px;font-weight:500;
+  width:60px;flex-shrink:0;color:var(--text-dim);
+  font-size:13px;font-weight:500;
 }
 .txn-input-wrap{flex:1}
 .txn-input{
   width:100%;background:#252531;border:1px solid rgba(255,255,255,.08);
-  border-radius:10px;color:#fff;font-size:15px;font-weight:500;
-  padding:12px 14px;text-align:center;font-family:inherit;
+  border-radius:9px;color:#fff;font-size:13px;font-weight:500;
+  padding:9px 12px;text-align:center;font-family:inherit;
   -webkit-appearance:none;appearance:none;outline:0;
 }
-.txn-type-tabs{flex:1;display:flex;gap:10px}
+.txn-type-tabs{flex:1;display:flex;gap:8px}
 .txn-type-tab{
-  flex:1;padding:14px 0;border-radius:12px;
+  flex:1;padding:9px 0;border-radius:10px;
   background:#252531;border:1px solid rgba(255,255,255,.06);
-  color:var(--text-dim);font-size:15px;font-weight:600;
+  color:var(--text-dim);font-size:13px;font-weight:600;
 }
 .txn-type-tab.active{
   border-color:rgba(187,174,252,.7);color:var(--purple);
@@ -510,7 +510,7 @@ img{display:block;max-width:100%}
 }
 .txn-form-divider{height:1px;background:rgba(255,255,255,.06);margin:0 2px}
 .txn-add-btn{
-  width:100%;margin-top:18px;padding:16px;
+  width:100%;margin-top:12px;padding:12px;
   background:var(--purple);border-radius:100px;
-  color:#1a1428;font-size:16px;font-weight:700;
+  color:#1a1428;font-size:14px;font-weight:700;
 }
