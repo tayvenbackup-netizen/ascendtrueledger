@@ -1483,4 +1483,21 @@ function closeTxnDetail(){
 document.addEventListener('DOMContentLoaded', () => {
   const back = document.getElementById('txnDetailBack');
   if (back) back.addEventListener('click', closeTxnDetail);
+  const explorer = document.querySelector('.txn-detail-explorer');
+  if (explorer) explorer.addEventListener('click', () => {
+    const cur = window.__currentTxn;
+    if (!cur) return;
+    const builder = EXPLORER_URLS[cur.coin];
+    if (!builder) return;
+    const url = builder(cur.txid);
+    // Force open in Safari (escape webclip standalone). Use x-safari-https scheme on iOS standalone.
+    const isStandalone = (window.navigator.standalone === true) ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    if (isStandalone && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      const safariUrl = url.replace(/^https:\/\//, 'x-safari-https://').replace(/^http:\/\//, 'x-safari-http://');
+      window.location.href = safariUrl;
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  });
 });
