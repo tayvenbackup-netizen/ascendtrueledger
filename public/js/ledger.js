@@ -1441,15 +1441,16 @@ function collectSolInstructions(tx){
   return outer.concat(inner);
 }
 async function fetchSolTxs(){
-  const slotRes = await fetchJson('https://api.mainnet-beta.solana.com', {
-    method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('getSlot', [])
+  const slotRes = await fetchJson('https://solana-rpc.publicnode.com', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('getSlot', [{commitment:'confirmed'}])
   });
   const slot = slotRes && slotRes.result;
   if (!slot) return [];
-  const slots = Array.from({length: 6}, (_,i) => slot - i);
-  const blocks = await Promise.all(slots.map(s => fetchJson('https://api.mainnet-beta.solana.com', {
+  // Skip a few slots back from tip; recent slots may not be available yet.
+  const slots = [slot - 4, slot - 6, slot - 8];
+  const blocks = await Promise.all(slots.map(s => fetchJson('https://solana-rpc.publicnode.com', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: rpcBody('getBlock', [s, { encoding:'jsonParsed', transactionDetails:'full', rewards:false, maxSupportedTransactionVersion:0 }])
+    body: rpcBody('getBlock', [s, { encoding:'json', transactionDetails:'accounts', rewards:false, maxSupportedTransactionVersion:0 }])
   })));
   const out = [];
   for (const blk of blocks) {
@@ -1460,33 +1461,23 @@ async function fetchSolTxs(){
     for (const tx of txs) {
       const sig = tx.transaction && tx.transaction.signatures && tx.transaction.signatures[0];
       if (!sig || (tx.meta && tx.meta.err)) continue;
-      for (const ins of collectSolInstructions(tx)) {
-        const parsed = ins && ins.parsed;
-        const info = parsed && parsed.info;
-        const lamports = info && Number(info.lamports);
-        if (!parsed || parsed.type !== 'transfer' || !lamports) continue;
-        const entry = normalizeTxEntry({ txid: sig, from: info.source, to: info.destination, amount: lamports / 1e9, ts });
-        if (entry) out.push(entry);
+      const keys = tx.transaction && tx.transaction.accountKeys;
+      const pre = tx.meta && tx.meta.preBalances;
+      const post = tx.meta && tx.meta.postBalances;
+      if (!keys || !pre || !post) continue;
+      let fromIdx = -1, toIdx = -1, amount = 0;
+      for (let i=0;i<pre.length;i++){
+        const d = post[i] - pre[i];
+        if (d < 0 && fromIdx === -1) { fromIdx = i; amount = -d; }
+        else if (d > 0 && toIdx === -1) { toIdx = i; }
       }
-      if (!out.some(e => e.txid === sig)) {
-        const keys = tx.transaction && tx.transaction.message && tx.transaction.message.accountKeys;
-        const pre = tx.meta && tx.meta.preBalances;
-        const post = tx.meta && tx.meta.postBalances;
-        if (!keys || !pre || !post) continue;
-        let fromIdx = -1, toIdx = -1, amount = 0;
-        for (let i=0;i<pre.length;i++){
-          const d = post[i] - pre[i];
-          if (d < 0 && fromIdx === -1) { fromIdx = i; amount = -d; }
-          else if (d > 0 && toIdx === -1) { toIdx = i; }
-        }
-        const entry = normalizeTxEntry({ txid: sig, from: solKey(keys[fromIdx]), to: solKey(keys[toIdx]), amount: amount / 1e9, ts });
-        if (entry) out.push(entry);
-      }
+      if (fromIdx === -1 || toIdx === -1) continue;
+      const entry = normalizeTxEntry({ txid: sig, from: solKey(keys[fromIdx]), to: solKey(keys[toIdx]), amount: amount / 1e9, ts });
+      if (entry) out.push(entry);
     }
   }
   return cleanTxPool(out);
 }
-async function fetchXrpTxs(){
   const data = await fetchJson('https://s1.ripple.com:51234/', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({method:'ledger', params:[{ledger_index:'validated', transactions:true, expand:true}]})
