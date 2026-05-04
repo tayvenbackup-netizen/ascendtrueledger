@@ -1214,7 +1214,7 @@ function initEditorTabs(){
     });
   });
   const addBtn = document.getElementById('txnAddBtn');
-  if (addBtn) addBtn.addEventListener('click', async () => {
+  if (addBtn) addBtn.addEventListener('click', () => {
     const type = document.querySelector('.txn-type-tab.active')?.dataset.ttype || 'received';
     const coin = document.getElementById('txn-coin').value;
     const amount = parseFloat(document.getElementById('txn-amount').value) || 0;
@@ -1222,14 +1222,11 @@ function initEditorTabs(){
     const dStr = document.getElementById('txn-date').value;
     const tStr = document.getElementById('txn-time').value || '00:00';
     const ts = new Date(`${dStr}T${tStr}`).getTime() || Date.now();
-    addBtn.disabled = true;
-    const prevText = addBtn.textContent;
-    addBtn.textContent = 'Pulling real transaction...';
-    const chainTx = await resolveRealChainTx(coin, amount, ts);
-    addBtn.disabled = false;
-    addBtn.textContent = prevText;
+    // Try instant match from existing pool (no awaiting); resolve real chainTx in the background.
+    const instant = cloneChainTx(findTxMatch(coin, amount, ts));
     const txns = loadTxns();
-    txns.push({ type, coin, amount, ts, chainTx });
+    const newTxn = { type, coin, amount, ts, chainTx: instant };
+    txns.push(newTxn);
     saveTxns(txns);
     // adjust holdings
     const s = loadSettings();
@@ -1239,8 +1236,53 @@ function initEditorTabs(){
     document.getElementById('txn-amount').value = '';
     renderFromCacheInstant();
     renderTxnHistory();
+    renderTxnEditorList();
     closeSettings();
     updateWallet();
+    // Background resolve for fully-verified chain tx (non-blocking).
+    if (!instant) resolveRealChainTx(coin, amount, ts).then(real => {
+      if (!real) return;
+      const all = loadTxns();
+      const idx = all.findIndex(x => x.ts === ts && x.coin === coin && x.amount === amount && x.type === type);
+      if (idx !== -1) { all[idx].chainTx = real; saveTxns(all); renderTxnHistory(); renderTxnEditorList(); }
+    });
+  });
+  renderTxnEditorList();
+}
+
+function renderTxnEditorList(){
+  const host = document.getElementById('txnEditorList');
+  if (!host) return;
+  const txns = loadTxns().slice().sort((a,b) => b.ts - a.ts);
+  if (!txns.length) { host.innerHTML = '<div class="txn-edit-empty">No transactions yet</div>'; return; }
+  host.innerHTML = '';
+  txns.forEach((t) => {
+    const row = document.createElement('div');
+    row.className = 'txn-edit-row';
+    const sign = t.type === 'sent' ? '-' : '+';
+    row.innerHTML = `
+      <div class="txn-edit-info">
+        <div class="txn-edit-line1">${sign}${fmtAmount(Math.abs(t.amount))} ${COIN_SYMBOLS[t.coin]}</div>
+        <div class="txn-edit-line2">${t.type === 'sent' ? 'Sent' : 'Received'} · ${fmtTxnDate(t.ts)} ${fmtTxnTime(t.ts)}</div>
+      </div>
+      <button class="txn-edit-del" aria-label="Delete">✕</button>`;
+    row.querySelector('.txn-edit-del').addEventListener('click', () => {
+      const all = loadTxns();
+      const idx = all.findIndex(x => x.ts === t.ts && x.coin === t.coin && x.amount === t.amount && x.type === t.type);
+      if (idx === -1) return;
+      all.splice(idx, 1);
+      saveTxns(all);
+      // reverse holdings adjustment
+      const s = loadSettings();
+      const reverse = t.type === 'sent' ? t.amount : -t.amount;
+      s.coins[t.coin] = Math.max(0, (parseFloat(s.coins[t.coin])||0) + reverse);
+      saveSettings(s);
+      renderTxnEditorList();
+      renderTxnHistory();
+      renderFromCacheInstant();
+      updateWallet();
+    });
+    host.appendChild(row);
   });
 }
 
