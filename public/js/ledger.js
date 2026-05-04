@@ -1404,12 +1404,13 @@ async function fetchSolTxs(){
   });
   const slot = slotRes && slotRes.result;
   if (!slot) return [];
+  const slots = Array.from({length: 6}, (_,i) => slot - i);
+  const blocks = await Promise.all(slots.map(s => fetchJson('https://api.mainnet-beta.solana.com', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: rpcBody('getBlock', [s, { encoding:'jsonParsed', transactionDetails:'full', rewards:false, maxSupportedTransactionVersion:0 }])
+  })));
   const out = [];
-  for (let offset=0; offset<10; offset++) {
-    const blk = await fetchJson('https://api.mainnet-beta.solana.com', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: rpcBody('getBlock', [slot - offset, { encoding:'jsonParsed', transactionDetails:'full', rewards:false, maxSupportedTransactionVersion:0 }])
-    });
+  for (const blk of blocks) {
     const block = blk && blk.result;
     const txs = block && block.transactions;
     if (!Array.isArray(txs)) continue;
@@ -1440,7 +1441,6 @@ async function fetchSolTxs(){
         if (entry) out.push(entry);
       }
     }
-    if (out.length >= 220) break;
   }
   return cleanTxPool(out);
 }
