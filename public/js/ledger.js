@@ -1455,7 +1455,9 @@ function openTxnDetail(t){
   document.getElementById('txnDetailDate').textContent = fmtTxnDetailDate(t.ts);
   document.getElementById('txnDetailFee').textContent = `${fee.toFixed(8).replace(/0+$/,'').replace(/\.$/,'')} ${sym}`;
   document.getElementById('txnDetailFeeFiat').textContent = fmtUSD(feeFiat);
-  document.getElementById('txnDetailTxid').textContent = txnGenTxid(t.coin, seed);
+  const realTxid = txnGenTxid(t.coin, seed);
+  document.getElementById('txnDetailTxid').textContent = realTxid;
+  window.__currentTxn = { coin: t.coin, txid: realTxid };
   // For "received" we are the recipient (To = our address). For "sent" we are sender (From = our address).
   const ourAddr = txnGenAddr(t.coin, 'me-'+t.coin);
   const otherAddr = txnGenAddr(t.coin, seed+'other');
