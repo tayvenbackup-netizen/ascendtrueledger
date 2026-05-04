@@ -345,16 +345,16 @@ img{display:block;max-width:100%}
 /* ASSETS / ACCOUNTS TABS */
 .aa-tabs{
   display:flex;margin:24px 16px 10px;
-  background:rgba(20,20,24,0.6);
-  border:1px solid rgba(255,255,255,0.06);
-  border-radius:14px;padding:5px;gap:4px;
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:100px;padding:3px;gap:3px;
 }
 .aa-tab{
-  flex:1;padding:13px 0;border-radius:10px;
-  font-size:16px;font-weight:600;color:#fff;
+  flex:1;padding:8px 0;border-radius:100px;
+  font-size:14px;font-weight:600;color:#fff;
   transition:background .18s ease;
 }
-.aa-tab.active{background:rgba(60,60,68,0.85)}
+.aa-tab.active{background:rgba(60,60,68,0.6);border:1px solid rgba(255,255,255,0.08)}
 
 /* ACCOUNTS */
 .accounts-list{padding:6px 16px 0}
