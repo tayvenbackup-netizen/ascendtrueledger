@@ -1172,6 +1172,7 @@ function renderTxnHistory(){
         <div class="txn-amt">${sign}${fmtAmount(Math.abs(t.amount))} ${COIN_SYMBOLS[t.coin]}</div>
         <div class="txn-fiat">${sign}${fmtUSD(fiat)}</div>
       </div>`;
+    row.addEventListener('click', () => openTxnDetail(t));
     list.appendChild(row);
   }
   if (seeAll){
