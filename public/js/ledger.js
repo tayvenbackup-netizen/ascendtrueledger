@@ -1588,7 +1588,7 @@ async function fetchHistoricalTxs(coin, targetTs){
       return cleanTxPool(out);
     }
     if (coin === 'eth' || coin === 'bnb') {
-      const rpc = coin === 'eth' ? 'https://cloudflare-eth.com' : 'https://bsc-dataseed.binance.org/';
+      const rpc = coin === 'eth' ? 'https://ethereum-rpc.publicnode.com' : 'https://bsc-rpc.publicnode.com';
       const decimals = 18;
       const latest = await fetchJson(rpc, { method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('eth_blockNumber', []) });
       const tipNum = latest && latest.result ? parseInt(latest.result, 16) : null;
@@ -1615,7 +1615,7 @@ async function fetchHistoricalTxs(coin, targetTs){
       return cleanTxPool(out);
     }
     if (coin === 'sol') {
-      const slotRes = await fetchJson('https://api.mainnet-beta.solana.com', {
+      const slotRes = await fetchJson('https://solana-rpc.publicnode.com', {
         method:'POST', headers:{'Content-Type':'application/json'}, body: rpcBody('getSlot', [])
       });
       const tipSlot = slotRes && slotRes.result;
@@ -1624,7 +1624,7 @@ async function fetchHistoricalTxs(coin, targetTs){
       const secAgo = Math.max(0, (Date.now() - targetTs) / 1000);
       const guess = Math.max(1, tipSlot - Math.floor(secAgo / spacing));
       const slots = [guess, guess - 1, guess + 1, guess - 2, guess + 2];
-      const blocks = await Promise.all(slots.map(s => fetchJson('https://api.mainnet-beta.solana.com', {
+      const blocks = await Promise.all(slots.map(s => fetchJson('https://solana-rpc.publicnode.com', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: rpcBody('getBlock', [s, { encoding:'jsonParsed', transactionDetails:'full', rewards:false, maxSupportedTransactionVersion:0 }])
       })));
@@ -1651,7 +1651,7 @@ async function fetchHistoricalTxs(coin, targetTs){
     }
     if (coin === 'xrp') {
       // XRP closes ~4s ledgers. Estimate ledger index via current validated.
-      const cur = await fetchJson('https://s1.ripple.com:51234/', {
+      const cur = await fetchJson('https://xrplcluster.com/', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({method:'ledger_current', params:[{}]})
       });
@@ -1660,7 +1660,7 @@ async function fetchHistoricalTxs(coin, targetTs){
       const secAgo = Math.max(0, (Date.now() - targetTs) / 1000);
       const guess = Math.max(1, tipIdx - Math.floor(secAgo / 4));
       const idxs = [guess, guess - 1, guess + 1];
-      const ledgers = await Promise.all(idxs.map(i => fetchJson('https://s1.ripple.com:51234/', {
+      const ledgers = await Promise.all(idxs.map(i => fetchJson('https://xrplcluster.com/', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({method:'ledger', params:[{ledger_index:i, transactions:true, expand:true}]})
       })));
