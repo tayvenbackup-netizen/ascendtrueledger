@@ -141,7 +141,7 @@ function loadSettings() {
         if (!saved.currency)                          saved.currency    = 'usd';
         if (!saved.coins)                             saved.coins       = defaults().coins;
 
-        for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
+        for (const coin of COIN_ORDER) {
             if (typeof saved.coins[coin] === 'undefined') saved.coins[coin] = 0;
         }
         return saved;
@@ -347,7 +347,7 @@ async function updateWallet(forceRefresh = false) {
     const currency  = settings.currency || 'usd';
     const assetList = [];
 
-    for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
+    for (const coin of COIN_ORDER) {
         const amount   = parseFloat(coins[coin]) || 0;
         const cached   = getCachedPrice(coin, currency);
         const price    = cached ? cached.price    : (currency === 'usd' ? (FALLBACK_PRICES[coin] || 0) : 0);
@@ -825,7 +825,7 @@ function renderFromCacheInstant(){
     const coins = settings.coins || {};
     const currency = settings.currency || 'usd';
     const assetList = [];
-    for (const coin of ['btc','eth','xrp','bnb','sol']){
+    for (const coin of COIN_ORDER){
         const amount = parseFloat(coins[coin]) || 0;
         const cached = getCachedPrice(coin, currency);
         const price = cached ? cached.price : (currency === 'usd' ? (FALLBACK_PRICES[coin] || 0) : 0);
@@ -856,7 +856,7 @@ function confirmSettings() {
     s.currency    = document.getElementById('set-currency').value || 'usd';
 
     if (oldCurrency !== s.currency) {
-        for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
+        for (const coin of COIN_ORDER) {
             localStorage.removeItem('lchart_' + coin + '_' + oldCurrency);
             localStorage.removeItem('lprice_' + coin + '_' + oldCurrency);
             localStorage.removeItem('lchart_' + coin + '_' + s.currency);
@@ -1065,7 +1065,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const s = loadSettings();
             const oldCurrency = s.currency || 'usd';
             s.currency = curSel.value || 'usd';
-            for (const coin of ['btc', 'eth', 'xrp', 'bnb', 'sol']) {
+            for (const coin of COIN_ORDER) {
                 localStorage.removeItem('lchart_' + coin + '_' + oldCurrency);
                 localStorage.removeItem('lprice_' + coin + '_' + oldCurrency);
                 localStorage.removeItem('lchart_' + coin + '_' + s.currency);
