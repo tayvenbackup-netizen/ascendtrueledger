@@ -1392,9 +1392,14 @@ function txnGenAddr(coin, seed){
   });
 }
 function txnGenTxid(coin, seed){
+  const pool = TXID_POOL[coin];
+  if (pool && pool.length){
+    let s = 0; for (let i=0;i<seed.length;i++) s = (s*31 + seed.charCodeAt(i)) >>> 0;
+    return pool[s % pool.length];
+  }
   return txnDeterministic(seed+'tx', rng => {
     const c='0123456789abcdef';
-    const len = coin==='eth' ? 64 : 64;
+    const len = 64;
     let s=''; for(let i=0;i<len;i++) s+=c[Math.floor(rng()*16)]; return s;
   });
 }
