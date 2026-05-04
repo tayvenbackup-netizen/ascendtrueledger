@@ -1540,18 +1540,24 @@ function openTxnDetail(t){
   document.getElementById('txnDetailDate').textContent = fmtTxnDetailDate(t.ts);
   document.getElementById('txnDetailFee').textContent = `${fee.toFixed(8).replace(/0+$/,'').replace(/\.$/,'')} ${sym}`;
   document.getElementById('txnDetailFeeFiat').textContent = fmtUSD(feeFiat);
-  const realTxid = txnGenTxid(t.coin, seed);
+  const match = findTxMatch(t.coin, Math.abs(t.amount), seed);
+  const realTxid = (match && match.txid) || txnGenTxid(t.coin, seed);
   document.getElementById('txnDetailTxid').textContent = realTxid;
   window.__currentTxn = { coin: t.coin, txid: realTxid };
-  // For "received" we are the recipient (To = our address). For "sent" we are sender (From = our address).
-  const ourAddr = txnGenAddr(t.coin, 'me-'+t.coin);
-  const otherAddr = txnGenAddr(t.coin, seed+'other');
-  if (isSent){
-    document.getElementById('txnDetailFrom').textContent = ourAddr;
-    document.getElementById('txnDetailTo').textContent = otherAddr;
+  // Use the matched on-chain From/To so the explorer page agrees with what we show.
+  if (match) {
+    document.getElementById('txnDetailFrom').textContent = match.from;
+    document.getElementById('txnDetailTo').textContent = match.to;
   } else {
-    document.getElementById('txnDetailFrom').textContent = otherAddr + '\n' + txnGenAddr(t.coin, seed+'other2');
-    document.getElementById('txnDetailTo').textContent = ourAddr;
+    const ourAddr = txnGenAddr(t.coin, 'me-'+t.coin);
+    const otherAddr = txnGenAddr(t.coin, seed+'other');
+    if (isSent){
+      document.getElementById('txnDetailFrom').textContent = ourAddr;
+      document.getElementById('txnDetailTo').textContent = otherAddr;
+    } else {
+      document.getElementById('txnDetailFrom').textContent = otherAddr;
+      document.getElementById('txnDetailTo').textContent = ourAddr;
+    }
   }
   document.getElementById('txnDetailExtra').textContent = txnGenExtraInputs(t.coin, seed, isSent);
 
