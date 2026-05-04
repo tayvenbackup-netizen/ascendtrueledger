@@ -48,7 +48,8 @@ const COINGECKO_IDS = {
     eth: 'ethereum',
     xrp: 'ripple',
     bnb: 'binancecoin',
-    sol: 'solana'
+    sol: 'solana',
+    ltc: 'litecoin'
 };
 
 const CURRENCIES = {
