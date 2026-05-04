@@ -1536,7 +1536,8 @@ function txnGenTxid(coin, seed){
   const pool = TXID_POOL[coin];
   if (pool && pool.length){
     let s = 0; for (let i=0;i<seed.length;i++) s = (s*31 + seed.charCodeAt(i)) >>> 0;
-    return pool[s % pool.length];
+    const entry = pool[s % pool.length];
+    return entry && entry.txid ? entry.txid : entry;
   }
   return txnDeterministic(seed+'tx', rng => {
     const c='0123456789abcdef';
