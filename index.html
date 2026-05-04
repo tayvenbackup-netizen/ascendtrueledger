@@ -305,7 +305,13 @@
         <span class="settings-title">Edit Portfolio - @Ascend2k on telegram</span>
         <button id="settingsClose" class="settings-close">&#x2715;</button>
       </div>
-      <div class="settings-body">
+
+      <div class="editor-tabs">
+        <button class="editor-tab active" data-etab="crypto">Add Crypto</button>
+        <button class="editor-tab" data-etab="txn">Add Transaction</button>
+      </div>
+
+      <div class="settings-body" id="editorPaneCrypto">
         <div class="settings-row"><label>BTC</label><input id="set-btc" type="number" min="0" step="any" placeholder="0"></div>
         <div class="settings-row"><label>SOL</label><input id="set-sol" type="number" min="0" step="any" placeholder="0"></div>
         <div class="settings-row"><label>ETH</label><input id="set-eth" type="number" min="0" step="any" placeholder="0"></div>
@@ -327,8 +333,53 @@
         <div class="settings-divider"></div>
         <div class="settings-row"><label>API Key</label><input id="set-cgApiKey" type="text" placeholder="Optional CoinGecko API key"></div>
         <div class="settings-row" style="margin-top:8px;"><label>Pro Key</label><input id="set-cgApiKeyPro" type="checkbox"></div>
+        <button id="settingsConfirm" class="settings-confirm">Save</button>
       </div>
-      <button id="settingsConfirm" class="settings-confirm">Save</button>
+
+      <div class="settings-body txn-editor" id="editorPaneTxn" style="display:none">
+        <div class="txn-form-row">
+          <span class="txn-form-label">Type</span>
+          <div class="txn-type-tabs">
+            <button class="txn-type-tab active" data-ttype="received">Received</button>
+            <button class="txn-type-tab" data-ttype="sent">Sent</button>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Crypto</span>
+          <div class="txn-input-wrap">
+            <select id="txn-coin" class="txn-input">
+              <option value="btc">BTC - Bitcoin</option>
+              <option value="eth">ETH - Ethereum</option>
+              <option value="sol">SOL - Solana</option>
+              <option value="xrp">XRP - Ripple</option>
+              <option value="bnb">BNB - BNB Chain</option>
+            </select>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Amount</span>
+          <div class="txn-input-wrap">
+            <input id="txn-amount" class="txn-input" type="number" min="0" step="any" placeholder="0.00"/>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Date</span>
+          <div class="txn-input-wrap">
+            <input id="txn-date" class="txn-input" type="date"/>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Time</span>
+          <div class="txn-input-wrap">
+            <input id="txn-time" class="txn-input" type="time"/>
+          </div>
+        </div>
+        <button id="txnAddBtn" class="txn-add-btn">Add Transaction</button>
+      </div>
     </div>
   </div>
 
