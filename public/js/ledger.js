@@ -159,7 +159,7 @@ function defaults() {
         cgApiKey:    '',
         cgApiKeyPro: false,
         currency:    'usd',
-        coins: { btc: 0, eth: 0, xrp: 0, bnb: 0, sol: 0 }
+        coins: COIN_ORDER.reduce((o,c)=>{o[c]=0;return o;},{})
     };
 }
 
