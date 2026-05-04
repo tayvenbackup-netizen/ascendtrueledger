@@ -1247,3 +1247,114 @@ const _origUpdateWallet = updateWallet;
 window.addEventListener('load', () => {
   setInterval(renderTxnHistory, 12000);
 });
+
+// ── Transaction Detail Overlay ───────────────────────────────────────────────
+const TXN_COIN_PREFIX = { btc:'bc1q', eth:'0x', sol:'', xrp:'r', bnb:'bnb1' };
+const TXN_COIN_FEE = { btc:0.00012, eth:0.0008, sol:0.000005, xrp:0.00001, bnb:0.00021 };
+
+function txnRandHex(n){
+  const c='0123456789abcdef'; let s=''; for(let i=0;i<n;i++) s+=c[Math.floor(Math.random()*16)]; return s;
+}
+function txnRandAlnum(n){
+  const c='abcdefghijklmnopqrstuvwxyz0123456789'; let s=''; for(let i=0;i<n;i++) s+=c[Math.floor(Math.random()*c.length)]; return s;
+}
+function txnDeterministic(seed, fn){
+  // Use seed to make a stable PRNG
+  let s = 0; for (let i=0;i<seed.length;i++) s = (s*31 + seed.charCodeAt(i)) >>> 0;
+  const rng = () => { s = (s*1664525 + 1013904223) >>> 0; return s/4294967296; };
+  return fn(rng);
+}
+function txnGenAddr(coin, seed){
+  return txnDeterministic(seed, rng => {
+    const pre = TXN_COIN_PREFIX[coin] || '';
+    const c='abcdefghijklmnopqrstuvwxyz0123456789';
+    const len = coin==='btc' ? 38 : coin==='eth' ? 40 : coin==='sol' ? 44 : coin==='xrp' ? 33 : 38;
+    let s=pre; for(let i=s.length;i<len;i++) s+=c[Math.floor(rng()*c.length)]; return s;
+  });
+}
+function txnGenTxid(coin, seed){
+  return txnDeterministic(seed+'tx', rng => {
+    const c='0123456789abcdef';
+    const len = coin==='eth' ? 64 : 64;
+    let s=''; for(let i=0;i<len;i++) s+=c[Math.floor(rng()*16)]; return s;
+  });
+}
+function txnGenExtraInputs(coin, seed, isSent){
+  return txnDeterministic(seed+'ex', rng => {
+    const c='0123456789abcdef';
+    const lines = isSent ? 1 : 5;
+    const out = [];
+    for (let i=0;i<lines;i++){
+      let s=''; for(let j=0;j<64;j++) s+=c[Math.floor(rng()*16)];
+      out.push(s + '-' + Math.floor(rng()*20));
+    }
+    return out.join(',');
+  });
+}
+function txnGenConfirm(seed){
+  return txnDeterministic(seed+'cf', rng => Math.floor(rng()*9000)+100);
+}
+
+function fmtTxnDetailDate(ts){
+  const d = new Date(ts);
+  const date = `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`;
+  const time = d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  return `${date} - ${time}`;
+}
+
+const TXN_DET_ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/></svg>';
+const TXN_DET_ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="18 13 12 19 6 13"/></svg>';
+
+function openTxnDetail(t){
+  const overlay = document.getElementById('txnDetailOverlay');
+  if (!overlay) return;
+  const isSent = t.type === 'sent';
+  const seed = `${t.coin}-${t.ts}-${t.amount}-${t.type}`;
+  const settings = loadSettings();
+  const currency = settings.currency || 'usd';
+  const cached = getCachedPrice(t.coin, currency);
+  const price = cached ? cached.price : (FALLBACK_PRICES[t.coin] || 0);
+  const fiat = Math.abs(t.amount) * price;
+  const fee = TXN_COIN_FEE[t.coin] || 0.0001;
+  const feeFiat = fee * price;
+  const sign = isSent ? '-' : '+';
+  const sym = COIN_SYMBOLS[t.coin];
+
+  document.getElementById('txnDetailType').textContent = isSent ? 'Sent' : 'Received';
+  document.getElementById('txnDetailArrow').innerHTML = isSent ? TXN_DET_ARROW_UP : TXN_DET_ARROW_DOWN;
+  const amtEl = document.getElementById('txnDetailAmt');
+  amtEl.textContent = `${sign}${fmtAmount(Math.abs(t.amount))} ${sym}`;
+  amtEl.className = 'txn-detail-amt ' + (isSent ? 'sent' : 'received');
+  document.getElementById('txnDetailFiat').textContent = `${sign}${fmtUSD(fiat)}`;
+  document.getElementById('txnDetailConfirm').textContent = `Confirmed (${txnGenConfirm(seed)})`;
+  document.getElementById('txnDetailAccount').textContent = `${COIN_NAMES[t.coin]} 1`;
+  document.getElementById('txnDetailDate').textContent = fmtTxnDetailDate(t.ts);
+  document.getElementById('txnDetailFee').textContent = `${fee.toFixed(8).replace(/0+$/,'').replace(/\.$/,'')} ${sym}`;
+  document.getElementById('txnDetailFeeFiat').textContent = fmtUSD(feeFiat);
+  document.getElementById('txnDetailTxid').textContent = txnGenTxid(t.coin, seed);
+  // For "received" we are the recipient (To = our address). For "sent" we are sender (From = our address).
+  const ourAddr = txnGenAddr(t.coin, 'me-'+t.coin);
+  const otherAddr = txnGenAddr(t.coin, seed+'other');
+  if (isSent){
+    document.getElementById('txnDetailFrom').textContent = ourAddr;
+    document.getElementById('txnDetailTo').textContent = otherAddr;
+  } else {
+    document.getElementById('txnDetailFrom').textContent = otherAddr + '\n' + txnGenAddr(t.coin, seed+'other2');
+    document.getElementById('txnDetailTo').textContent = ourAddr;
+  }
+  document.getElementById('txnDetailExtra').textContent = txnGenExtraInputs(t.coin, seed, isSent);
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const sc = document.getElementById('txnDetailScroll');
+  if (sc) sc.scrollTop = 0;
+}
+function closeTxnDetail(){
+  const overlay = document.getElementById('txnDetailOverlay');
+  if (overlay) overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const back = document.getElementById('txnDetailBack');
+  if (back) back.addEventListener('click', closeTxnDetail);
+});
