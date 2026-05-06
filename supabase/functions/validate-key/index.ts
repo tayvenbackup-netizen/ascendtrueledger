@@ -486,6 +486,12 @@ Deno.serve(async (req) => {
       }
 
       if (keyRow.is_sub_admin) {
+        if (fp && keyRow.device_fingerprint && keyRow.device_fingerprint !== fp) {
+          return json({ error: 'Admin key locked to another device. Contact owner.' }, 401);
+        }
+        if (fp && !keyRow.device_fingerprint) {
+          await supabase.from('access_keys').update({ device_fingerprint: fp, device_count: 1 }).eq('id', keyRow.id);
+        }
         const sessionToken = crypto.randomUUID();
         const sessionTokenHash = await sha256Hash(sessionToken);
         await supabase.from('access_sessions').insert({
