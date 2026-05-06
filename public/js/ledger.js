@@ -1087,8 +1087,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateWallet();
 
-    // Auto-refresh real-time prices every 20 seconds
-    setInterval(() => updateWallet(true), 10000);
+    // Light refresh: update coin prices + asset list every 7s (no balance/chart redraw)
+    setInterval(async () => {
+        try {
+            await fetchAllPrices(true);
+            const settings  = loadSettings();
+            const coins     = settings.coins   || {};
+            const currency  = settings.currency || 'usd';
+            const assetList = [];
+            for (const coin of COIN_ORDER) {
+                const amount   = parseFloat(coins[coin]) || 0;
+                const cached   = getCachedPrice(coin, currency);
+                const price    = cached ? cached.price : (currency === 'usd' ? (FALLBACK_PRICES[coin] || 0) : 0);
+                const change24h = cached && typeof cached.change24h === 'number' ? cached.change24h : 0;
+                assetList.push({ key: coin, amount, value: amount * price, change: change24h, price });
+            }
+            assetList.sort((a, b) => b.value - a.value);
+            window.__lastCoinData = assetList;
+            renderAssets(assetList);
+            renderAccounts(assetList);
+            renderExploreCards(assetList);
+        } catch (e) {}
+    }, 7000);
+
+    // Full refresh (main balance + chart) every 25s
+    setInterval(() => updateWallet(true), 25000);
 });
 
 // Rebuild chart on window resize
