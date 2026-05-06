@@ -733,26 +733,27 @@
       }catch(e){}
       return null;
     }
-    function showFakeNotif(opts){
-      const stack = document.getElementById('fakeNotifStack');
-      if(!stack) return;
-      const el = document.createElement('div');
-      el.className = 'fake-notif';
-      el.innerHTML = `
-        <div class="fake-notif-ic"><img src="/assets/ledger.png" alt=""/></div>
-        <div class="fake-notif-body">
-          <div class="fake-notif-top">
-            <div class="fake-notif-title">${opts.title}</div>
-            <div class="fake-notif-time">now</div>
-          </div>
-          <div class="fake-notif-msg">${opts.body}</div>
-        </div>`;
-      stack.appendChild(el);
-      requestAnimationFrame(()=>el.classList.add('show'));
-      setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(), 400); }, 5500);
-      if('Notification' in window && Notification.permission==='granted'){
-        try{ new Notification(opts.title, { body: opts.body, icon:'/assets/ledger.png' }); }catch(e){}
+    async function showSystemNotif(opts){
+      if(!('Notification' in window) || Notification.permission !== 'granted'){
+        try{ console.warn('[notif] permission not granted'); }catch(e){}
+        return;
       }
+      const title = opts.title || 'Ledger Wallet';
+      const payload = {
+        body: opts.body || '',
+        icon: '/assets/ledger.png',
+        badge: '/assets/ledger.png',
+        tag: 'ledger-' + Date.now(),
+        renotify: true
+      };
+      try {
+        const reg = swReg || (navigator.serviceWorker && await navigator.serviceWorker.ready);
+        if (reg && reg.showNotification) {
+          await reg.showNotification(title, payload);
+          return;
+        }
+      } catch(e){}
+      try { new Notification(title, payload); } catch(e){}
     }
     function getAmount(coin){
       const inp = document.getElementById('notif-amount');
