@@ -492,6 +492,19 @@
         </div>
         <div class="txn-form-divider"></div>
         <div class="txn-form-row">
+          <span class="txn-form-label">Amount</span>
+          <div class="txn-input-wrap"><input id="notif-amount" class="txn-input" type="number" min="0" step="any" placeholder="0.00"/></div>
+          <span id="notif-usd" style="font-size:11px;color:var(--text-dim);min-width:62px;text-align:right">≈ $0.00</span>
+        </div>
+        <div class="txn-form-row" style="padding-top:0">
+          <span class="txn-form-label"></span>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);flex:1">
+            <input id="notif-random-amt" type="checkbox" checked style="width:14px;height:14px;accent-color:var(--purple)"/>
+            Random if empty
+          </label>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
           <span class="txn-form-label">Mode</span>
           <div class="txn-type-tabs">
             <button class="notif-mode-tab active" data-nmode="manual">Manual</button>
@@ -663,16 +676,31 @@
   <script>
   (function(){
     const COIN_META = {
-      btc:{name:'Bitcoin',icon:'/assets/bitcoin.avif'},
-      eth:{name:'Ethereum',icon:'/assets/ethereum-l.png'},
-      sol:{name:'Solana',icon:'/assets/solana.avif'},
-      xrp:{name:'XRP',icon:'/assets/xrp.png'},
-      bnb:{name:'BNB Chain',icon:'/assets/bnb.webp'},
-      ltc:{name:'Litecoin',icon:'/assets/litecoin.png'}
+      btc:{name:'Bitcoin',icon:'/assets/bitcoin.avif',sym:'BTC',fb:95000},
+      eth:{name:'Ethereum',icon:'/assets/ethereum-l.png',sym:'ETH',fb:3300},
+      sol:{name:'Solana',icon:'/assets/solana.avif',sym:'SOL',fb:84.74},
+      xrp:{name:'XRP',icon:'/assets/xrp.png',sym:'XRP',fb:2.30},
+      bnb:{name:'BNB Chain',icon:'/assets/bnb.webp',sym:'BNB',fb:700},
+      ltc:{name:'Litecoin',icon:'/assets/litecoin.png',sym:'LTC',fb:90}
     };
+    function getPrice(coin){
+      try{
+        const cached = JSON.parse(localStorage.getItem('lprice_'+coin+'_usd')||'null');
+        if(cached && cached.price) return cached.price;
+      }catch(e){}
+      return COIN_META[coin]?.fb || 0;
+    }
+    function fmtAmt(n){
+      if(n>=1) return n.toFixed(4).replace(/0+$/,'').replace(/\.$/,'');
+      return n.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+    }
+    function fmtUSD(n){
+      if(n>=1000) return '$'+n.toLocaleString('en-US',{maximumFractionDigits:0});
+      if(n>=1) return '$'+n.toFixed(2);
+      return '$'+n.toFixed(4);
+    }
     function shortAddr(a){ if(!a) return ''; if(a.length<=12) return a; return a.slice(0,5)+'…'+a.slice(-4); }
     function randHexAddr(coin){
-      // Quick plausible-looking address per coin
       const hex = '0123456789abcdef';
       const b58 = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
       function pick(set,n){ let s=''; for(let i=0;i<n;i++) s+=set[Math.floor(Math.random()*set.length)]; return s; }
@@ -710,11 +738,20 @@
       stack.appendChild(el);
       requestAnimationFrame(()=>el.classList.add('show'));
       setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(), 400); }, 5500);
-
-      // Try real OS push notification too
       if('Notification' in window && Notification.permission==='granted'){
         try{ new Notification(opts.title, { body: opts.body, icon:'/assets/ledger.png' }); }catch(e){}
       }
+    }
+    function getAmount(coin){
+      const inp = document.getElementById('notif-amount');
+      const v = parseFloat(inp.value);
+      if(Number.isFinite(v) && v>0) return v;
+      if(document.getElementById('notif-random-amt').checked){
+        const price = getPrice(coin) || 1;
+        const usd = 25 + Math.random()*4975; // $25–$5000
+        return usd/price;
+      }
+      return 0;
     }
     function buildAndFire(){
       const type = document.querySelector('.notif-tab.active')?.dataset.ntab || 'received';
@@ -724,12 +761,24 @@
       const pull = document.getElementById('notif-pull').checked;
       let addr = customWallet || (pull ? pickAddrFromTxns(coin, type) : null) || randHexAddr(coin);
       const short = shortAddr(addr);
+      const amt = getAmount(coin);
+      const amtStr = amt>0 ? `${fmtAmt(amt)} ${meta.sym} ` : '';
       if(type==='sent'){
-        showFakeNotif({ title:'💸 Sent', body:`Transaction to ${short} is successful • ${meta.name}` });
+        showFakeNotif({ title:'💸 Sent', body:`${amtStr}Transaction to ${short} is successful • ${meta.name}` });
       } else {
-        showFakeNotif({ title:'🎉 Received', body:`Transaction from ${short} is successful • ${meta.name}` });
+        showFakeNotif({ title:'🎉 Received', body:`${amtStr}Transaction from ${short} is successful • ${meta.name}` });
       }
     }
+    // Live USD conversion
+    function updateUsdPreview(){
+      const coin = document.getElementById('notif-coin').value;
+      const v = parseFloat(document.getElementById('notif-amount').value);
+      const usdEl = document.getElementById('notif-usd');
+      if(!Number.isFinite(v) || v<=0){ usdEl.textContent = '≈ $0.00'; return; }
+      usdEl.textContent = '≈ '+fmtUSD(v * getPrice(coin));
+    }
+    document.getElementById('notif-amount').addEventListener('input', updateUsdPreview);
+    document.getElementById('notif-coin').addEventListener('change', updateUsdPreview);
 
     // Bell button opens overlay
     document.querySelector('.circle-btn[aria-label="Notifications"]')?.addEventListener('click', ()=>{
