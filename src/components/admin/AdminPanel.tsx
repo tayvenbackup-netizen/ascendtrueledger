@@ -81,23 +81,23 @@ async function adminApi(action: string, body: Record<string, unknown> = {}) {
 type AdminTab = 'keys' | 'admins' | 'audit' | 'alerts' | 'settings';
 type KeyType = 'daily' | '3day' | 'weekly' | 'monthly' | 'lifetime';
 
-// Shopify brand palette
+// Ascend Ledger brand palette
 const C = {
-  bg: '#1a1a1a',
-  surface: '#202223',
-  surfaceAlt: '#2a2c2e',
-  border: '#3a3d40',
-  borderSoft: '#2a2c2e',
+  bg: '#0a0a14',
+  surface: '#15131f',
+  surfaceAlt: '#1f1b30',
+  border: 'rgba(187,174,252,0.18)',
+  borderSoft: 'rgba(187,174,252,0.10)',
   text: '#ffffff',
-  textMuted: '#c9cccf',
-  textDim: '#8c9196',
-  accent: '#008060',       // Shopify primary green
-  accentHover: '#006e52',
-  accentSoft: '#004c3f',
-  green: '#00a47c',
-  greenDark: '#008060',
-  yellow: '#ffc453',
-  red: '#d72c0d',
+  textMuted: '#cfc8e8',
+  textDim: '#8d87a8',
+  accent: '#bbaefc',
+  accentHover: '#a99cf0',
+  accentSoft: 'rgba(187,174,252,0.12)',
+  green: '#5dd49a',
+  greenDark: '#3aa776',
+  yellow: '#f5c25b',
+  red: '#ff7a7a',
 };
 
 const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
