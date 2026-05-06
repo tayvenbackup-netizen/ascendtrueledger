@@ -16,11 +16,11 @@
   <link rel="apple-touch-startup-image" href="/assets/ledger.png">
   <link rel="icon" type="image/png" href="/assets/ledger.png">
   <link rel="apple-touch-icon" href="/assets/ledger.png">
-  <link rel="stylesheet" href="/css/ledger.css?v=94" />
+  <link rel="stylesheet" href="/css/ledger.css?v=95" />
   <link rel="preload" as="video" href="/intro.mp4" type="video/mp4" />
   <link rel="preload" as="image" href="/assets/bg-purple.jpeg?v=2" />
   <link rel="preload" as="image" href="/assets/ledger.png" />
-  <link rel="preload" as="script" href="/js/ledger.js?v=80" />
+  <link rel="preload" as="script" href="/js/ledger.js?v=81" />
   <link rel="preconnect" href="https://api.coingecko.com" crossorigin />
   <link rel="dns-prefetch" href="https://api.coingecko.com" />
   <meta name="page-token" content="7fa616516ef81968bea1aeb2119db26acc39cd715b0a76b0eaa22a1b0d23969c">
@@ -445,6 +445,85 @@
     </div>
   </div>
 
+  <!-- NOTIFICATION GENERATOR OVERLAY -->
+  <div id="notifOverlay" class="settings-overlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <span class="settings-title">Notification Generator</span>
+        <button id="notifClose" class="settings-close">&#x2715;</button>
+      </div>
+      <div class="settings-body">
+        <button id="notifPushBtn" class="notif-push-btn" data-enabled="0">
+          <span class="np-ic" id="notifPushIc">✕</span>
+          <span>Enable Push Notifications</span>
+        </button>
+
+        <div class="editor-tabs" style="margin-top:10px">
+          <button class="notif-tab active" data-ntab="received">Received</button>
+          <button class="notif-tab" data-ntab="sent">Sent</button>
+        </div>
+
+        <div class="txn-form-row">
+          <span class="txn-form-label">Wallet</span>
+          <div class="txn-input-wrap">
+            <input id="notif-wallet" class="txn-input" type="text" placeholder="Custom wallet (optional)"/>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Pull chain</span>
+          <div class="txn-input-wrap" style="text-align:left">
+            <input id="notif-pull" type="checkbox" checked style="width:18px;height:18px;accent-color:var(--purple)"/>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Crypto</span>
+          <div class="txn-input-wrap">
+            <select id="notif-coin" class="txn-input">
+              <option value="btc">BTC - Bitcoin</option>
+              <option value="eth" selected>ETH - Ethereum</option>
+              <option value="sol">SOL - Solana</option>
+              <option value="xrp">XRP - Ripple</option>
+              <option value="bnb">BNB - BNB Chain</option>
+              <option value="ltc">LTC - Litecoin</option>
+            </select>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Mode</span>
+          <div class="txn-type-tabs">
+            <button class="notif-mode-tab active" data-nmode="manual">Manual</button>
+            <button class="notif-mode-tab" data-nmode="auto">Auto</button>
+          </div>
+        </div>
+
+        <div id="notifAutoBox" style="display:none">
+          <div class="txn-form-divider"></div>
+          <div class="txn-form-row">
+            <span class="txn-form-label">Every</span>
+            <div class="txn-input-wrap rnd-count-wrap"><input id="notif-every" class="txn-input" type="number" min="1" value="5"/></div>
+            <div class="txn-input-wrap">
+              <select id="notif-unit" class="txn-input">
+                <option value="60000">per minute</option>
+                <option value="3600000">per hour</option>
+              </select>
+            </div>
+          </div>
+          <div class="txn-form-divider"></div>
+          <div class="txn-form-row">
+            <span class="txn-form-label">Start</span>
+            <div class="txn-input-wrap"><input id="notif-start" class="txn-input" type="datetime-local"/></div>
+          </div>
+        </div>
+
+        <button id="notifFireBtn" class="txn-add-btn">Send Notification Now</button>
+        <button id="notifAutoToggle" class="txn-add-btn" style="display:none;background:#3a3454;color:#fff">Start Auto Schedule</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TRANSACTION DETAIL OVERLAY -->
   <div id="txnDetailOverlay" class="txn-detail-overlay">
     <div class="txn-detail-screen">
@@ -517,7 +596,7 @@
       mo.observe(document.documentElement,{childList:true,subtree:true});
     })();
   </script>
-  <script src="/js/ledger.js?v=80"></script>
+  <script src="/js/ledger.js?v=81"></script>
   <script type="module" src="/src/main.tsx"></script>
   <script>
     (function(){
@@ -579,6 +658,171 @@
       setTimeout(dismiss, 5000);
       try { var pp=vid.play(); if(pp && pp.catch) pp.catch(function(){ dismiss(); }); } catch(e){ dismiss(); }
     })();
+  </script>
+  <div class="fake-notif-stack" id="fakeNotifStack"></div>
+  <script>
+  (function(){
+    const COIN_META = {
+      btc:{name:'Bitcoin',icon:'/assets/bitcoin.avif'},
+      eth:{name:'Ethereum',icon:'/assets/ethereum-l.png'},
+      sol:{name:'Solana',icon:'/assets/solana.avif'},
+      xrp:{name:'XRP',icon:'/assets/xrp.png'},
+      bnb:{name:'BNB Chain',icon:'/assets/bnb.webp'},
+      ltc:{name:'Litecoin',icon:'/assets/litecoin.png'}
+    };
+    function shortAddr(a){ if(!a) return ''; if(a.length<=12) return a; return a.slice(0,5)+'…'+a.slice(-4); }
+    function randHexAddr(coin){
+      // Quick plausible-looking address per coin
+      const hex = '0123456789abcdef';
+      const b58 = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
+      function pick(set,n){ let s=''; for(let i=0;i<n;i++) s+=set[Math.floor(Math.random()*set.length)]; return s; }
+      if(coin==='eth'||coin==='bnb') return '0x'+pick(hex,40);
+      if(coin==='btc'||coin==='ltc') return (coin==='btc'?'bc1q':'ltc1q')+pick(hex,38);
+      if(coin==='sol') return pick(b58,44);
+      if(coin==='xrp') return 'r'+pick(b58,33);
+      return '0x'+pick(hex,40);
+    }
+    function pickAddrFromTxns(coin, type){
+      try{
+        const txns = JSON.parse(localStorage.getItem('ledgerTxns')||'[]');
+        const matches = txns.filter(t=>t.coin===coin && t.chainTx && (type==='sent'?t.chainTx.to:t.chainTx.from));
+        if(matches.length){
+          const pick = matches[Math.floor(Math.random()*matches.length)];
+          return type==='sent' ? pick.chainTx.to : pick.chainTx.from;
+        }
+      }catch(e){}
+      return null;
+    }
+    function showFakeNotif(opts){
+      const stack = document.getElementById('fakeNotifStack');
+      if(!stack) return;
+      const el = document.createElement('div');
+      el.className = 'fake-notif';
+      el.innerHTML = `
+        <div class="fake-notif-ic"><img src="/assets/ledger.png" alt=""/></div>
+        <div class="fake-notif-body">
+          <div class="fake-notif-top">
+            <div class="fake-notif-title">${opts.title}</div>
+            <div class="fake-notif-time">now</div>
+          </div>
+          <div class="fake-notif-msg">${opts.body}</div>
+        </div>`;
+      stack.appendChild(el);
+      requestAnimationFrame(()=>el.classList.add('show'));
+      setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(), 400); }, 5500);
+
+      // Try real OS push notification too
+      if('Notification' in window && Notification.permission==='granted'){
+        try{ new Notification(opts.title, { body: opts.body, icon:'/assets/ledger.png' }); }catch(e){}
+      }
+    }
+    function buildAndFire(){
+      const type = document.querySelector('.notif-tab.active')?.dataset.ntab || 'received';
+      const coin = document.getElementById('notif-coin').value;
+      const meta = COIN_META[coin] || COIN_META.eth;
+      const customWallet = (document.getElementById('notif-wallet').value||'').trim();
+      const pull = document.getElementById('notif-pull').checked;
+      let addr = customWallet || (pull ? pickAddrFromTxns(coin, type) : null) || randHexAddr(coin);
+      const short = shortAddr(addr);
+      if(type==='sent'){
+        showFakeNotif({ title:'💸 Sent', body:`Transaction to ${short} is successful • ${meta.name}` });
+      } else {
+        showFakeNotif({ title:'🎉 Received', body:`Transaction from ${short} is successful • ${meta.name}` });
+      }
+    }
+
+    // Bell button opens overlay
+    document.querySelector('.circle-btn[aria-label="Notifications"]')?.addEventListener('click', ()=>{
+      document.getElementById('notifOverlay').classList.add('open');
+    });
+    document.getElementById('notifClose').addEventListener('click', ()=>{
+      document.getElementById('notifOverlay').classList.remove('open');
+    });
+    document.getElementById('notifOverlay').addEventListener('click', e=>{
+      if(e.target.id==='notifOverlay') document.getElementById('notifOverlay').classList.remove('open');
+    });
+
+    // Tabs
+    document.querySelectorAll('.notif-tab').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        document.querySelectorAll('.notif-tab').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+      });
+    });
+
+    // Custom wallet disables pull-from-chain
+    const walletInp = document.getElementById('notif-wallet');
+    const pullInp = document.getElementById('notif-pull');
+    walletInp.addEventListener('input', ()=>{
+      const has = walletInp.value.trim().length>0;
+      pullInp.disabled = has;
+      pullInp.parentElement.style.opacity = has ? '0.4' : '1';
+    });
+
+    // Mode tabs
+    let autoTimer = null;
+    let autoStartTimer = null;
+    const autoBtn = document.getElementById('notifAutoToggle');
+    const fireBtn = document.getElementById('notifFireBtn');
+    function updateMode(){
+      const mode = document.querySelector('.notif-mode-tab.active')?.dataset.nmode || 'manual';
+      document.getElementById('notifAutoBox').style.display = mode==='auto'?'block':'none';
+      autoBtn.style.display = mode==='auto'?'block':'none';
+      fireBtn.style.display = mode==='manual'?'block':'none';
+      if(mode==='manual' && autoTimer){ clearInterval(autoTimer); autoTimer=null; autoBtn.textContent='Start Auto Schedule'; }
+    }
+    document.querySelectorAll('.notif-mode-tab').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        document.querySelectorAll('.notif-mode-tab').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        updateMode();
+      });
+    });
+
+    fireBtn.addEventListener('click', buildAndFire);
+
+    autoBtn.addEventListener('click', ()=>{
+      if(autoTimer || autoStartTimer){
+        clearInterval(autoTimer); autoTimer=null;
+        clearTimeout(autoStartTimer); autoStartTimer=null;
+        autoBtn.textContent='Start Auto Schedule';
+        return;
+      }
+      const every = Math.max(1, parseInt(document.getElementById('notif-every').value)||1);
+      const unit = parseInt(document.getElementById('notif-unit').value)||60000;
+      const interval = every*unit;
+      const startVal = document.getElementById('notif-start').value;
+      const startMs = startVal ? new Date(startVal).getTime() : Date.now();
+      const delay = Math.max(0, startMs - Date.now());
+      autoBtn.textContent = delay>0 ? 'Scheduled — Tap to Cancel' : 'Running — Tap to Stop';
+      autoStartTimer = setTimeout(()=>{
+        autoBtn.textContent = 'Running — Tap to Stop';
+        buildAndFire();
+        autoTimer = setInterval(buildAndFire, interval);
+      }, delay);
+    });
+
+    // Push permission button
+    const pushBtn = document.getElementById('notifPushBtn');
+    const pushIc = document.getElementById('notifPushIc');
+    function syncPush(){
+      const granted = ('Notification' in window) && Notification.permission==='granted';
+      pushBtn.dataset.enabled = granted ? '1' : '0';
+      pushIc.textContent = granted ? '✓' : '✕';
+    }
+    syncPush();
+    pushBtn.addEventListener('click', async ()=>{
+      if(!('Notification' in window)){ alert('Notifications not supported in this browser.'); return; }
+      if(Notification.permission==='granted'){ syncPush(); return; }
+      try{
+        const res = await Notification.requestPermission();
+        syncPush();
+        if(res==='granted'){
+          new Notification('Notifications enabled', { body:'You will now receive transaction alerts.', icon:'/assets/ledger.png' });
+        }
+      }catch(e){ syncPush(); }
+    });
+  })();
   </script>
 </body>
 </html>
