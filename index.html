@@ -396,6 +396,34 @@
         </div>
         <input id="txn-time" type="hidden" value=""/>
         <button id="txnAddBtn" class="txn-add-btn">Add Transaction</button>
+
+        <div class="txn-random-section">
+          <div class="txn-random-title">Random Transaction History</div>
+          <div class="txn-random-coins" id="rndCoins">
+            <button class="rnd-coin active" data-coin="btc">BTC</button>
+            <button class="rnd-coin active" data-coin="eth">ETH</button>
+            <button class="rnd-coin active" data-coin="sol">SOL</button>
+            <button class="rnd-coin" data-coin="xrp">XRP</button>
+            <button class="rnd-coin" data-coin="bnb">BNB</button>
+            <button class="rnd-coin" data-coin="ltc">LTC</button>
+          </div>
+          <div class="txn-form-row">
+            <span class="txn-form-label">Count</span>
+            <div class="txn-input-wrap"><input id="rnd-count" class="txn-input" type="number" min="1" max="200" value="10"/></div>
+          </div>
+          <div class="txn-form-divider"></div>
+          <div class="txn-form-row">
+            <span class="txn-form-label">Min $</span>
+            <div class="txn-input-wrap"><input id="rnd-min" class="txn-input" type="number" min="0" step="any" value="50"/></div>
+          </div>
+          <div class="txn-form-divider"></div>
+          <div class="txn-form-row">
+            <span class="txn-form-label">Max $</span>
+            <div class="txn-input-wrap"><input id="rnd-max" class="txn-input" type="number" min="0" step="any" value="2000"/></div>
+          </div>
+          <button id="rndGenBtn" class="txn-add-btn">Generate Random History</button>
+        </div>
+
         <div class="txn-edit-section">
           <div class="txn-edit-title">Existing Transactions</div>
           <div id="txnEditorList" class="txn-edit-list"></div>
