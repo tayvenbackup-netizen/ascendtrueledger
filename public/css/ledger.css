@@ -296,7 +296,7 @@ img{display:block;max-width:100%}
 
 /* BOTTOM NAV */
 .bottom-nav{
-  position:fixed;left:0;right:0;bottom:max(var(--safe-bottom), 2px);
+  position:fixed;left:0;right:0;bottom:0;
   max-width:500px;margin:0 auto;
   padding:0 14px;
   display:flex;align-items:center;gap:10px;
@@ -577,7 +577,7 @@ img{display:block;max-width:100%}
 .txn-field-value.mono{font-family:-apple-system,BlinkMacSystemFont,'SF Mono',Menlo,monospace;font-weight:600}
 .txn-field-fee{display:flex;align-items:center;gap:14px;font-size:15.5px;font-weight:700;color:#fff}
 .txn-fee-approx{color:var(--text-dim);font-weight:500}
-.txn-detail-footer{position:fixed;left:0;right:0;bottom:0;max-width:500px;margin:0 auto;padding:10px 16px max(env(safe-area-inset-bottom), 4px);background:#0a0a0c;z-index:1001}
+.txn-detail-footer{position:fixed;left:0;right:0;bottom:0;max-width:500px;margin:0 auto;padding:6px 16px 0;background:#0a0a0c;z-index:1001}
 .txn-detail-scroll{padding-bottom:120px !important}
 .txn-detail-explorer{
   width:100%;padding:18px;border-radius:100px;
