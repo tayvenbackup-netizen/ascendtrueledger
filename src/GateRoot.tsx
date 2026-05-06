@@ -29,7 +29,7 @@ const GateRoot = () => {
   return (
     <>
       {!isAuthed && <KeyEntryScreen onValidate={validateKey} error={error} />}
-      <AdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} />
+      <AdminPanel isOpen={adminOpen} onClose={() => setAdminOpen(false)} />
     </>
   );
 };
