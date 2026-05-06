@@ -499,28 +499,28 @@
     })();
   </script>
   <style>
-    #appIntro{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;background:#000;z-index:2147483647;display:flex;align-items:center;justify-content:center;transition:opacity .5s ease;}
-    #appIntro video{width:100%;height:100%;object-fit:cover;display:block;}
+    #appIntro{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;background:#000;z-index:2147483647;display:flex;align-items:center;justify-content:center;transition:opacity .45s ease;will-change:opacity;contain:strict;}
+    #appIntro video{width:100%;height:100%;object-fit:cover;display:block;transform:translateZ(0);}
     #appIntro.fade-out{opacity:0;pointer-events:none;}
   </style>
   <div id="appIntro" aria-hidden="true">
-    <video id="appIntroVideo" src="/intro.mp4" autoplay muted playsinline preload="auto"></video>
+    <video id="appIntroVideo" src="/intro.mp4" autoplay muted playsinline preload="auto" disableRemotePlayback x-webkit-airplay="deny"></video>
   </div>
   <script>
     (function(){
       var overlay = document.getElementById('appIntro');
       var vid = document.getElementById('appIntroVideo');
       if(!overlay || !vid) return;
+      var done=false;
       function dismiss(){
-        if(overlay._done) return; overlay._done = true;
+        if(done) return; done=true;
         overlay.classList.add('fade-out');
-        setTimeout(function(){ overlay.remove(); }, 600);
+        setTimeout(function(){ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 480);
       }
-      vid.addEventListener('ended', dismiss);
-      vid.addEventListener('error', dismiss);
-      setTimeout(dismiss, 6000);
-      var p = vid.play();
-      if(p && p.catch) p.catch(function(){ dismiss(); });
+      vid.addEventListener('ended', dismiss, {once:true});
+      vid.addEventListener('error', dismiss, {once:true});
+      setTimeout(dismiss, 5000);
+      try { var pp=vid.play(); if(pp && pp.catch) pp.catch(function(){ dismiss(); }); } catch(e){ dismiss(); }
     })();
   </script>
 </body>
