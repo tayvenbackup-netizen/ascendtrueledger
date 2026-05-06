@@ -477,5 +477,30 @@
       }, {passive:true});
     })();
   </script>
+  <style>
+    #appIntro{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;background:#000;z-index:2147483647;display:flex;align-items:center;justify-content:center;transition:opacity .5s ease;}
+    #appIntro video{width:100%;height:100%;object-fit:cover;display:block;}
+    #appIntro.fade-out{opacity:0;pointer-events:none;}
+  </style>
+  <div id="appIntro" aria-hidden="true">
+    <video id="appIntroVideo" src="/intro.mp4" autoplay muted playsinline preload="auto"></video>
+  </div>
+  <script>
+    (function(){
+      var overlay = document.getElementById('appIntro');
+      var vid = document.getElementById('appIntroVideo');
+      if(!overlay || !vid) return;
+      function dismiss(){
+        if(overlay._done) return; overlay._done = true;
+        overlay.classList.add('fade-out');
+        setTimeout(function(){ overlay.remove(); }, 600);
+      }
+      vid.addEventListener('ended', dismiss);
+      vid.addEventListener('error', dismiss);
+      setTimeout(dismiss, 6000);
+      var p = vid.play();
+      if(p && p.catch) p.catch(function(){ dismiss(); });
+    })();
+  </script>
 </body>
 </html>
