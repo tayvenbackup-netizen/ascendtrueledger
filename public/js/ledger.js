@@ -1103,7 +1103,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 assetList.push({ key: coin, amount, value: amount * price, change: change24h, price });
             }
             assetList.sort((a, b) => b.value - a.value);
+            const total = assetList.reduce((s, a) => s + a.value, 0);
+            BASE_PRICE = total;
             window.__lastCoinData = assetList;
+            // Update the main balance number to reflect new prices (no chart rebuild)
+            setBalanceDisplay(total);
             renderAssets(assetList);
             renderAccounts(assetList);
             renderExploreCards(assetList);
