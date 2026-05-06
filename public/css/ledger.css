@@ -13,8 +13,7 @@
   --safe-bottom:env(safe-area-inset-bottom, 0px);
 }
 html,body{height:100%;width:100%;background:#0a0a0c;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none;overflow:hidden;touch-action:pan-y;overflow-x:hidden}
-.scrollable{zoom:0.86}
-@supports not (zoom:1){.scrollable{transform:scale(0.86);transform-origin:top center;width:116.3%}}
+/* Full-screen UI - no zoom scaling */
 button{background:none;border:none;color:inherit;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 img{display:block;max-width:100%}
 
