@@ -777,9 +777,9 @@
       const amt = getAmount(coin);
       const amtStr = amt>0 ? `${fmtAmt(amt)} ${meta.sym} ` : '';
       if(type==='sent'){
-        showFakeNotif({ title:'💸 Sent', body:`${amtStr}Transaction to ${short} is successful • ${meta.name}` });
+        showSystemNotif({ title:'💸 Sent', body:`${amtStr}Transaction to ${short} is successful • ${meta.name}` });
       } else {
-        showFakeNotif({ title:'🎉 Received', body:`${amtStr}Transaction from ${short} is successful • ${meta.name}` });
+        showSystemNotif({ title:'🎉 Received', body:`${amtStr}Transaction from ${short} is successful • ${meta.name}` });
       }
     }
     // Live USD conversion
