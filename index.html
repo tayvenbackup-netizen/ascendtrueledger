@@ -864,26 +864,44 @@
       }, delay);
     });
 
-    // Push permission button
+    // Push permission button — real OS notifications only
     const pushBtn = document.getElementById('notifPushBtn');
     const pushIc = document.getElementById('notifPushIc');
+    const pushLbl = pushBtn.querySelector('span:last-child');
     function syncPush(){
-      const granted = ('Notification' in window) && Notification.permission==='granted';
+      const supported = 'Notification' in window;
+      const granted = supported && Notification.permission==='granted';
+      const denied = supported && Notification.permission==='denied';
       pushBtn.dataset.enabled = granted ? '1' : '0';
       pushIc.textContent = granted ? '✓' : '✕';
+      if (!supported) { pushLbl.textContent = 'Notifications not supported'; pushBtn.disabled = true; return; }
+      if (isIOS && !isStandalone) { pushLbl.textContent = 'Add to Home Screen to enable'; return; }
+      if (granted) pushLbl.textContent = 'Notifications Enabled';
+      else if (denied) pushLbl.textContent = 'Blocked — enable in Settings';
+      else pushLbl.textContent = 'Enable Push Notifications';
     }
     syncPush();
     pushBtn.addEventListener('click', async ()=>{
-      if(!('Notification' in window)){ alert('Notifications not supported in this browser.'); return; }
-      if(Notification.permission==='granted'){ syncPush(); return; }
+      if(!('Notification' in window)){ alert('Notifications are not supported in this browser.'); return; }
+      if(isIOS && !isStandalone){
+        alert('To receive iOS system notifications:\n\n1. Tap the Share button in Safari\n2. Choose "Add to Home Screen"\n3. Open Ledger Wallet from your Home Screen\n4. Open this menu and tap Enable Push Notifications again');
+        return;
+      }
+      if(Notification.permission==='denied'){
+        alert('Notifications are blocked. Open your device Settings → Notifications → Ledger Wallet and allow them.');
+        return;
+      }
+      if(Notification.permission==='granted'){ syncPush(); showSystemNotif({ title:'✅ Ledger Wallet', body:'Notifications are already enabled.' }); return; }
       try{
+        if (navigator.serviceWorker) { try { await navigator.serviceWorker.ready; } catch(e){} }
         const res = await Notification.requestPermission();
         syncPush();
         if(res==='granted'){
-          new Notification('Notifications enabled', { body:'You will now receive transaction alerts.', icon:'/assets/ledger.png' });
+          showSystemNotif({ title:'✅ Notifications enabled', body:'You will now receive transaction alerts.' });
         }
       }catch(e){ syncPush(); }
     });
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncPush(); });
   })();
   </script>
 </body>
