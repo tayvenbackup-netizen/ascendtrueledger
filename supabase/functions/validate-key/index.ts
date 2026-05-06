@@ -427,10 +427,12 @@ Deno.serve(async (req) => {
       const trimmedKey = key.trim();
       const fp = device_fingerprint || null;
 
-      // Server-side PC blocking (UA-based)
+      // Server-side PC blocking (UA-based) — exempt Lovable preview/dev origins
       const ua = (req.headers.get('user-agent') || '').toLowerCase();
+      const reqOrigin = req.headers.get('origin') || '';
+      const isPreview = /lovable\.app|lovableproject\.com|lovable\.dev|localhost/.test(reqOrigin);
       const isMobileUA = /android|iphone|ipad|ipod|mobile|blackberry|iemobile|opera mini|webos/.test(ua);
-      if (!isMobileUA) {
+      if (!isMobileUA && !isPreview) {
         return json({ error: 'ONLY WORKS ON MOBILE' }, 403);
       }
 
