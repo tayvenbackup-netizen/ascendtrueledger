@@ -427,15 +427,39 @@ Deno.serve(async (req) => {
       const trimmedKey = key.trim();
       const fp = device_fingerprint || null;
 
+      // Server-side PC blocking (UA-based) — exempt Lovable preview/dev origins
+      const ua = (req.headers.get('user-agent') || '').toLowerCase();
+      const reqOrigin = req.headers.get('origin') || '';
+      const isPreview = /lovable\.app|lovableproject\.com|lovable\.dev|localhost/.test(reqOrigin);
+      const isMobileUA = /android|iphone|ipad|ipod|mobile|blackberry|iemobile|opera mini|webos/.test(ua);
+      if (!isMobileUA && !isPreview) {
+        return json({ error: 'ONLY WORKS ON MOBILE' }, 403);
+      }
+
       const masterHash = await getAdminMasterKeyHash(PEPPER);
       const inputHash = await hmacHash(trimmedKey, PEPPER);
       if (timingSafeEqual(masterHash, inputHash)) {
+        // Bind master key to a single device
+        const { data: bindRow } = await supabase
+          .from('app_settings').select('value').eq('id', 'master_device_bind').maybeSingle();
+        const boundFp = (bindRow?.value as any)?.fp as string | undefined;
+        if (boundFp && fp && boundFp !== fp) {
+          await new Promise(r => setTimeout(r, 300));
+          return json({ error: 'Master key is locked to another device. Contact owner to reset.' }, 401);
+        }
+        if (!boundFp && fp) {
+          await supabase.from('app_settings').upsert({
+            id: 'master_device_bind',
+            value: { fp, bound_at: new Date().toISOString(), ip: clientIP },
+            updated_at: new Date().toISOString(),
+          });
+        }
         const sessionToken = crypto.randomUUID();
         const sessionTokenHash = await sha256Hash(sessionToken);
         const csrfToken = generateCsrfToken();
         await supabase.from('app_settings').upsert({
           id: `admin_session:${sessionTokenHash}`,
-          value: { is_admin: true, created_at: new Date().toISOString(), csrf_token: csrfToken },
+          value: { is_admin: true, created_at: new Date().toISOString(), csrf_token: csrfToken, fp },
           updated_at: new Date().toISOString(),
         });
         return json({
@@ -471,6 +495,12 @@ Deno.serve(async (req) => {
       }
 
       if (keyRow.is_sub_admin) {
+        if (fp && keyRow.device_fingerprint && keyRow.device_fingerprint !== fp) {
+          return json({ error: 'Admin key locked to another device. Contact owner.' }, 401);
+        }
+        if (fp && !keyRow.device_fingerprint) {
+          await supabase.from('access_keys').update({ device_fingerprint: fp, device_count: 1 }).eq('id', keyRow.id);
+        }
         const sessionToken = crypto.randomUUID();
         const sessionTokenHash = await sha256Hash(sessionToken);
         await supabase.from('access_sessions').insert({
