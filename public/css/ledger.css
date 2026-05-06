@@ -619,3 +619,8 @@ img{content-visibility:auto;}
 .txn-edit-line2{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
 .txn-edit-del{flex:none;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,80,80,.15);color:#ff6b6b;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .txn-edit-del:hover{background:rgba(255,80,80,.28)}
+.txn-random-section{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.txn-random-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.55);margin:0 0 10px 4px}
+.txn-random-coins{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.rnd-coin{padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-size:12px;font-weight:600;border:1px solid transparent;cursor:pointer;transition:all .15s ease}
+.rnd-coin.active{background:rgba(187,174,252,.18);color:#BBAEFC;border-color:rgba(187,174,252,.35)}
