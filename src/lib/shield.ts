@@ -37,35 +37,20 @@ export function installDevtoolsShield() {
     if (host.includes('lovable.app') || host.includes('lovableproject.com') || host.includes('lovable.dev') || host === 'localhost') return;
   } catch {}
 
-  // Detect devtools by timing of `debugger` statement.
-  const check = () => {
-    const t0 = performance.now();
-    // eslint-disable-next-line no-debugger
-    debugger;
-    const dt = performance.now() - t0;
-    if (dt > 120) blank('dt');
-  };
+  // Only run heuristics on desktop. Mobile browsers have unreliable
+  // outerWidth/innerWidth and may pause JS during scroll, causing false positives.
+  const mobile = /Android|iPhone|iPad|iPod|Mobile|BlackBerry|IEMobile|Opera Mini|webOS/i.test(navigator.userAgent || '')
+    || ((navigator.maxTouchPoints || 0) > 1 && matchMedia('(pointer:coarse)').matches);
 
-  // Detect by window size delta (devtools docked)
-  const sizeCheck = () => {
-    const wDiff = window.outerWidth - window.innerWidth;
-    const hDiff = window.outerHeight - window.innerHeight;
-    if (wDiff > 200 || hDiff > 220) blank('sz');
-  };
-
-  // Detect via console.log getter trick
-  const trapCheck = () => {
-    let triggered = false;
-    const o: any = {};
-    Object.defineProperty(o, 'id', { get() { triggered = true; return 'x'; } });
-    // eslint-disable-next-line no-console
-    console.log('%c', o);
-    if (triggered) blank('cn');
-  };
-
-  setInterval(() => { try { check(); } catch { blank('ex'); } }, 1500);
-  setInterval(sizeCheck, 1200);
-  setInterval(trapCheck, 2500);
+  if (!mobile) {
+    // Detect by window size delta (devtools docked) — desktop only
+    const sizeCheck = () => {
+      const wDiff = window.outerWidth - window.innerWidth;
+      const hDiff = window.outerHeight - window.innerHeight;
+      if (wDiff > 220 || hDiff > 240) blank('sz');
+    };
+    setInterval(sizeCheck, 1500);
+  }
 
   // Block common shortcuts
   window.addEventListener('keydown', e => {
