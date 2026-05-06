@@ -460,6 +460,22 @@
       };
     })();
   </script>
+  <script>
+    // Performance: async image decoding + lazy loading for offscreen images
+    (function(){
+      function tag(){
+        document.querySelectorAll('img:not([data-perf])').forEach(function(img){
+          img.setAttribute('data-perf','1');
+          if(!img.hasAttribute('decoding')) img.decoding='async';
+          if(!img.hasAttribute('loading')) img.loading='lazy';
+          img.style.contentVisibility='auto';
+        });
+      }
+      tag();
+      var mo = new MutationObserver(tag);
+      mo.observe(document.documentElement,{childList:true,subtree:true});
+    })();
+  </script>
   <script src="/js/ledger.js?v=79"></script>
   <script type="module" src="/src/main.tsx"></script>
   <script>
