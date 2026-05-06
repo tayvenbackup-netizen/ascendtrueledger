@@ -13,8 +13,8 @@
   --safe-bottom:env(safe-area-inset-bottom, 0px);
 }
 html,body{height:100%;width:100%;background:#000;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none;overflow:hidden;touch-action:pan-y;overflow-x:hidden}
-.app{zoom:0.92}
-@supports not (zoom:1){.app{transform:scale(0.92);transform-origin:top center}}
+.app{zoom:0.84}
+@supports not (zoom:1){.app{transform:scale(0.84);transform-origin:top center}}
 button{background:none;border:none;color:inherit;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 img{display:block;max-width:100%}
 
@@ -578,7 +578,8 @@ img{display:block;max-width:100%}
 .txn-field-value.mono{font-family:-apple-system,BlinkMacSystemFont,'SF Mono',Menlo,monospace;font-weight:600}
 .txn-field-fee{display:flex;align-items:center;gap:14px;font-size:15.5px;font-weight:700;color:#fff}
 .txn-fee-approx{color:var(--text-dim);font-weight:500}
-.txn-detail-footer{margin-top:auto;padding:10px 16px calc(env(safe-area-inset-bottom) + 18px);background:#0a0a0c}
+.txn-detail-footer{position:fixed;left:0;right:0;bottom:0;max-width:500px;margin:0 auto;padding:10px 16px calc(env(safe-area-inset-bottom) + 18px);background:#0a0a0c;z-index:1001}
+.txn-detail-scroll{padding-bottom:120px !important}
 .txn-detail-explorer{
   width:100%;padding:18px;border-radius:100px;
   border:1px solid rgba(255,255,255,.22);
