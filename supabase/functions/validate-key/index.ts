@@ -359,28 +359,30 @@ Deno.serve(async (req) => {
 
     if (!CSRF_EXEMPT_ACTIONS.has(action)) {
       const csrfHeader = req.headers.get('x-csrf-token');
-      const sessTok =
-        getCookie(req, SESSION_COOKIE_NAME) ||
-        req.headers.get('x-session-token') ||
-        body.session_token ||
-        req.headers.get('x-admin-token') ||
-        getCookie(req, ADMIN_COOKIE_NAME);
+      // Collect ALL token candidates — admin and user sessions can coexist
+      const candidates = [
+        req.headers.get('x-admin-token'),
+        getCookie(req, ADMIN_COOKIE_NAME),
+        getCookie(req, SESSION_COOKIE_NAME),
+        req.headers.get('x-session-token'),
+        typeof body.session_token === 'string' ? body.session_token : null,
+      ].filter((v): v is string => !!v && typeof v === 'string');
       const csrfCookie = getCookie(req, CSRF_COOKIE_NAME);
       let valid = false;
-      if (csrfHeader && sessTok) {
-        const tokHash = await sha256Hash(String(sessTok));
-        const { data: adm } = await supabase
-          .from('app_settings').select('value').eq('id', `admin_session:${tokHash}`).maybeSingle();
-        const stored = (adm?.value as any)?.csrf_token as string | undefined;
-        if (stored && timingSafeEqual(stored, csrfHeader)) valid = true;
-        if (!valid) {
+      if (csrfHeader) {
+        for (const tok of candidates) {
+          const tokHash = await sha256Hash(tok);
+          const { data: adm } = await supabase
+            .from('app_settings').select('value').eq('id', `admin_session:${tokHash}`).maybeSingle();
+          const stored = (adm?.value as any)?.csrf_token as string | undefined;
+          if (stored && timingSafeEqual(stored, csrfHeader)) { valid = true; break; }
           const { data: bind } = await supabase
             .from('app_settings').select('value').eq('id', `csrf:${tokHash}`).maybeSingle();
           const stored2 = (bind?.value as any)?.csrf_token as string | undefined;
-          if (stored2 && timingSafeEqual(stored2, csrfHeader)) valid = true;
+          if (stored2 && timingSafeEqual(stored2, csrfHeader)) { valid = true; break; }
         }
+        if (!valid && csrfCookie && timingSafeEqual(csrfCookie, csrfHeader)) valid = true;
       }
-      if (!valid && csrfCookie && csrfHeader && timingSafeEqual(csrfCookie, csrfHeader)) valid = true;
       if (!valid) return json({ error: 'CSRF validation failed' }, 403);
     }
 
