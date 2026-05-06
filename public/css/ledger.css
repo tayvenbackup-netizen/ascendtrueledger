@@ -498,12 +498,12 @@ img{content-visibility:auto;}
 
 /* EDITOR TABS */
 .editor-tabs{
-  display:flex;gap:6px;margin:0 0 10px;
-  background:#252531;border-radius:10px;padding:3px;
+  display:flex;gap:5px;margin:0 0 8px;
+  background:#252531;border-radius:9px;padding:3px;flex:none;
 }
 .editor-tab{
-  flex:1;padding:8px 0;border-radius:8px;
-  font-size:13px;font-weight:600;color:var(--text-dim);
+  flex:1;padding:6px 0;border-radius:7px;
+  font-size:12px;font-weight:600;color:var(--text-dim);
   transition:all .18s ease;border:1px solid transparent;
 }
 .editor-tab.active{
@@ -513,35 +513,36 @@ img{content-visibility:auto;}
 /* TXN FORM (in editor) */
 .txn-editor{padding:0}
 .txn-form-row{
-  display:flex;align-items:center;gap:10px;padding:8px 2px;
+  display:flex;align-items:center;gap:8px;padding:5px 2px;
 }
 .txn-form-label{
-  width:60px;flex-shrink:0;color:var(--text-dim);
-  font-size:13px;font-weight:500;
+  width:54px;flex-shrink:0;color:var(--text-dim);
+  font-size:12px;font-weight:500;
 }
 .txn-input-wrap{flex:1}
 .txn-input{
   width:100%;background:#252531;border:1px solid rgba(255,255,255,.08);
-  border-radius:9px;color:#fff;font-size:13px;font-weight:500;
-  padding:9px 12px;text-align:center;font-family:inherit;
+  border-radius:8px;color:#fff;font-size:12px;font-weight:500;
+  padding:7px 10px;text-align:center;font-family:inherit;
   -webkit-appearance:none;appearance:none;outline:0;
 }
-.txn-type-tabs{flex:1;display:flex;gap:8px}
+.txn-type-tabs{flex:1;display:flex;gap:6px}
 .txn-type-tab{
-  flex:1;padding:9px 0;border-radius:10px;
+  flex:1;padding:7px 0;border-radius:8px;
   background:#252531;border:1px solid rgba(255,255,255,.06);
-  color:var(--text-dim);font-size:13px;font-weight:600;
+  color:var(--text-dim);font-size:12px;font-weight:600;
 }
 .txn-type-tab.active{
   border-color:rgba(187,174,252,.7);color:var(--purple);
   background:#2d2740;
 }
-.txn-form-divider{height:1px;background:rgba(255,255,255,.06);margin:0 2px}
+.txn-form-divider{height:1px;background:rgba(255,255,255,.05);margin:0 2px}
 .txn-add-btn{
-  width:100%;margin-top:12px;padding:12px;
+  width:100%;margin-top:10px;padding:10px;
   background:var(--purple);border-radius:100px;
-  color:#1a1428;font-size:14px;font-weight:700;
+  color:#1a1428;font-size:13px;font-weight:700;
 }
+
 
 /* TRANSACTION DETAIL OVERLAY */
 .txn-row{cursor:pointer}
