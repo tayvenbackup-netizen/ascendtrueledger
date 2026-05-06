@@ -672,9 +672,21 @@
       try { var pp=vid.play(); if(pp && pp.catch) pp.catch(function(){ dismiss(); }); } catch(e){ dismiss(); }
     })();
   </script>
-  <div class="fake-notif-stack" id="fakeNotifStack"></div>
   <script>
   (function(){
+    // ── Service worker registration (required for iOS system notifications) ──
+    let swReg = null;
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(r => {
+        swReg = r;
+      }).catch(()=>{});
+      navigator.serviceWorker.ready.then(r => { swReg = r; }).catch(()=>{});
+    }
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+
     const COIN_META = {
       btc:{name:'Bitcoin',icon:'/assets/bitcoin.avif',sym:'BTC',fb:95000},
       eth:{name:'Ethereum',icon:'/assets/ethereum-l.png',sym:'ETH',fb:3300},
