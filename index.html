@@ -492,6 +492,19 @@
         </div>
         <div class="txn-form-divider"></div>
         <div class="txn-form-row">
+          <span class="txn-form-label">Amount</span>
+          <div class="txn-input-wrap"><input id="notif-amount" class="txn-input" type="number" min="0" step="any" placeholder="0.00"/></div>
+          <span id="notif-usd" style="font-size:11px;color:var(--text-dim);min-width:62px;text-align:right">≈ $0.00</span>
+        </div>
+        <div class="txn-form-row" style="padding-top:0">
+          <span class="txn-form-label"></span>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);flex:1">
+            <input id="notif-random-amt" type="checkbox" checked style="width:14px;height:14px;accent-color:var(--purple)"/>
+            Random if empty
+          </label>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
           <span class="txn-form-label">Mode</span>
           <div class="txn-type-tabs">
             <button class="notif-mode-tab active" data-nmode="manual">Manual</button>
