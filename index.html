@@ -5,18 +5,19 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Ledger Wallet</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
   <meta name="robots" content="noindex, nofollow">
-  <link rel="manifest" href="/manifest.json?v=3" />
+  <link rel="manifest" href="/manifest.json?v=4" />
   <meta name="dev-mode" content="1">
   <meta name="apple-mobile-web-app-title" content="Ledger">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-touch-fullscreen" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="apple-touch-startup-image" href="/assets/ledger.png">
   <link rel="icon" type="image/png" href="/favicon.png?v=2">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
-  <link rel="stylesheet" href="/css/ledger.css?v=95" />
+  <link rel="stylesheet" href="/css/ledger.css?v=96" />
   <link rel="preload" as="video" href="/intro.mp4" type="video/mp4" />
   <link rel="preload" as="image" href="/assets/bg-purple.jpeg?v=2" />
   <link rel="preload" as="image" href="/assets/ledger.png" />
@@ -35,9 +36,10 @@
     (function(){
       var maxH = 0;
       function setVH(){
-        // Use window.innerHeight (not visualViewport) so keyboard/modal opens don't shrink the app and reveal a black bar
-        var h = window.innerHeight;
-        if (h > maxH) maxH = h;
+        var h = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0);
+        var installed = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches;
+        if (installed) maxH = h;
+        else if (h > maxH) maxH = h;
         document.documentElement.style.setProperty('--vh', (maxH * 0.01) + 'px');
         document.documentElement.style.setProperty('--app-h', maxH + 'px');
       }
@@ -648,7 +650,7 @@
     })();
   </script>
   <style>
-    #appIntro{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;background:#000;z-index:2147483647;display:flex;align-items:center;justify-content:center;transition:opacity .45s ease;will-change:opacity;contain:strict;}
+    #appIntro{position:fixed;inset:0;width:100vw;height:100%;height:-webkit-fill-available;height:calc(var(--vh, 1vh) * 100);background:#000;z-index:2147483647;display:flex;align-items:center;justify-content:center;transition:opacity .45s ease;will-change:opacity;contain:strict;}
     #appIntro video{width:100%;height:100%;object-fit:cover;display:block;transform:translateZ(0);}
     #appIntro.fade-out{opacity:0;pointer-events:none;}
   </style>
