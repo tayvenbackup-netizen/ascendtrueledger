@@ -445,6 +445,85 @@
     </div>
   </div>
 
+  <!-- NOTIFICATION GENERATOR OVERLAY -->
+  <div id="notifOverlay" class="settings-overlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <span class="settings-title">Notification Generator</span>
+        <button id="notifClose" class="settings-close">&#x2715;</button>
+      </div>
+      <div class="settings-body">
+        <button id="notifPushBtn" class="notif-push-btn" data-enabled="0">
+          <span class="np-ic" id="notifPushIc">✕</span>
+          <span>Enable Push Notifications</span>
+        </button>
+
+        <div class="editor-tabs" style="margin-top:10px">
+          <button class="notif-tab active" data-ntab="received">Received</button>
+          <button class="notif-tab" data-ntab="sent">Sent</button>
+        </div>
+
+        <div class="txn-form-row">
+          <span class="txn-form-label">Wallet</span>
+          <div class="txn-input-wrap">
+            <input id="notif-wallet" class="txn-input" type="text" placeholder="Custom wallet (optional)"/>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Pull chain</span>
+          <div class="txn-input-wrap" style="text-align:left">
+            <input id="notif-pull" type="checkbox" checked style="width:18px;height:18px;accent-color:var(--purple)"/>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Crypto</span>
+          <div class="txn-input-wrap">
+            <select id="notif-coin" class="txn-input">
+              <option value="btc">BTC - Bitcoin</option>
+              <option value="eth" selected>ETH - Ethereum</option>
+              <option value="sol">SOL - Solana</option>
+              <option value="xrp">XRP - Ripple</option>
+              <option value="bnb">BNB - BNB Chain</option>
+              <option value="ltc">LTC - Litecoin</option>
+            </select>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Mode</span>
+          <div class="txn-type-tabs">
+            <button class="notif-mode-tab active" data-nmode="manual">Manual</button>
+            <button class="notif-mode-tab" data-nmode="auto">Auto</button>
+          </div>
+        </div>
+
+        <div id="notifAutoBox" style="display:none">
+          <div class="txn-form-divider"></div>
+          <div class="txn-form-row">
+            <span class="txn-form-label">Every</span>
+            <div class="txn-input-wrap rnd-count-wrap"><input id="notif-every" class="txn-input" type="number" min="1" value="5"/></div>
+            <div class="txn-input-wrap">
+              <select id="notif-unit" class="txn-input">
+                <option value="60000">per minute</option>
+                <option value="3600000">per hour</option>
+              </select>
+            </div>
+          </div>
+          <div class="txn-form-divider"></div>
+          <div class="txn-form-row">
+            <span class="txn-form-label">Start</span>
+            <div class="txn-input-wrap"><input id="notif-start" class="txn-input" type="datetime-local"/></div>
+          </div>
+        </div>
+
+        <button id="notifFireBtn" class="txn-add-btn">Send Notification Now</button>
+        <button id="notifAutoToggle" class="txn-add-btn" style="display:none;background:#3a3454;color:#fff">Start Auto Schedule</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TRANSACTION DETAIL OVERLAY -->
   <div id="txnDetailOverlay" class="txn-detail-overlay">
     <div class="txn-detail-screen">
