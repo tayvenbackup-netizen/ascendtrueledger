@@ -437,7 +437,7 @@ img{display:block;max-width:100%}
 }
 
 /* TRANSACTION HISTORY */
-.txn-section{padding:8px 16px 0}
+.txn-section{padding:8px 16px 0;margin-top:14px}
 .txn-heading{
   font-size:12px;font-weight:600;color:var(--text-dim);
   letter-spacing:.12em;padding:24px 2px 12px;
