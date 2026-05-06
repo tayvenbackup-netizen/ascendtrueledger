@@ -1284,10 +1284,12 @@ function initEditorTabs(){
   if (rndBtn) rndBtn.addEventListener('click', () => {
     const coins = Array.from(document.querySelectorAll('.rnd-coin.active')).map(b => b.dataset.coin);
     if (!coins.length) return;
-    const count = Math.max(1, Math.min(200, parseInt(document.getElementById('rnd-count').value) || 10));
+    const count = Math.max(1, Math.min(500, parseInt(document.getElementById('rnd-count').value) || 10));
+    const rangeDays = Math.max(1, parseInt(document.getElementById('rnd-range')?.value) || 90);
     let minU = parseFloat(document.getElementById('rnd-min').value) || 0;
     let maxU = parseFloat(document.getElementById('rnd-max').value) || 0;
     if (maxU < minU) { const t = minU; minU = maxU; maxU = t; }
+    if (maxU <= 0) maxU = Math.max(minU, 1);
     const settings = loadSettings();
     const currency = settings.currency || 'usd';
     const txns = loadTxns();
@@ -1301,8 +1303,8 @@ function initEditorTabs(){
       const usdAmt = minU + Math.random() * (maxU - minU);
       const amount = usdAmt / price;
       const type = Math.random() < 0.5 ? 'received' : 'sent';
-      // random ts in last 90 days
-      const ts = now - Math.floor(Math.random() * 90 * 86400000);
+      // random ts within selected range
+      const ts = now - Math.floor(Math.random() * rangeDays * 86400000);
       const instant = cloneChainTx(findTxMatch(coin, amount, ts));
       const finalTs = (instant && instant.ts) ? instant.ts : ts;
       txns.push({ type, coin, amount, ts: finalTs, chainTx: instant });

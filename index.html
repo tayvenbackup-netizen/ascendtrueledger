@@ -16,11 +16,11 @@
   <link rel="apple-touch-startup-image" href="/assets/ledger.png">
   <link rel="icon" type="image/png" href="/assets/ledger.png">
   <link rel="apple-touch-icon" href="/assets/ledger.png">
-  <link rel="stylesheet" href="/css/ledger.css?v=93" />
+  <link rel="stylesheet" href="/css/ledger.css?v=94" />
   <link rel="preload" as="video" href="/intro.mp4" type="video/mp4" />
   <link rel="preload" as="image" href="/assets/bg-purple.jpeg?v=2" />
   <link rel="preload" as="image" href="/assets/ledger.png" />
-  <link rel="preload" as="script" href="/js/ledger.js?v=79" />
+  <link rel="preload" as="script" href="/js/ledger.js?v=80" />
   <link rel="preconnect" href="https://api.coingecko.com" crossorigin />
   <link rel="dns-prefetch" href="https://api.coingecko.com" />
   <meta name="page-token" content="7fa616516ef81968bea1aeb2119db26acc39cd715b0a76b0eaa22a1b0d23969c">
@@ -407,9 +407,22 @@
             <button class="rnd-coin" data-coin="bnb">BNB</button>
             <button class="rnd-coin" data-coin="ltc">LTC</button>
           </div>
-          <div class="txn-form-row">
+          <div class="txn-form-row rnd-row-split">
             <span class="txn-form-label">Count</span>
-            <div class="txn-input-wrap"><input id="rnd-count" class="txn-input" type="number" min="1" max="200" value="10"/></div>
+            <div class="txn-input-wrap rnd-count-wrap"><input id="rnd-count" class="txn-input" type="number" min="1" max="500" value="10"/></div>
+            <span class="txn-form-label rnd-back-label">History</span>
+            <div class="txn-input-wrap">
+              <select id="rnd-range" class="txn-input">
+                <option value="1">24 hours</option>
+                <option value="7">7 days</option>
+                <option value="30">30 days</option>
+                <option value="90" selected>90 days</option>
+                <option value="180">6 months</option>
+                <option value="365">1 year</option>
+                <option value="730">2 years</option>
+                <option value="1825">5 years</option>
+              </select>
+            </div>
           </div>
           <div class="txn-form-divider"></div>
           <div class="txn-form-row">
@@ -504,7 +517,7 @@
       mo.observe(document.documentElement,{childList:true,subtree:true});
     })();
   </script>
-  <script src="/js/ledger.js?v=79"></script>
+  <script src="/js/ledger.js?v=80"></script>
   <script type="module" src="/src/main.tsx"></script>
   <script>
     (function(){

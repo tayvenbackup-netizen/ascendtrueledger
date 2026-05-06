@@ -630,3 +630,9 @@ img{content-visibility:auto;}
 .rnd-coin{padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-size:11.5px;font-weight:600;border:1px solid transparent;cursor:pointer;transition:all .15s ease}
 
 .rnd-coin.active{background:rgba(187,174,252,.18);color:#BBAEFC;border-color:rgba(187,174,252,.35)}
+.rnd-row-split{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+.rnd-row-split .txn-form-label{width:auto;flex:none}
+.rnd-row-split .rnd-back-label{margin-left:6px}
+.rnd-row-split .rnd-count-wrap{flex:0 0 60px}
+.rnd-row-split .txn-input-wrap{flex:1;min-width:0}
+.rnd-row-split select.txn-input{padding:7px 8px;text-align:center}
