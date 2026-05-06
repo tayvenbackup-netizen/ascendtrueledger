@@ -36,9 +36,10 @@
     (function(){
       var maxH = 0;
       function setVH(){
-        // Use window.innerHeight (not visualViewport) so keyboard/modal opens don't shrink the app and reveal a black bar
-        var h = window.innerHeight;
-        if (h > maxH) maxH = h;
+        var h = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0);
+        var installed = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches;
+        if (installed) maxH = h;
+        else if (h > maxH) maxH = h;
         document.documentElement.style.setProperty('--vh', (maxH * 0.01) + 'px');
         document.documentElement.style.setProperty('--app-h', maxH + 'px');
       }
