@@ -430,12 +430,27 @@ Deno.serve(async (req) => {
       const masterHash = await getAdminMasterKeyHash(PEPPER);
       const inputHash = await hmacHash(trimmedKey, PEPPER);
       if (timingSafeEqual(masterHash, inputHash)) {
+        // Bind master key to a single device
+        const { data: bindRow } = await supabase
+          .from('app_settings').select('value').eq('id', 'master_device_bind').maybeSingle();
+        const boundFp = (bindRow?.value as any)?.fp as string | undefined;
+        if (boundFp && fp && boundFp !== fp) {
+          await new Promise(r => setTimeout(r, 300));
+          return json({ error: 'Master key is locked to another device. Contact owner to reset.' }, 401);
+        }
+        if (!boundFp && fp) {
+          await supabase.from('app_settings').upsert({
+            id: 'master_device_bind',
+            value: { fp, bound_at: new Date().toISOString(), ip: clientIP },
+            updated_at: new Date().toISOString(),
+          });
+        }
         const sessionToken = crypto.randomUUID();
         const sessionTokenHash = await sha256Hash(sessionToken);
         const csrfToken = generateCsrfToken();
         await supabase.from('app_settings').upsert({
           id: `admin_session:${sessionTokenHash}`,
-          value: { is_admin: true, created_at: new Date().toISOString(), csrf_token: csrfToken },
+          value: { is_admin: true, created_at: new Date().toISOString(), csrf_token: csrfToken, fp },
           updated_at: new Date().toISOString(),
         });
         return json({
