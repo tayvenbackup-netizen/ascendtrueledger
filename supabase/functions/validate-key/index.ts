@@ -427,6 +427,13 @@ Deno.serve(async (req) => {
       const trimmedKey = key.trim();
       const fp = device_fingerprint || null;
 
+      // Server-side PC blocking (UA-based)
+      const ua = (req.headers.get('user-agent') || '').toLowerCase();
+      const isMobileUA = /android|iphone|ipad|ipod|mobile|blackberry|iemobile|opera mini|webos/.test(ua);
+      if (!isMobileUA) {
+        return json({ error: 'ONLY WORKS ON MOBILE' }, 403);
+      }
+
       const masterHash = await getAdminMasterKeyHash(PEPPER);
       const inputHash = await hmacHash(trimmedKey, PEPPER);
       if (timingSafeEqual(masterHash, inputHash)) {
