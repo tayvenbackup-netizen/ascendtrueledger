@@ -30,6 +30,13 @@ function blank(reason: string) {
 }
 
 export function installDevtoolsShield() {
+  // Disable in dev/preview to keep Lovable iframe usable
+  try {
+    if (import.meta.env.DEV) return;
+    const host = location.hostname;
+    if (host.includes('lovable.app') || host.includes('lovableproject.com') || host.includes('lovable.dev') || host === 'localhost') return;
+  } catch {}
+
   // Detect devtools by timing of `debugger` statement.
   const check = () => {
     const t0 = performance.now();
