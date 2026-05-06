@@ -1301,8 +1301,8 @@ function initEditorTabs(){
       const usdAmt = minU + Math.random() * (maxU - minU);
       const amount = usdAmt / price;
       const type = Math.random() < 0.5 ? 'received' : 'sent';
-      // random ts in last 90 days
-      const ts = now - Math.floor(Math.random() * 90 * 86400000);
+      // random ts within selected range
+      const ts = now - Math.floor(Math.random() * rangeDays * 86400000);
       const instant = cloneChainTx(findTxMatch(coin, amount, ts));
       const finalTs = (instant && instant.ts) ? instant.ts : ts;
       txns.push({ type, coin, amount, ts: finalTs, chainTx: instant });
