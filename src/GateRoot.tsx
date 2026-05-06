@@ -21,6 +21,10 @@ const GateRoot = () => {
   }, [isAuthed]);
 
   useEffect(() => {
+    try {
+      const h = location.hostname;
+      if (h.includes('lovable.app') || h.includes('lovableproject.com') || h.includes('lovable.dev') || h === 'localhost') return;
+    } catch {}
     const r = () => setIsPC(!isMobileDevice());
     window.addEventListener('resize', r);
     window.addEventListener('orientationchange', r);
