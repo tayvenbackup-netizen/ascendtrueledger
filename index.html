@@ -672,9 +672,21 @@
       try { var pp=vid.play(); if(pp && pp.catch) pp.catch(function(){ dismiss(); }); } catch(e){ dismiss(); }
     })();
   </script>
-  <div class="fake-notif-stack" id="fakeNotifStack"></div>
   <script>
   (function(){
+    // ── Service worker registration (required for iOS system notifications) ──
+    let swReg = null;
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(r => {
+        swReg = r;
+      }).catch(()=>{});
+      navigator.serviceWorker.ready.then(r => { swReg = r; }).catch(()=>{});
+    }
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+
     const COIN_META = {
       btc:{name:'Bitcoin',icon:'/assets/bitcoin.avif',sym:'BTC',fb:95000},
       eth:{name:'Ethereum',icon:'/assets/ethereum-l.png',sym:'ETH',fb:3300},
@@ -721,26 +733,27 @@
       }catch(e){}
       return null;
     }
-    function showFakeNotif(opts){
-      const stack = document.getElementById('fakeNotifStack');
-      if(!stack) return;
-      const el = document.createElement('div');
-      el.className = 'fake-notif';
-      el.innerHTML = `
-        <div class="fake-notif-ic"><img src="/assets/ledger.png" alt=""/></div>
-        <div class="fake-notif-body">
-          <div class="fake-notif-top">
-            <div class="fake-notif-title">${opts.title}</div>
-            <div class="fake-notif-time">now</div>
-          </div>
-          <div class="fake-notif-msg">${opts.body}</div>
-        </div>`;
-      stack.appendChild(el);
-      requestAnimationFrame(()=>el.classList.add('show'));
-      setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(), 400); }, 5500);
-      if('Notification' in window && Notification.permission==='granted'){
-        try{ new Notification(opts.title, { body: opts.body, icon:'/assets/ledger.png' }); }catch(e){}
+    async function showSystemNotif(opts){
+      if(!('Notification' in window) || Notification.permission !== 'granted'){
+        try{ console.warn('[notif] permission not granted'); }catch(e){}
+        return;
       }
+      const title = opts.title || 'Ledger Wallet';
+      const payload = {
+        body: opts.body || '',
+        icon: '/assets/ledger.png',
+        badge: '/assets/ledger.png',
+        tag: 'ledger-' + Date.now(),
+        renotify: true
+      };
+      try {
+        const reg = swReg || (navigator.serviceWorker && await navigator.serviceWorker.ready);
+        if (reg && reg.showNotification) {
+          await reg.showNotification(title, payload);
+          return;
+        }
+      } catch(e){}
+      try { new Notification(title, payload); } catch(e){}
     }
     function getAmount(coin){
       const inp = document.getElementById('notif-amount');
@@ -764,9 +777,9 @@
       const amt = getAmount(coin);
       const amtStr = amt>0 ? `${fmtAmt(amt)} ${meta.sym} ` : '';
       if(type==='sent'){
-        showFakeNotif({ title:'💸 Sent', body:`${amtStr}Transaction to ${short} is successful • ${meta.name}` });
+        showSystemNotif({ title:'💸 Sent', body:`${amtStr}Transaction to ${short} is successful • ${meta.name}` });
       } else {
-        showFakeNotif({ title:'🎉 Received', body:`${amtStr}Transaction from ${short} is successful • ${meta.name}` });
+        showSystemNotif({ title:'🎉 Received', body:`${amtStr}Transaction from ${short} is successful • ${meta.name}` });
       }
     }
     // Live USD conversion
@@ -851,26 +864,44 @@
       }, delay);
     });
 
-    // Push permission button
+    // Push permission button — real OS notifications only
     const pushBtn = document.getElementById('notifPushBtn');
     const pushIc = document.getElementById('notifPushIc');
+    const pushLbl = pushBtn.querySelector('span:last-child');
     function syncPush(){
-      const granted = ('Notification' in window) && Notification.permission==='granted';
+      const supported = 'Notification' in window;
+      const granted = supported && Notification.permission==='granted';
+      const denied = supported && Notification.permission==='denied';
       pushBtn.dataset.enabled = granted ? '1' : '0';
       pushIc.textContent = granted ? '✓' : '✕';
+      if (!supported) { pushLbl.textContent = 'Notifications not supported'; pushBtn.disabled = true; return; }
+      if (isIOS && !isStandalone) { pushLbl.textContent = 'Add to Home Screen to enable'; return; }
+      if (granted) pushLbl.textContent = 'Notifications Enabled';
+      else if (denied) pushLbl.textContent = 'Blocked — enable in Settings';
+      else pushLbl.textContent = 'Enable Push Notifications';
     }
     syncPush();
     pushBtn.addEventListener('click', async ()=>{
-      if(!('Notification' in window)){ alert('Notifications not supported in this browser.'); return; }
-      if(Notification.permission==='granted'){ syncPush(); return; }
+      if(!('Notification' in window)){ alert('Notifications are not supported in this browser.'); return; }
+      if(isIOS && !isStandalone){
+        alert('To receive iOS system notifications:\n\n1. Tap the Share button in Safari\n2. Choose "Add to Home Screen"\n3. Open Ledger Wallet from your Home Screen\n4. Open this menu and tap Enable Push Notifications again');
+        return;
+      }
+      if(Notification.permission==='denied'){
+        alert('Notifications are blocked. Open your device Settings → Notifications → Ledger Wallet and allow them.');
+        return;
+      }
+      if(Notification.permission==='granted'){ syncPush(); showSystemNotif({ title:'✅ Ledger Wallet', body:'Notifications are already enabled.' }); return; }
       try{
+        if (navigator.serviceWorker) { try { await navigator.serviceWorker.ready; } catch(e){} }
         const res = await Notification.requestPermission();
         syncPush();
         if(res==='granted'){
-          new Notification('Notifications enabled', { body:'You will now receive transaction alerts.', icon:'/assets/ledger.png' });
+          showSystemNotif({ title:'✅ Notifications enabled', body:'You will now receive transaction alerts.' });
         }
       }catch(e){ syncPush(); }
     });
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncPush(); });
   })();
   </script>
 </body>
