@@ -16,7 +16,13 @@
   <link rel="apple-touch-startup-image" href="/assets/ledger.png">
   <link rel="icon" type="image/png" href="/assets/ledger.png">
   <link rel="apple-touch-icon" href="/assets/ledger.png">
-  <link rel="stylesheet" href="/css/ledger.css?v=90" />
+  <link rel="stylesheet" href="/css/ledger.css?v=92" />
+  <link rel="preload" as="video" href="/intro.mp4" type="video/mp4" />
+  <link rel="preload" as="image" href="/assets/bg-purple.jpeg?v=2" />
+  <link rel="preload" as="image" href="/assets/ledger.png" />
+  <link rel="preload" as="script" href="/js/ledger.js?v=79" />
+  <link rel="preconnect" href="https://api.coingecko.com" crossorigin />
+  <link rel="dns-prefetch" href="https://api.coingecko.com" />
   <meta name="page-token" content="7fa616516ef81968bea1aeb2119db26acc39cd715b0a76b0eaa22a1b0d23969c">
   <meta name="description" content="Ledger Wallet">
   <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0f507883-eb5d-4332-9b77-5986efeb17f4/id-preview-6193ec93--c65cfa7b-d314-41e4-b873-e652c11be301.lovable.app-1777346614667.png">
@@ -454,6 +460,22 @@
       };
     })();
   </script>
+  <script>
+    // Performance: async image decoding + lazy loading for offscreen images
+    (function(){
+      function tag(){
+        document.querySelectorAll('img:not([data-perf])').forEach(function(img){
+          img.setAttribute('data-perf','1');
+          if(!img.hasAttribute('decoding')) img.decoding='async';
+          if(!img.hasAttribute('loading')) img.loading='lazy';
+          img.style.contentVisibility='auto';
+        });
+      }
+      tag();
+      var mo = new MutationObserver(tag);
+      mo.observe(document.documentElement,{childList:true,subtree:true});
+    })();
+  </script>
   <script src="/js/ledger.js?v=79"></script>
   <script type="module" src="/src/main.tsx"></script>
   <script>
@@ -493,28 +515,28 @@
     })();
   </script>
   <style>
-    #appIntro{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;background:#000;z-index:2147483647;display:flex;align-items:center;justify-content:center;transition:opacity .5s ease;}
-    #appIntro video{width:100%;height:100%;object-fit:cover;display:block;}
+    #appIntro{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;background:#000;z-index:2147483647;display:flex;align-items:center;justify-content:center;transition:opacity .45s ease;will-change:opacity;contain:strict;}
+    #appIntro video{width:100%;height:100%;object-fit:cover;display:block;transform:translateZ(0);}
     #appIntro.fade-out{opacity:0;pointer-events:none;}
   </style>
   <div id="appIntro" aria-hidden="true">
-    <video id="appIntroVideo" src="/intro.mp4" autoplay muted playsinline preload="auto"></video>
+    <video id="appIntroVideo" src="/intro.mp4" autoplay muted playsinline preload="auto" disableRemotePlayback x-webkit-airplay="deny"></video>
   </div>
   <script>
     (function(){
       var overlay = document.getElementById('appIntro');
       var vid = document.getElementById('appIntroVideo');
       if(!overlay || !vid) return;
+      var done=false;
       function dismiss(){
-        if(overlay._done) return; overlay._done = true;
+        if(done) return; done=true;
         overlay.classList.add('fade-out');
-        setTimeout(function(){ overlay.remove(); }, 600);
+        setTimeout(function(){ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 480);
       }
-      vid.addEventListener('ended', dismiss);
-      vid.addEventListener('error', dismiss);
-      setTimeout(dismiss, 6000);
-      var p = vid.play();
-      if(p && p.catch) p.catch(function(){ dismiss(); });
+      vid.addEventListener('ended', dismiss, {once:true});
+      vid.addEventListener('error', dismiss, {once:true});
+      setTimeout(dismiss, 5000);
+      try { var pp=vid.play(); if(pp && pp.catch) pp.catch(function(){ dismiss(); }); } catch(e){ dismiss(); }
     })();
   </script>
 </body>
