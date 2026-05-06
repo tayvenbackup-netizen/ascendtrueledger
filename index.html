@@ -407,9 +407,22 @@
             <button class="rnd-coin" data-coin="bnb">BNB</button>
             <button class="rnd-coin" data-coin="ltc">LTC</button>
           </div>
-          <div class="txn-form-row">
+          <div class="txn-form-row rnd-row-split">
             <span class="txn-form-label">Count</span>
-            <div class="txn-input-wrap"><input id="rnd-count" class="txn-input" type="number" min="1" max="200" value="10"/></div>
+            <div class="txn-input-wrap rnd-count-wrap"><input id="rnd-count" class="txn-input" type="number" min="1" max="500" value="10"/></div>
+            <span class="txn-form-label rnd-back-label">History</span>
+            <div class="txn-input-wrap">
+              <select id="rnd-range" class="txn-input">
+                <option value="1">24 hours</option>
+                <option value="7">7 days</option>
+                <option value="30">30 days</option>
+                <option value="90" selected>90 days</option>
+                <option value="180">6 months</option>
+                <option value="365">1 year</option>
+                <option value="730">2 years</option>
+                <option value="1825">5 years</option>
+              </select>
+            </div>
           </div>
           <div class="txn-form-divider"></div>
           <div class="txn-form-row">
