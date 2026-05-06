@@ -25,6 +25,19 @@
   <meta property="og:title" content="Ledger Wallet">
 </head>
 <body>
+  <script>
+    (function(){
+      function setVH(){
+        var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
+        document.documentElement.style.setProperty('--app-h', h + 'px');
+      }
+      setVH();
+      window.addEventListener('resize', setVH, {passive:true});
+      window.addEventListener('orientationchange', setVH, {passive:true});
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', setVH, {passive:true});
+    })();
+  </script>
   <div class="app">
 
     <div class="spinner center" id="pullSpinner" style="display:none">
