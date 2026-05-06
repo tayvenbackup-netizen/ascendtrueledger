@@ -4,20 +4,19 @@ import AdminPanel from './components/admin/AdminPanel';
 import { useAccessControl } from './hooks/useAccessControl';
 
 const GateRoot = () => {
-  const { isAuthed, isAdmin, isLoading, validateKey, error } = useAccessControl();
+  const { isAuthed, isLoading, validateKey, error } = useAccessControl();
   const [adminOpen, setAdminOpen] = useState(false);
 
   useEffect(() => {
     document.body.dataset.authed = isAuthed ? '1' : '0';
-    document.body.dataset.admin = isAdmin ? '1' : '0';
-    window.dispatchEvent(new CustomEvent('ascend:auth-changed', { detail: { authed: isAuthed, admin: isAdmin } }));
-  }, [isAuthed, isAdmin]);
+    window.dispatchEvent(new CustomEvent('ascend:auth-changed', { detail: { authed: isAuthed } }));
+  }, [isAuthed]);
 
   useEffect(() => {
-    const open = () => { if (isAdmin) setAdminOpen(true); else alert('Admin access required'); };
+    const open = () => setAdminOpen(true);
     window.addEventListener('ascend:open-admin', open);
     return () => window.removeEventListener('ascend:open-admin', open);
-  }, [isAdmin]);
+  }, []);
 
   if (isLoading) {
     return (
