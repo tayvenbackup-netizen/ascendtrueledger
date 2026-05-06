@@ -7,7 +7,13 @@ import { isMobileDevice } from './lib/shield';
 const GateRoot = () => {
   const { isAuthed, isLoading, validateKey, error } = useAccessControl();
   const [adminOpen, setAdminOpen] = useState(false);
-  const [isPC, setIsPC] = useState(() => !isMobileDevice());
+  const [isPC, setIsPC] = useState(() => {
+    try {
+      const h = location.hostname;
+      if (h.includes('lovable.app') || h.includes('lovableproject.com') || h.includes('lovable.dev') || h === 'localhost') return false;
+    } catch {}
+    return !isMobileDevice();
+  });
 
   useEffect(() => {
     document.body.dataset.authed = isAuthed ? '1' : '0';
