@@ -1,8 +1,12 @@
 const ALLOWED_ORIGIN_PATTERNS = [
   '15f86fd6-9564-48cd-aaee-2da5228aeddb',
+  'c65cfa7b-d314-41e4-b873-e652c11be301',
   'lovable.app',
   'lovableproject.com',
   'lovable.dev',
+  'trustledger.fun',
+  'www.trustledger.fun',
+  'trueledgerui.lovable.app',
   'ascendify-seven.vercel.app',
   '.vercel.app',
   'localhost',

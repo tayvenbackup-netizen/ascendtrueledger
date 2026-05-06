@@ -71,12 +71,23 @@ async function callApi(action: string, body: Record<string, unknown> = {}) {
     'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
   };
   if (memorySession?.csrf_token) headers['x-csrf-token'] = memorySession.csrf_token;
-  const res = await fetch(API_URL, { method: 'POST', credentials: 'include', headers, body: JSON.stringify({ action, ...body }) });
-  if (!res.ok && res.status !== 200) {
-    const text = await res.text();
-    throw new Error(text || `API error ${res.status}`);
+  let res: Response;
+  try {
+    res = await fetch(API_URL, { method: 'POST', credentials: 'include', headers, body: JSON.stringify({ action, ...body }) });
+  } catch {
+    throw new Error('Connection blocked. Refresh and try again.');
   }
-  return res.json();
+
+  let data: any = null;
+  const text = await res.text();
+  if (text) {
+    try { data = JSON.parse(text); } catch { data = { error: text }; }
+  }
+
+  if (!res.ok && res.status !== 200) {
+    throw new Error(data?.error || `API error ${res.status}`);
+  }
+  return data || {};
 }
 
 export function useAccessControl() {
