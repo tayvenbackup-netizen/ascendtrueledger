@@ -1276,6 +1276,46 @@ function initEditorTabs(){
       if (idx !== -1) { all[idx].chainTx = real; if (real.ts) all[idx].ts = real.ts; saveTxns(all); renderTxnHistory(); renderTxnEditorList(); }
     });
   });
+  // Random coin chip toggles
+  document.querySelectorAll('.rnd-coin').forEach(btn => {
+    btn.addEventListener('click', () => btn.classList.toggle('active'));
+  });
+  const rndBtn = document.getElementById('rndGenBtn');
+  if (rndBtn) rndBtn.addEventListener('click', () => {
+    const coins = Array.from(document.querySelectorAll('.rnd-coin.active')).map(b => b.dataset.coin);
+    if (!coins.length) return;
+    const count = Math.max(1, Math.min(200, parseInt(document.getElementById('rnd-count').value) || 10));
+    let minU = parseFloat(document.getElementById('rnd-min').value) || 0;
+    let maxU = parseFloat(document.getElementById('rnd-max').value) || 0;
+    if (maxU < minU) { const t = minU; minU = maxU; maxU = t; }
+    const settings = loadSettings();
+    const currency = settings.currency || 'usd';
+    const txns = loadTxns();
+    const s = loadSettings();
+    const now = Date.now();
+    for (let i = 0; i < count; i++){
+      const coin = coins[Math.floor(Math.random() * coins.length)];
+      const cached = getCachedPrice(coin, currency);
+      const price = cached ? cached.price : (FALLBACK_PRICES[coin] || 1);
+      if (price <= 0) continue;
+      const usdAmt = minU + Math.random() * (maxU - minU);
+      const amount = usdAmt / price;
+      const type = Math.random() < 0.5 ? 'received' : 'sent';
+      // random ts in last 90 days
+      const ts = now - Math.floor(Math.random() * 90 * 86400000);
+      const instant = cloneChainTx(findTxMatch(coin, amount, ts));
+      const finalTs = (instant && instant.ts) ? instant.ts : ts;
+      txns.push({ type, coin, amount, ts: finalTs, chainTx: instant });
+      s.coins[coin] = (parseFloat(s.coins[coin])||0) + (type === 'sent' ? -amount : amount);
+      if (s.coins[coin] < 0) s.coins[coin] = 0;
+    }
+    saveTxns(txns);
+    saveSettings(s);
+    renderFromCacheInstant();
+    renderTxnHistory();
+    renderTxnEditorList();
+    updateWallet();
+  });
   renderTxnEditorList();
 }
 
