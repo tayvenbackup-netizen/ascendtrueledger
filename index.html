@@ -27,15 +27,17 @@
 <body>
   <script>
     (function(){
+      var maxH = 0;
       function setVH(){
-        var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
-        document.documentElement.style.setProperty('--app-h', h + 'px');
+        // Use window.innerHeight (not visualViewport) so keyboard/modal opens don't shrink the app and reveal a black bar
+        var h = window.innerHeight;
+        if (h > maxH) maxH = h;
+        document.documentElement.style.setProperty('--vh', (maxH * 0.01) + 'px');
+        document.documentElement.style.setProperty('--app-h', maxH + 'px');
       }
       setVH();
       window.addEventListener('resize', setVH, {passive:true});
-      window.addEventListener('orientationchange', setVH, {passive:true});
-      if (window.visualViewport) window.visualViewport.addEventListener('resize', setVH, {passive:true});
+      window.addEventListener('orientationchange', function(){ maxH = 0; setTimeout(setVH, 120); }, {passive:true});
     })();
   </script>
   <div class="app">
