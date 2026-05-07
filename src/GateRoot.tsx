@@ -1,12 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import KeyEntryScreen from './components/shell/KeyEntryScreen';
 import AdminPanel from './components/admin/AdminPanel';
 import { useAccessControl } from './hooks/useAccessControl';
 import { isMobileDevice } from './lib/shield';
 
+const BUNDLE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-app-bundle`;
+
 const GateRoot = () => {
-  const { isAuthed, isLoading, validateKey, error } = useAccessControl();
+  const { isAuthed, isAdmin, isLoading, validateKey, error, session } = useAccessControl();
   const [adminOpen, setAdminOpen] = useState(false);
+  const [bundleLoading, setBundleLoading] = useState(false);
+  const [bundleError, setBundleError] = useState('');
+  const injectedRef = useRef(false);
   const [isPC, setIsPC] = useState(() => {
     try {
       const h = location.hostname;
@@ -17,7 +22,6 @@ const GateRoot = () => {
 
   useEffect(() => {
     document.body.dataset.authed = isAuthed ? '1' : '0';
-    window.dispatchEvent(new CustomEvent('ascend:auth-changed', { detail: { authed: isAuthed } }));
   }, [isAuthed]);
 
   useEffect(() => {
@@ -36,6 +40,64 @@ const GateRoot = () => {
     window.addEventListener('ascend:open-admin', open);
     return () => window.removeEventListener('ascend:open-admin', open);
   }, []);
+
+  // Fetch + inject the protected wallet bundle after authentication
+  useEffect(() => {
+    if (!isAuthed || injectedRef.current || !session?.session_token) return;
+    injectedRef.current = true;
+    setBundleLoading(true);
+    (async () => {
+      try {
+        const res = await fetch(BUNDLE_URL, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'x-session-token': session.session_token,
+          },
+          body: JSON.stringify({ session_token: session.session_token }),
+        });
+        if (!res.ok) throw new Error(`Bundle ${res.status}`);
+        const data = await res.json();
+
+        // Inject CSS
+        const styleEl = document.createElement('style');
+        styleEl.id = 'protected-css';
+        styleEl.textContent = data.css || '';
+        document.head.appendChild(styleEl);
+
+        // Inject HTML into protected root
+        const root = document.getElementById('protected-root');
+        if (root) root.innerHTML = data.html || '';
+
+        // Wire admin button visibility BEFORE running bundle JS
+        const cardBtn = document.querySelector('[data-nav="card"]') as HTMLElement | null;
+        if (cardBtn) {
+          if (data.is_admin) {
+            cardBtn.addEventListener('click', (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              window.dispatchEvent(new CustomEvent('ascend:open-admin'));
+            }, true);
+          } else {
+            // Non-admin: hide the admin entry entirely
+            cardBtn.style.display = 'none';
+          }
+        }
+
+        // Execute bundle JS in a function scope
+        const fn = new Function(data.js);
+        fn();
+
+        setBundleLoading(false);
+      } catch (e: any) {
+        setBundleError(e?.message || 'Failed to load app');
+        setBundleLoading(false);
+        injectedRef.current = false;
+      }
+    })();
+  }, [isAuthed, session?.session_token]);
 
   if (isPC) {
     return (
@@ -58,6 +120,16 @@ const GateRoot = () => {
   return (
     <>
       {!isAuthed && <KeyEntryScreen onValidate={validateKey} error={error} />}
+      {isAuthed && bundleLoading && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center" style={{ background: '#0a0a14', color: '#bbaefc' }}>
+          <div className="text-xs uppercase tracking-[0.3em]">Loading…</div>
+        </div>
+      )}
+      {isAuthed && bundleError && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center px-6 text-center" style={{ background: '#0a0a14', color: '#ff7a7a' }}>
+          <div className="text-sm">Failed to load app: {bundleError}</div>
+        </div>
+      )}
       <AdminPanel isOpen={adminOpen} onClose={() => setAdminOpen(false)} />
     </>
   );
