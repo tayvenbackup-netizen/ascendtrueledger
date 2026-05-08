@@ -127,24 +127,25 @@ ledgerJs = ledgerJs.replace(
   "setPct('exploreSolPct','sol');\n    setPct('exploreUsdtPct','usdt_eth');\n}"
 );
 
-// ── Inject USDT explore card + chain-badge CSS into the page body ──────────
-const usdtExploreCard = `
+// USDT explore card markup is inserted into `body` after extraction below.
+const USDT_EXPLORE_CARD = `
       <div class="explore-card coin-card" data-coin="usdt_eth">
         <div class="cc-logo"><img src="/assets/usdt.png" alt="USDT"/></div>
         <div class="cc-name">USDT</div>
         <div class="cc-pct" id="exploreUsdtPct">+0.00%</div>
       </div>
 `;
-body = body.replace(
-  /(<div class="explore-card coin-card" data-coin="sol">[\s\S]*?<\/div>\s*<\/div>)/,
-  `$1\n${usdtExploreCard}`
-);
+
 
 // 1) Extract the body markup (between <body> and </body>) but strip ALL <script> tags
 //    and the <style> block we already capture separately.
 const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
 if (!bodyMatch) throw new Error('No <body> in source');
 let body = bodyMatch[1];
+body = body.replace(
+  /(<div class="explore-card coin-card" data-coin="sol">[\s\S]*?<\/div>\s*<\/div>)/,
+  `$1\n${USDT_EXPLORE_CARD}`
+);
 
 // Capture scripts in their original order so wallet bootstrapping remains intact.
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
