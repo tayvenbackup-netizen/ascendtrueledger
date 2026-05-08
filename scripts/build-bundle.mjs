@@ -183,6 +183,26 @@ body = body.replace(
   `$1\n${USDT_EXPLORE_CARD}`
 );
 
+// Inject USDT row into the crypto editor (after LTC row).
+body = body.replace(
+  /(<div class="settings-row"><label>LTC<\/label><input id="set-ltc"[^>]*><\/div>)/,
+  `$1
+        <div class="settings-row usdt-edit-row">
+          <label>USDT</label>
+          <input id="set-usdt-amount" type="number" min="0" step="any" placeholder="0" style="flex:1;min-width:0">
+          <select id="set-usdt-chain" class="usdt-chain-select">
+            <option value="usdt_eth">ETH</option>
+            <option value="usdt_sol">SOL</option>
+            <option value="usdt_tron">TRON</option>
+            <option value="usdt_bnb">BNB</option>
+          </select>
+          <input id="set-usdt_eth" type="hidden">
+          <input id="set-usdt_sol" type="hidden">
+          <input id="set-usdt_tron" type="hidden">
+          <input id="set-usdt_bnb" type="hidden">
+        </div>`
+);
+
 // Capture scripts in their original order so wallet bootstrapping remains intact.
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
 const orderedScripts = [];
