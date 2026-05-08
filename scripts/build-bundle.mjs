@@ -56,13 +56,18 @@ body = body.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, css) => {
 const viewportRuntime = `;(() => {
     const setViewportVars = () => {
       const vv = window.visualViewport;
-      const h = Math.round((vv && vv.height) || window.innerHeight || document.documentElement.clientHeight || 0);
+      const h = Math.ceil(Math.max(
+        window.innerHeight || 0,
+        document.documentElement.clientHeight || 0,
+        vv ? vv.height + (vv.offsetTop || 0) : 0
+      ));
       const w = Math.round((vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 0);
       if (h > 0) {
         document.documentElement.style.setProperty('--app-h', h + 'px');
         document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
       }
       if (w > 0) document.documentElement.style.setProperty('--app-w', w + 'px');
+      document.documentElement.style.setProperty('--edge-bleed', '96px');
     };
     setViewportVars();
     window.addEventListener('resize', setViewportVars, { passive: true });
@@ -109,17 +114,18 @@ console.log('Obfuscated to', obfuscated.length, 'bytes');
 // viewport (behind the URL bar), clipping the bottom of the app. Use dvh
 // where supported and let position:fixed inset:0 own the sizing.
 const viewportFix = `
-:root{--app-h:100dvh;--app-w:100vw;}
-html,body,#protected-root{margin:0 !important;padding:0 !important;width:100vw !important;min-width:100vw !important;height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;overflow:hidden !important;background:#0a0a0c !important;}
-#protected-root{position:fixed !important;inset:0 !important;}
-.app,.txn-detail-overlay{position:fixed !important;inset:0 !important;width:100vw !important;max-width:none !important;height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;margin:0 !important;overflow:hidden !important;}
-.scrollable{height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;padding-bottom:calc(118px + env(safe-area-inset-bottom)) !important;}
-.txn-detail-screen{height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;}
-.bottom-nav{bottom:calc(10px + env(safe-area-inset-bottom)) !important;left:0 !important;right:0 !important;width:100vw !important;max-width:none !important;margin:0 !important;padding-left:14px !important;padding-right:14px !important;isolation:isolate !important;}
-.bottom-nav::before{content:"" !important;position:absolute !important;left:0 !important;right:0 !important;top:-22px !important;bottom:calc(-10px - env(safe-area-inset-bottom)) !important;background:linear-gradient(180deg,rgba(10,10,12,0),#0a0a0c 32%,#0a0a0c 100%) !important;z-index:-1 !important;pointer-events:none !important;}
+:root{--app-h:100dvh;--app-w:100vw;--edge-bleed:96px;--safe-bottom:0px;}
+html,body,#protected-root{margin:0 !important;padding:0 !important;width:100vw !important;min-width:100vw !important;height:100vh !important;height:100dvh !important;min-height:100vh !important;min-height:100dvh !important;overflow:hidden !important;background:#0a0a0c !important;}
+body::before{content:"" !important;position:fixed !important;inset:0 !important;background:#0a0a0c !important;z-index:-2147483647 !important;pointer-events:none !important;}
+#protected-root{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;}
+.app,.txn-detail-overlay{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;width:100vw !important;max-width:none !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;margin:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
+.scrollable{height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;padding-bottom:calc(112px + var(--edge-bleed)) !important;background:#0a0a0c !important;}
+.txn-detail-screen{height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;background:#0a0a0c !important;}
+.bottom-nav{bottom:0 !important;left:0 !important;right:0 !important;width:100vw !important;max-width:none !important;margin:0 !important;padding:0 14px max(10px, env(safe-area-inset-bottom)) 14px !important;isolation:isolate !important;background:#0a0a0c !important;}
+.bottom-nav::before{content:"" !important;position:absolute !important;left:0 !important;right:0 !important;top:-32px !important;bottom:0 !important;background:linear-gradient(180deg,rgba(10,10,12,0),#0a0a0c 30%,#0a0a0c 100%) !important;z-index:-1 !important;pointer-events:none !important;}
 .nav-pill{overflow:visible !important;}
-#appIntro{inset:0 !important;width:100vw !important;height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;}
-#appIntro video{width:100vw !important;height:var(--app-h,100dvh) !important;object-fit:cover !important;}
+#appIntro{top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;background:#0a0a0c !important;}
+#appIntro video{width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;object-fit:cover !important;}
 .bg-glow{height:567px !important;}
 `;
 
