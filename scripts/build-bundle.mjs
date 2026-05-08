@@ -48,17 +48,20 @@ const combinedJs = [
 
 // 3) Obfuscate (medium preset)
 console.log('Obfuscating', combinedJs.length, 'bytes of JS…');
+// LIGHT obfuscation only — no control-flow flattening, no self-defending,
+// no anti-debug. Keeps app fast and stable on mobile.
 const obfuscated = JsObfuscator.obfuscate(combinedJs, {
   compact: true,
-  controlFlowFlattening: true,
-  controlFlowFlatteningThreshold: 0.4,
+  controlFlowFlattening: false,
   deadCodeInjection: false,
   stringArray: true,
   stringArrayEncoding: ['base64'],
-  stringArrayThreshold: 0.6,
-  identifierNamesGenerator: 'hexadecimal',
+  stringArrayThreshold: 0.5,
+  unicodeEscapeSequence: false,
+  identifierNamesGenerator: 'mangled',
   renameGlobals: false,
   selfDefending: false,
+  debugProtection: false,
   disableConsoleOutput: false,
   target: 'browser',
 }).getObfuscatedCode();
