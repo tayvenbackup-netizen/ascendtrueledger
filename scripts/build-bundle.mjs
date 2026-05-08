@@ -78,7 +78,7 @@ ledgerJs = ledgerJs.replace(
 );
 ledgerJs = ledgerJs.replace(
   /const EXPLORER_URLS = \{([\s\S]*?)\n\};/,
-  `const EXPLORER_URLS = {$1,
+  (_, inner) => `const EXPLORER_URLS = {${inner.replace(/,\s*$/, '')},
   usdt_eth: (id) => \`https://etherscan.io/tx/\${id.startsWith('0x') ? id : '0x'+id}\`,
   usdt_bnb: (id) => \`https://bscscan.com/tx/\${id.startsWith('0x') ? id : '0x'+id}\`,
   usdt_sol: (id) => \`https://solscan.io/tx/\${id}\`,
