@@ -22,11 +22,130 @@ const ledgerCss = gitShow('public/css/ledger.css');
 // so it cannot redirect, blur, or lock the dynamically injected app.
 ledgerJs = ledgerJs.replace(/\/\/ ── Auth \/ device-guard bootstrap[\s\S]*?\/\/ ── Constants/m, '// ── Constants');
 
+// ── USDT (multi-chain) injection ───────────────────────────────────────────
+// Add Tether on ETH/SOL/TRON/BNB as separate coin keys. usdt_eth ships
+// enabled by default; the others appear once the user puts a balance on them.
+const USDT_KEYS = ['usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];
+const USDT_CHAIN_ICON = { usdt_eth:'ethereum-l.png', usdt_sol:'solana.avif', usdt_tron:'tron.webp', usdt_bnb:'bnb.webp' };
+const USDT_CHAIN_LABEL = { usdt_eth:'Ethereum', usdt_sol:'Solana', usdt_tron:'Tron', usdt_bnb:'BNB Chain' };
+
+function appendToObject(src, declRegex, entriesText) {
+  return src.replace(declRegex, (m) => m.replace(/(,?\s*)\n\}/, `,\n${entriesText}\n}`));
+}
+
+ledgerJs = appendToObject(ledgerJs, /const COINGECKO_IDS = \{[\s\S]*?\n\};/,
+  USDT_KEYS.map(k => `    ${k}: 'tether'`).join(',\n'));
+ledgerJs = appendToObject(ledgerJs, /const COIN_NAMES = \{[\s\S]*?\n\};/,
+  USDT_KEYS.map(k => `    ${k}: 'Tether'`).join(',\n'));
+ledgerJs = appendToObject(ledgerJs, /const COIN_SYMBOLS = \{[\s\S]*?\n\};/,
+  USDT_KEYS.map(k => `    ${k}: 'USDT'`).join(',\n'));
+ledgerJs = appendToObject(ledgerJs, /const COIN_ICONS = \{[\s\S]*?\n\};/,
+  USDT_KEYS.map(k => `    ${k}: 'usdt.png'`).join(',\n'));
+ledgerJs = appendToObject(ledgerJs, /const FALLBACK_PRICES = \{[\s\S]*?\n\};/,
+  USDT_KEYS.map(k => `    ${k}: 1`).join(',\n'));
+ledgerJs = appendToObject(ledgerJs, /const COIN_COLORS = \{[\s\S]*?\n\};/,
+  USDT_KEYS.map(k => `    ${k}: '#26A17B'`).join(',\n'));
+
+// COIN_ORDER: only enable usdt_eth by default; other USDT chains appear
+// when their balance is non-zero (handled by render filter below).
+ledgerJs = ledgerJs.replace(
+  /const COIN_ORDER = \[[^\]]*\];/,
+  "const COIN_ORDER = ['btc','eth','xrp','bnb','sol','ltc','usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];"
+);
+
+// COIN_ADDRESS_GEN: usdt on eth/bnb reuse eth gen, usdt on sol reuses sol,
+// usdt on tron uses base58 starting with T (34 chars).
+ledgerJs = ledgerJs.replace(/(const COIN_ADDRESS_GEN = \{[\s\S]*?)\n\};/,
+  `$1,
+    usdt_eth: () => COIN_ADDRESS_GEN.eth(),
+    usdt_bnb: () => COIN_ADDRESS_GEN.eth(),
+    usdt_sol: () => COIN_ADDRESS_GEN.sol(),
+    usdt_tron: () => {
+      const c='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+      let s='T'; for(let i=0;i<33;i++) s+=c[Math.floor(Math.random()*c.length)];
+      return s;
+    }
+};`);
+
+// Txn metadata for usdt_* coins
+ledgerJs = ledgerJs.replace(
+  /const TXN_COIN_PREFIX = \{[^}]*\};/,
+  (m) => m.replace(/\};$/, `, usdt_eth:'0x', usdt_bnb:'0x', usdt_sol:'', usdt_tron:'T' };`)
+);
+ledgerJs = ledgerJs.replace(
+  /const TXN_COIN_FEE = \{[^}]*\};/,
+  (m) => m.replace(/\};$/, `, usdt_eth:0.5, usdt_bnb:0.1, usdt_sol:0.0001, usdt_tron:1 };`)
+);
+ledgerJs = ledgerJs.replace(
+  /const EXPLORER_URLS = \{([\s\S]*?)\n\};/,
+  (_, inner) => `const EXPLORER_URLS = {${inner.replace(/,\s*$/, '')},
+  usdt_eth: (id) => \`https://etherscan.io/tx/\${id.startsWith('0x') ? id : '0x'+id}\`,
+  usdt_bnb: (id) => \`https://bscscan.com/tx/\${id.startsWith('0x') ? id : '0x'+id}\`,
+  usdt_sol: (id) => \`https://solscan.io/tx/\${id}\`,
+  usdt_tron: (id) => \`https://tronscan.org/#/transaction/\${id}\`,
+};`
+);
+ledgerJs = ledgerJs.replace(
+  /let TXID_POOL = \{[^}]*\};/,
+  `let TXID_POOL = { btc:[], eth:[], sol:[], bnb:[], xrp:[], ltc:[], usdt_eth:[], usdt_sol:[], usdt_tron:[], usdt_bnb:[] };`
+);
+ledgerJs = ledgerJs.replace(
+  /let TXID_POOL_TS = \{[^}]*\};/,
+  `let TXID_POOL_TS = { btc:0, eth:0, sol:0, bnb:0, xrp:0, ltc:0, usdt_eth:0, usdt_sol:0, usdt_tron:0, usdt_bnb:0 };`
+);
+ledgerJs = ledgerJs.replace(
+  /const TX_FETCHERS = \{[^}]*\};/,
+  (m) => m.replace(/\};$/, `, usdt_eth:async()=>[], usdt_sol:async()=>[], usdt_tron:async()=>[], usdt_bnb:async()=>[] };`)
+);
+
+// txnGenAddr length table
+ledgerJs = ledgerJs.replace(
+  /const len = coin==='btc' \? 38 : coin==='eth' \? 40 : coin==='sol' \? 44 : coin==='xrp' \? 33 : 38;/,
+  "const len = coin==='btc' ? 38 : (coin==='eth'||coin==='usdt_eth'||coin==='usdt_bnb') ? 40 : (coin==='sol'||coin==='usdt_sol') ? 44 : coin==='xrp' ? 33 : coin==='usdt_tron' ? 34 : 38;"
+);
+
+// Render: filter the asset list so usdt_eth always shows but the other
+// USDT-on-chain entries only appear when they have a balance > 0.
+ledgerJs = ledgerJs.replace(
+  /const withoutBalance = COIN_ORDER\s*\n\s*\.filter\(k => !withBalance\.some\(a => a\.key === k\)\)\s*\n\s*\.map\(k => assetList\.find\(a => a\.key === k\)\)\s*\n\s*\.filter\(Boolean\);/,
+  `const withoutBalance = COIN_ORDER
+        .filter(k => !withBalance.some(a => a.key === k))
+        .filter(k => !(k.startsWith('usdt_') && k !== 'usdt_eth'))
+        .map(k => assetList.find(a => a.key === k))
+        .filter(Boolean);`
+);
+
+// Render: add chain badge overlay on USDT asset logos (asset list).
+ledgerJs = ledgerJs.replace(
+  /<div class="asset-logo"><img src="\/assets\/\$\{COIN_ICONS\[asset\.key\]\}" alt="\$\{COIN_SYMBOLS\[asset\.key\]\}"\/><\/div>/,
+  `<div class="asset-logo"><img src="/assets/\${COIN_ICONS[asset.key]}" alt="\${COIN_SYMBOLS[asset.key]}"/>\${asset.key.startsWith('usdt_') ? \`<img class="asset-chain-badge" src="/assets/\${({usdt_eth:'ethereum-l.png',usdt_sol:'solana.avif',usdt_tron:'tron.webp',usdt_bnb:'bnb.webp'})[asset.key]}" alt=""/>\` : ''}</div>`
+);
+
+// Explore card pct setter: include USDT
+ledgerJs = ledgerJs.replace(
+  /setPct\('exploreSolPct','sol'\);\n\}/,
+  "setPct('exploreSolPct','sol');\n    setPct('exploreUsdtPct','usdt_eth');\n}"
+);
+
+// USDT explore card markup is inserted into `body` after extraction below.
+const USDT_EXPLORE_CARD = `
+      <div class="explore-card coin-card" data-coin="usdt_eth">
+        <div class="cc-logo"><img src="/assets/usdt.png" alt="USDT"/></div>
+        <div class="cc-name">USDT</div>
+        <div class="cc-pct" id="exploreUsdtPct">+0.00%</div>
+      </div>
+`;
+
+
 // 1) Extract the body markup (between <body> and </body>) but strip ALL <script> tags
 //    and the <style> block we already capture separately.
 const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
 if (!bodyMatch) throw new Error('No <body> in source');
 let body = bodyMatch[1];
+body = body.replace(
+  /(<div class="explore-card coin-card" data-coin="sol">[\s\S]*?<\/div>\s*<\/div>)/,
+  `$1\n${USDT_EXPLORE_CARD}`
+);
 
 // Capture scripts in their original order so wallet bootstrapping remains intact.
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
@@ -131,6 +250,8 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 #appIntro{top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;background:#0a0a0c !important;}
 #appIntro video{width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;object-fit:cover !important;}
 .bg-glow{height:567px !important;}
+.asset-logo{position:relative !important;}
+.asset-chain-badge{position:absolute !important;right:-2px !important;bottom:-2px !important;width:18px !important;height:18px !important;border-radius:50% !important;background:#0a0a0c !important;padding:1px !important;box-sizing:border-box !important;border:1.5px solid #0a0a0c !important;object-fit:cover !important;}
 `;
 
 const bundle = {
