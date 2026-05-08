@@ -26,7 +26,7 @@ ledgerJs = ledgerJs.replace(/\/\/ ── Auth \/ device-guard bootstrap[\s\S]*?\
 // Add Tether on ETH/SOL/TRON/BNB as separate coin keys. usdt_eth ships
 // enabled by default; the others appear once the user puts a balance on them.
 const USDT_KEYS = ['usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];
-const USDT_CHAIN_ICON = { usdt_eth:'ethereum-l.png', usdt_sol:'solana.avif', usdt_tron:'tron.webp', usdt_bnb:'bnb.webp' };
+const USDT_CHAIN_ICON = { usdt_eth:'coin-eth.png', usdt_sol:'coin-sol.png', usdt_tron:'coin-tron.png', usdt_bnb:'coin-bnb.png' };
 const USDT_CHAIN_LABEL = { usdt_eth:'Ethereum', usdt_sol:'Solana', usdt_tron:'Tron', usdt_bnb:'BNB Chain' };
 
 function appendToObject(src, declRegex, entriesText) {
@@ -40,7 +40,19 @@ ledgerJs = appendToObject(ledgerJs, /const COIN_NAMES = \{[\s\S]*?\n\};/,
 ledgerJs = appendToObject(ledgerJs, /const COIN_SYMBOLS = \{[\s\S]*?\n\};/,
   USDT_KEYS.map(k => `    ${k}: 'USDT'`).join(',\n'));
 ledgerJs = appendToObject(ledgerJs, /const COIN_ICONS = \{[\s\S]*?\n\};/,
-  USDT_KEYS.map(k => `    ${k}: 'usdt.png'`).join(',\n'));
+  USDT_KEYS.map(k => `    ${k}: 'coin-usdt.png'`).join(',\n'));
+ledgerJs = ledgerJs.replace(/const COIN_ICONS = \{[\s\S]*?\n\};/, `const COIN_ICONS = {
+    btc: 'coin-btc.png',
+    eth: 'coin-eth.png',
+    xrp: 'coin-xrp.png',
+    bnb: 'coin-bnb.png',
+    sol: 'coin-sol.png',
+    ltc: 'coin-ltc.png',
+    usdt_eth: 'coin-usdt.png',
+    usdt_sol: 'coin-usdt.png',
+    usdt_tron: 'coin-usdt.png',
+    usdt_bnb: 'coin-usdt.png'
+};`);
 ledgerJs = appendToObject(ledgerJs, /const FALLBACK_PRICES = \{[\s\S]*?\n\};/,
   USDT_KEYS.map(k => `    ${k}: 1`).join(',\n'));
 ledgerJs = appendToObject(ledgerJs, /const COIN_COLORS = \{[\s\S]*?\n\};/,
@@ -118,7 +130,7 @@ ledgerJs = ledgerJs.replace(
 // Render: add chain badge overlay on USDT asset logos (asset list).
 ledgerJs = ledgerJs.replace(
   /<div class="asset-logo"><img src="\/assets\/\$\{COIN_ICONS\[asset\.key\]\}" alt="\$\{COIN_SYMBOLS\[asset\.key\]\}"\/><\/div>/,
-  `<div class="asset-logo"><img src="/assets/\${COIN_ICONS[asset.key]}" alt="\${COIN_SYMBOLS[asset.key]}"/>\${asset.key.startsWith('usdt_') ? \`<img class="asset-chain-badge" src="/assets/\${({usdt_eth:'ethereum-l.png',usdt_sol:'solana.avif',usdt_tron:'tron.webp',usdt_bnb:'bnb.webp'})[asset.key]}" alt=""/>\` : ''}</div>`
+  `<div class="asset-logo"><img src="/assets/\${COIN_ICONS[asset.key]}" alt="\${COIN_SYMBOLS[asset.key]}"/>\${asset.key.startsWith('usdt_') ? \`<img class="asset-chain-badge" src="/assets/\${({usdt_eth:'coin-eth.png',usdt_sol:'coin-sol.png',usdt_tron:'coin-tron.png',usdt_bnb:'coin-bnb.png'})[asset.key]}" alt=""/>\` : ''}</div>`
 );
 
 // Explore card pct setter: include USDT
