@@ -32,7 +32,7 @@ let body = bodyMatch[1];
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
 const orderedScripts = [];
 body = body.replace(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi, (_, code) => {
-  if (!/body\[data-authed="0"\]\s+\.app/.test(code) && !/document\.body\.dataset\.authed\s*=\s*['"]0['"]/.test(code)) {
+  if (!/body\[data-authed="0"\]\s+\.app/.test(code) && !/document\.body\.dataset\.authed\s*=\s*['"]0['"]/.test(code) && !/document\.documentElement\.style\.setProperty\('--vh'/.test(code)) {
     orderedScripts.push(code);
   }
   return '';
@@ -53,7 +53,28 @@ body = body.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, css) => {
 
 // 2) Combine all JS in original page order, then replay lifecycle events because
 // this bundle is injected after the shell document already finished loading.
+const viewportRuntime = `;(() => {
+    const setViewportVars = () => {
+      const vv = window.visualViewport;
+      const h = Math.round((vv && vv.height) || window.innerHeight || document.documentElement.clientHeight || 0);
+      const w = Math.round((vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 0);
+      if (h > 0) {
+        document.documentElement.style.setProperty('--app-h', h + 'px');
+        document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
+      }
+      if (w > 0) document.documentElement.style.setProperty('--app-w', w + 'px');
+    };
+    setViewportVars();
+    window.addEventListener('resize', setViewportVars, { passive: true });
+    window.addEventListener('orientationchange', () => setTimeout(setViewportVars, 80), { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', setViewportVars, { passive: true });
+      window.visualViewport.addEventListener('scroll', setViewportVars, { passive: true });
+    }
+  })();`;
+
 const combinedJs = [
+  viewportRuntime,
   ...orderedScripts,
   `;(() => {
     document.body.dataset.authed = '1';
@@ -88,9 +109,14 @@ console.log('Obfuscated to', obfuscated.length, 'bytes');
 // viewport (behind the URL bar), clipping the bottom of the app. Use dvh
 // where supported and let position:fixed inset:0 own the sizing.
 const viewportFix = `
-html,body{height:100dvh !important;min-height:100dvh !important;max-height:100dvh !important;overflow:hidden;}
-.app{height:100dvh !important;min-height:100dvh !important;max-height:100dvh !important;}
-.scrollable{height:100dvh !important;max-height:100dvh !important;padding-bottom:calc(140px + env(safe-area-inset-bottom)) !important;}
+:root{--app-h:100dvh;--app-w:100vw;}
+html,body,#protected-root{margin:0 !important;padding:0 !important;width:100vw !important;min-width:100vw !important;height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;overflow:hidden !important;background:#0a0a0c !important;}
+#protected-root{position:fixed !important;inset:0 !important;}
+.app,.txn-detail-overlay{position:fixed !important;inset:0 !important;width:100vw !important;max-width:none !important;height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;margin:0 !important;overflow:hidden !important;}
+.scrollable{height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;padding-bottom:calc(148px + env(safe-area-inset-bottom)) !important;}
+.txn-detail-screen{height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;}
+.bottom-nav{bottom:calc(1px + env(safe-area-inset-bottom)) !important;left:0 !important;right:0 !important;width:100vw !important;max-width:none !important;margin:0 !important;padding-left:14px !important;padding-right:14px !important;}
+.bg-glow{height:567px !important;}
 `;
 
 const bundle = {
