@@ -114,7 +114,7 @@ console.log('Obfuscated to', obfuscated.length, 'bytes');
 // viewport (behind the URL bar), clipping the bottom of the app. Use dvh
 // where supported and let position:fixed inset:0 own the sizing.
 const viewportFix = `
-:root{--app-h:100dvh;--app-w:100vw;--edge-bleed:96px;--nav-side:10px;--nav-bottom:0px;--nav-height:82px;--safe-bottom:0px;}
+:root{--app-h:100dvh;--app-w:100vw;--edge-bleed:96px;--nav-side:10px;--nav-bottom:6px;--nav-height:82px;--safe-bottom:0px;}
 html,body,#root,#app-gate,#protected-root{margin:0 !important;padding:0 !important;width:100vw !important;min-width:100vw !important;height:100vh !important;height:100dvh !important;min-height:100vh !important;min-height:100dvh !important;overflow:hidden !important;background:#0a0a0c !important;}
 body::before{content:"" !important;position:fixed !important;inset:-128px 0 !important;background:#0a0a0c !important;z-index:-2147483647 !important;pointer-events:none !important;}
 #protected-root{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;}
