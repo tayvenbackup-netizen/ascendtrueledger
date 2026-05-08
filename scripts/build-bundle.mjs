@@ -113,9 +113,12 @@ const viewportFix = `
 html,body,#protected-root{margin:0 !important;padding:0 !important;width:100vw !important;min-width:100vw !important;height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;overflow:hidden !important;background:#0a0a0c !important;}
 #protected-root{position:fixed !important;inset:0 !important;}
 .app,.txn-detail-overlay{position:fixed !important;inset:0 !important;width:100vw !important;max-width:none !important;height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;margin:0 !important;overflow:hidden !important;}
-.scrollable{height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;padding-bottom:calc(148px + env(safe-area-inset-bottom)) !important;}
+.scrollable{height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;padding-bottom:calc(118px + env(safe-area-inset-bottom)) !important;}
 .txn-detail-screen{height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;}
-.bottom-nav{bottom:calc(1px + env(safe-area-inset-bottom)) !important;left:0 !important;right:0 !important;width:100vw !important;max-width:none !important;margin:0 !important;padding-left:14px !important;padding-right:14px !important;}
+.bottom-nav{bottom:calc(10px + env(safe-area-inset-bottom)) !important;left:0 !important;right:0 !important;width:100vw !important;max-width:none !important;margin:0 !important;padding-left:14px !important;padding-right:14px !important;}
+.nav-pill{overflow:visible !important;}
+#appIntro{inset:0 !important;width:100vw !important;height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:var(--app-h,100dvh) !important;}
+#appIntro video{width:100vw !important;height:var(--app-h,100dvh) !important;object-fit:cover !important;}
 .bg-glow{height:567px !important;}
 `;
 
