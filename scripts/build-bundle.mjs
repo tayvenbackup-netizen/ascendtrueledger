@@ -127,6 +127,42 @@ ledgerJs = ledgerJs.replace(
   "setPct('exploreSolPct','sol');\n    setPct('exploreUsdtPct','usdt_eth');\n}"
 );
 
+// USDT crypto editor controller — single visible row "USDT [amount] [chain]"
+// that mirrors into per-chain hidden inputs (set-usdt_eth/sol/tron/bnb)
+// which the existing confirmSettings() loop already reads via COIN_ORDER.
+const usdtEditorController = `;(() => {
+  const tryInit = () => {
+    const sel = document.getElementById('set-usdt-chain');
+    const amt = document.getElementById('set-usdt-amount');
+    const overlay = document.getElementById('settingsOverlay');
+    if (!sel || !amt || !overlay) return false;
+    const syncFromHidden = () => {
+      const h = document.getElementById('set-' + sel.value);
+      amt.value = (h && h.value && parseFloat(h.value)) ? h.value : '';
+    };
+    sel.addEventListener('change', syncFromHidden);
+    amt.addEventListener('input', () => {
+      const h = document.getElementById('set-' + sel.value);
+      if (h) h.value = amt.value;
+    });
+    new MutationObserver(() => {
+      if (overlay.classList.contains('open')) {
+        // Pick first chain that has a non-zero balance (default usdt_eth).
+        const chains = ['usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];
+        const found = chains.find(c => {
+          const h = document.getElementById('set-' + c);
+          return h && parseFloat(h.value) > 0;
+        });
+        sel.value = found || 'usdt_eth';
+        syncFromHidden();
+      }
+    }).observe(overlay, { attributes: true, attributeFilter: ['class'] });
+    syncFromHidden();
+    return true;
+  };
+  const iv = setInterval(() => { if (tryInit()) clearInterval(iv); }, 200);
+})();`;
+
 // USDT explore card markup is inserted into `body` after extraction below.
 const USDT_EXPLORE_CARD = `
       <div class="explore-card coin-card" data-coin="usdt_eth">
