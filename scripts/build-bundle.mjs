@@ -309,6 +309,12 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 .bg-glow{height:567px !important;}
 .asset-logo{position:relative !important;overflow:visible !important;}
 .asset-chain-badge{position:absolute !important;right:-4px !important;bottom:-4px !important;width:20px !important;height:20px !important;border-radius:50% !important;background:#0a0a0c !important;padding:1.5px !important;box-sizing:border-box !important;border:2px solid #0a0a0c !important;object-fit:cover !important;z-index:5 !important;box-shadow:0 2px 6px rgba(0,0,0,0.5) !important;}
+.asset-logo img[alt="ETH"]{object-fit:contain !important;background:#627EEA !important;padding:6px !important;box-sizing:border-box !important;border-radius:50% !important;}
+.asset-logo img[alt="XRP"]{object-fit:contain !important;background:#000 !important;padding:5px !important;box-sizing:border-box !important;border-radius:50% !important;}
+.asset-logo img[alt="USDT"]{background:#26A17B !important;}
+.usdt-edit-row{display:flex !important;align-items:center !important;gap:8px !important;}
+.usdt-edit-row label{flex-shrink:0 !important;}
+.usdt-chain-select{background:#1a1a1f !important;color:#fff !important;border:1px solid #2a2a30 !important;border-radius:8px !important;padding:6px 8px !important;font-size:13px !important;flex-shrink:0 !important;}
 `;
 
 const bundle = {
