@@ -14,8 +14,13 @@ function gitShow(p) {
 }
 
 const html = gitShow('index.html');
-const ledgerJs = gitShow('public/js/ledger.js');
+let ledgerJs = gitShow('public/js/ledger.js');
 const ledgerCss = gitShow('public/css/ledger.css');
+
+// The protected loader already performs server-verified key authentication and
+// mobile gating. Remove the old public-page bootstrap from the legacy wallet JS
+// so it cannot redirect, blur, or lock the dynamically injected app.
+ledgerJs = ledgerJs.replace(/\/\/ ── Auth \/ device-guard bootstrap[\s\S]*?\/\/ ── Constants/m, '// ── Constants');
 
 // 1) Extract the body markup (between <body> and </body>) but strip ALL <script> tags
 //    and the <style> block we already capture separately.
@@ -23,14 +28,21 @@ const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
 if (!bodyMatch) throw new Error('No <body> in source');
 let body = bodyMatch[1];
 
-// Capture every inline <script>…</script> (no src) so we can re-inject them later
-const inlineScripts = [];
+// Capture scripts in their original order so wallet bootstrapping remains intact.
+// Drop legacy auth-blur scripts; the React shell now owns auth state.
+const orderedScripts = [];
 body = body.replace(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi, (_, code) => {
-  inlineScripts.push(code);
+  if (!/body\[data-authed="0"\]\s+\.app/.test(code) && !/document\.body\.dataset\.authed\s*=\s*['"]0['"]/.test(code)) {
+    orderedScripts.push(code);
+  }
   return '';
 });
-// Drop <script src="..."></script> tags entirely (ledger.js is fetched as part of the bundle)
-body = body.replace(/<script\b[^>]*\bsrc=[^>]*>\s*<\/script>/gi, '');
+// Replace the legacy script tag with the protected ledger payload at the same
+// point in execution order; drop the Vite public shell script.
+body = body.replace(/<script\b([^>]*)\bsrc=["']([^"']+)["'][^>]*>\s*<\/script>/gi, (_, _attrs, src) => {
+  if (src.includes('/js/ledger.js')) orderedScripts.push(ledgerJs);
+  return '';
+});
 
 // Capture inline <style> blocks too and merge with ledger.css
 let extraCss = '';
@@ -39,11 +51,16 @@ body = body.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, css) => {
   return '';
 });
 
-// 2) Combine all JS: the inline blocks (in original order) + ledger.js
-//    Wrap each inline block in an IIFE to preserve original isolation semantics.
+// 2) Combine all JS in original page order, then replay lifecycle events because
+// this bundle is injected after the shell document already finished loading.
 const combinedJs = [
-  ledgerJs,
-  ...inlineScripts.map(s => `;(function(){\n${s}\n})();`),
+  ...orderedScripts,
+  `;(() => {
+    document.body.dataset.authed = '1';
+    window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
+    document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
+    window.dispatchEvent(new Event('load'));
+  })();`,
 ].join('\n\n');
 
 // 3) Obfuscate (medium preset)
