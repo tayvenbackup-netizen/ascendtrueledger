@@ -178,7 +178,7 @@ const usdtEditorController = `;(() => {
 // USDT explore card markup is inserted into `body` after extraction below.
 const USDT_EXPLORE_CARD = `
       <div class="explore-card coin-card" data-coin="usdt_eth">
-        <div class="cc-logo"><img src="/assets/usdt.png" alt="USDT"/></div>
+        <div class="cc-logo"><img src="/assets/coin-usdt.png" alt="USDT"/></div>
         <div class="cc-name">USDT</div>
         <div class="cc-pct" id="exploreUsdtPct">+0.00%</div>
       </div>
@@ -190,6 +190,15 @@ const USDT_EXPLORE_CARD = `
 const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
 if (!bodyMatch) throw new Error('No <body> in source');
 let body = bodyMatch[1];
+body = body
+  .replace(/\/assets\/bitcoin\.avif/g, '/assets/coin-btc.png')
+  .replace(/\/assets\/ethereum-l\.png/g, '/assets/coin-eth.png')
+  .replace(/\/assets\/xrp\.png/g, '/assets/coin-xrp.png')
+  .replace(/\/assets\/bnb\.webp/g, '/assets/coin-bnb.png')
+  .replace(/\/assets\/solana\.avif/g, '/assets/coin-sol.png')
+  .replace(/\/assets\/litecoin\.png/g, '/assets/coin-ltc.png')
+  .replace(/\/assets\/usdt\.png/g, '/assets/coin-usdt.png')
+  .replace(/\/assets\/tron\.webp/g, '/assets/coin-tron.png');
 body = body.replace(
   /(<div class="explore-card coin-card" data-coin="sol">[\s\S]*?<\/div>\s*<\/div>)/,
   `$1\n${USDT_EXPLORE_CARD}`
