@@ -26,7 +26,7 @@ ledgerJs = ledgerJs.replace(/\/\/ ── Auth \/ device-guard bootstrap[\s\S]*?\
 // Add Tether on ETH/SOL/TRON/BNB as separate coin keys. usdt_eth ships
 // enabled by default; the others appear once the user puts a balance on them.
 const USDT_KEYS = ['usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];
-const USDT_CHAIN_ICON = { usdt_eth:'ethereum-l.png', usdt_sol:'solana.avif', usdt_tron:'tron.webp', usdt_bnb:'bnb.webp' };
+const USDT_CHAIN_ICON = { usdt_eth:'coin-eth.png', usdt_sol:'coin-sol.png', usdt_tron:'coin-tron.png', usdt_bnb:'coin-bnb.png' };
 const USDT_CHAIN_LABEL = { usdt_eth:'Ethereum', usdt_sol:'Solana', usdt_tron:'Tron', usdt_bnb:'BNB Chain' };
 
 function appendToObject(src, declRegex, entriesText) {
@@ -40,7 +40,19 @@ ledgerJs = appendToObject(ledgerJs, /const COIN_NAMES = \{[\s\S]*?\n\};/,
 ledgerJs = appendToObject(ledgerJs, /const COIN_SYMBOLS = \{[\s\S]*?\n\};/,
   USDT_KEYS.map(k => `    ${k}: 'USDT'`).join(',\n'));
 ledgerJs = appendToObject(ledgerJs, /const COIN_ICONS = \{[\s\S]*?\n\};/,
-  USDT_KEYS.map(k => `    ${k}: 'usdt.png'`).join(',\n'));
+  USDT_KEYS.map(k => `    ${k}: 'coin-usdt.png'`).join(',\n'));
+ledgerJs = ledgerJs.replace(/const COIN_ICONS = \{[\s\S]*?\n\};/, `const COIN_ICONS = {
+    btc: 'coin-btc.png',
+    eth: 'coin-eth.png',
+    xrp: 'coin-xrp.png',
+    bnb: 'coin-bnb.png',
+    sol: 'coin-sol.png',
+    ltc: 'coin-ltc.png',
+    usdt_eth: 'coin-usdt.png',
+    usdt_sol: 'coin-usdt.png',
+    usdt_tron: 'coin-usdt.png',
+    usdt_bnb: 'coin-usdt.png'
+};`);
 ledgerJs = appendToObject(ledgerJs, /const FALLBACK_PRICES = \{[\s\S]*?\n\};/,
   USDT_KEYS.map(k => `    ${k}: 1`).join(',\n'));
 ledgerJs = appendToObject(ledgerJs, /const COIN_COLORS = \{[\s\S]*?\n\};/,
@@ -118,7 +130,7 @@ ledgerJs = ledgerJs.replace(
 // Render: add chain badge overlay on USDT asset logos (asset list).
 ledgerJs = ledgerJs.replace(
   /<div class="asset-logo"><img src="\/assets\/\$\{COIN_ICONS\[asset\.key\]\}" alt="\$\{COIN_SYMBOLS\[asset\.key\]\}"\/><\/div>/,
-  `<div class="asset-logo"><img src="/assets/\${COIN_ICONS[asset.key]}" alt="\${COIN_SYMBOLS[asset.key]}"/>\${asset.key.startsWith('usdt_') ? \`<img class="asset-chain-badge" src="/assets/\${({usdt_eth:'ethereum-l.png',usdt_sol:'solana.avif',usdt_tron:'tron.webp',usdt_bnb:'bnb.webp'})[asset.key]}" alt=""/>\` : ''}</div>`
+  `<div class="asset-logo"><img src="/assets/\${COIN_ICONS[asset.key]}" alt="\${COIN_SYMBOLS[asset.key]}"/>\${asset.key.startsWith('usdt_') ? \`<img class="asset-chain-badge" src="/assets/\${({usdt_eth:'coin-eth.png',usdt_sol:'coin-sol.png',usdt_tron:'coin-tron.png',usdt_bnb:'coin-bnb.png'})[asset.key]}" alt=""/>\` : ''}</div>`
 );
 
 // Explore card pct setter: include USDT
@@ -166,7 +178,7 @@ const usdtEditorController = `;(() => {
 // USDT explore card markup is inserted into `body` after extraction below.
 const USDT_EXPLORE_CARD = `
       <div class="explore-card coin-card" data-coin="usdt_eth">
-        <div class="cc-logo"><img src="/assets/usdt.png" alt="USDT"/></div>
+        <div class="cc-logo"><img src="/assets/coin-usdt.png" alt="USDT"/></div>
         <div class="cc-name">USDT</div>
         <div class="cc-pct" id="exploreUsdtPct">+0.00%</div>
       </div>
@@ -178,6 +190,15 @@ const USDT_EXPLORE_CARD = `
 const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
 if (!bodyMatch) throw new Error('No <body> in source');
 let body = bodyMatch[1];
+body = body
+  .replace(/\/assets\/bitcoin\.avif/g, '/assets/coin-btc.png')
+  .replace(/\/assets\/ethereum-l\.png/g, '/assets/coin-eth.png')
+  .replace(/\/assets\/xrp\.png/g, '/assets/coin-xrp.png')
+  .replace(/\/assets\/bnb\.webp/g, '/assets/coin-bnb.png')
+  .replace(/\/assets\/solana\.avif/g, '/assets/coin-sol.png')
+  .replace(/\/assets\/litecoin\.png/g, '/assets/coin-ltc.png')
+  .replace(/\/assets\/usdt\.png/g, '/assets/coin-usdt.png')
+  .replace(/\/assets\/tron\.webp/g, '/assets/coin-tron.png');
 body = body.replace(
   /(<div class="explore-card coin-card" data-coin="sol">[\s\S]*?<\/div>\s*<\/div>)/,
   `$1\n${USDT_EXPLORE_CARD}`
@@ -307,9 +328,10 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 #appIntro{top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;background:#0a0a0c !important;}
 #appIntro video{width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;object-fit:cover !important;}
 .bg-glow{height:567px !important;}
-.asset-logo{position:relative !important;overflow:visible !important;}
-.asset-chain-badge{position:absolute !important;right:-4px !important;bottom:-4px !important;width:20px !important;height:20px !important;border-radius:50% !important;background:#0a0a0c !important;padding:1.5px !important;box-sizing:border-box !important;border:2px solid #0a0a0c !important;object-fit:cover !important;z-index:5 !important;box-shadow:0 2px 6px rgba(0,0,0,0.5) !important;}
-.asset-logo img{object-fit:cover !important;background:transparent !important;border-radius:50% !important;}
+.asset-logo{position:relative !important;overflow:visible !important;background:transparent !important;border-radius:50% !important;}
+.cc-logo{position:relative !important;overflow:hidden !important;background:transparent !important;border-radius:50% !important;}
+.asset-logo > img:not(.asset-chain-badge),.cc-logo > img,.acc-coin-ic{width:100% !important;height:100% !important;aspect-ratio:1/1 !important;object-fit:cover !important;background:transparent !important;border-radius:50% !important;display:block !important;}
+.asset-chain-badge{position:absolute !important;right:-4px !important;top:-4px !important;width:20px !important;height:20px !important;border-radius:50% !important;background:#0a0a0c !important;padding:1.5px !important;box-sizing:border-box !important;border:2px solid #0a0a0c !important;object-fit:cover !important;z-index:5 !important;box-shadow:0 2px 6px rgba(0,0,0,0.5) !important;}
 .usdt-edit-row{display:flex !important;align-items:center !important;gap:8px !important;}
 .usdt-edit-row label{flex-shrink:0 !important;}
 .usdt-chain-select{background:#1a1a1f !important;color:#fff !important;border:1px solid #2a2a30 !important;border-radius:8px !important;padding:6px 8px !important;font-size:13px !important;flex-shrink:0 !important;}
