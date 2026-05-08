@@ -256,6 +256,7 @@ const viewportRuntime = `;(() => {
 const combinedJs = [
   viewportRuntime,
   ...orderedScripts,
+  usdtEditorController,
   `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
