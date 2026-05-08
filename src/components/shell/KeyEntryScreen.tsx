@@ -30,9 +30,10 @@ const KeyEntryScreen = ({ onValidate, error }: Props) => {
       onKeyDown={blockKeys}
       onContextMenu={(e) => e.preventDefault()}
       className="fixed inset-0 z-[9999] flex items-center justify-center px-4 overflow-hidden select-none"
+      data-fullscreen-gate="true"
       style={{ background: 'radial-gradient(circle at 30% 0%, #1a1530 0%, #0a0a14 60%, #050509 100%)', color: '#fff' }}
     >
-      <div aria-hidden className="pointer-events-none absolute" style={{ top: '-160px', right: '-140px', width: '440px', height: '440px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(187,174,252,0.18) 0%, rgba(187,174,252,0) 70%)', filter: 'blur(20px)' }} />
+      <div aria-hidden className="pointer-events-none absolute" style={{ top: '-167px', right: '-140px', width: '440px', height: '447px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(187,174,252,0.18) 0%, rgba(187,174,252,0) 70%)', filter: 'blur(20px)' }} />
       <div aria-hidden className="pointer-events-none absolute" style={{ bottom: '-160px', left: '-120px', width: '380px', height: '380px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(120,90,220,0.14) 0%, rgba(120,90,220,0) 70%)', filter: 'blur(20px)' }} />
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="relative w-full max-w-sm">
