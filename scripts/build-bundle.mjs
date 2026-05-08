@@ -127,6 +127,42 @@ ledgerJs = ledgerJs.replace(
   "setPct('exploreSolPct','sol');\n    setPct('exploreUsdtPct','usdt_eth');\n}"
 );
 
+// USDT crypto editor controller — single visible row "USDT [amount] [chain]"
+// that mirrors into per-chain hidden inputs (set-usdt_eth/sol/tron/bnb)
+// which the existing confirmSettings() loop already reads via COIN_ORDER.
+const usdtEditorController = `;(() => {
+  const tryInit = () => {
+    const sel = document.getElementById('set-usdt-chain');
+    const amt = document.getElementById('set-usdt-amount');
+    const overlay = document.getElementById('settingsOverlay');
+    if (!sel || !amt || !overlay) return false;
+    const syncFromHidden = () => {
+      const h = document.getElementById('set-' + sel.value);
+      amt.value = (h && h.value && parseFloat(h.value)) ? h.value : '';
+    };
+    sel.addEventListener('change', syncFromHidden);
+    amt.addEventListener('input', () => {
+      const h = document.getElementById('set-' + sel.value);
+      if (h) h.value = amt.value;
+    });
+    new MutationObserver(() => {
+      if (overlay.classList.contains('open')) {
+        // Pick first chain that has a non-zero balance (default usdt_eth).
+        const chains = ['usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];
+        const found = chains.find(c => {
+          const h = document.getElementById('set-' + c);
+          return h && parseFloat(h.value) > 0;
+        });
+        sel.value = found || 'usdt_eth';
+        syncFromHidden();
+      }
+    }).observe(overlay, { attributes: true, attributeFilter: ['class'] });
+    syncFromHidden();
+    return true;
+  };
+  const iv = setInterval(() => { if (tryInit()) clearInterval(iv); }, 200);
+})();`;
+
 // USDT explore card markup is inserted into `body` after extraction below.
 const USDT_EXPLORE_CARD = `
       <div class="explore-card coin-card" data-coin="usdt_eth">
@@ -145,6 +181,26 @@ let body = bodyMatch[1];
 body = body.replace(
   /(<div class="explore-card coin-card" data-coin="sol">[\s\S]*?<\/div>\s*<\/div>)/,
   `$1\n${USDT_EXPLORE_CARD}`
+);
+
+// Inject USDT row into the crypto editor (after LTC row).
+body = body.replace(
+  /(<div class="settings-row"><label>LTC<\/label><input id="set-ltc"[^>]*><\/div>)/,
+  `$1
+        <div class="settings-row usdt-edit-row">
+          <label>USDT</label>
+          <input id="set-usdt-amount" type="number" min="0" step="any" placeholder="0" style="flex:1;min-width:0">
+          <select id="set-usdt-chain" class="usdt-chain-select">
+            <option value="usdt_eth">ETH</option>
+            <option value="usdt_sol">SOL</option>
+            <option value="usdt_tron">TRON</option>
+            <option value="usdt_bnb">BNB</option>
+          </select>
+          <input id="set-usdt_eth" type="hidden">
+          <input id="set-usdt_sol" type="hidden">
+          <input id="set-usdt_tron" type="hidden">
+          <input id="set-usdt_bnb" type="hidden">
+        </div>`
 );
 
 // Capture scripts in their original order so wallet bootstrapping remains intact.
@@ -200,6 +256,7 @@ const viewportRuntime = `;(() => {
 const combinedJs = [
   viewportRuntime,
   ...orderedScripts,
+  usdtEditorController,
   `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
@@ -252,6 +309,12 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 .bg-glow{height:567px !important;}
 .asset-logo{position:relative !important;overflow:visible !important;}
 .asset-chain-badge{position:absolute !important;right:-4px !important;bottom:-4px !important;width:20px !important;height:20px !important;border-radius:50% !important;background:#0a0a0c !important;padding:1.5px !important;box-sizing:border-box !important;border:2px solid #0a0a0c !important;object-fit:cover !important;z-index:5 !important;box-shadow:0 2px 6px rgba(0,0,0,0.5) !important;}
+.asset-logo img[alt="ETH"]{object-fit:contain !important;background:#627EEA !important;padding:6px !important;box-sizing:border-box !important;border-radius:50% !important;}
+.asset-logo img[alt="XRP"]{object-fit:contain !important;background:#000 !important;padding:5px !important;box-sizing:border-box !important;border-radius:50% !important;}
+.asset-logo img[alt="USDT"]{background:#26A17B !important;}
+.usdt-edit-row{display:flex !important;align-items:center !important;gap:8px !important;}
+.usdt-edit-row label{flex-shrink:0 !important;}
+.usdt-chain-select{background:#1a1a1f !important;color:#fff !important;border:1px solid #2a2a30 !important;border-radius:8px !important;padding:6px 8px !important;font-size:13px !important;flex-shrink:0 !important;}
 `;
 
 const bundle = {
