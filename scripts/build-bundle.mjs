@@ -84,9 +84,18 @@ const obfuscated = JsObfuscator.obfuscate(combinedJs, {
 }).getObfuscatedCode();
 console.log('Obfuscated to', obfuscated.length, 'bytes');
 
+// Viewport-fit overrides: iOS Safari's 100vh extends below the visible
+// viewport (behind the URL bar), clipping the bottom of the app. Use dvh
+// where supported and let position:fixed inset:0 own the sizing.
+const viewportFix = `
+html,body{height:100dvh !important;min-height:100dvh !important;max-height:100dvh !important;overflow:hidden;}
+.app{height:100dvh !important;min-height:100dvh !important;max-height:100dvh !important;}
+.scrollable{height:100dvh !important;max-height:100dvh !important;padding-bottom:calc(140px + env(safe-area-inset-bottom)) !important;}
+`;
+
 const bundle = {
   html: body,
-  css: ledgerCss + extraCss,
+  css: ledgerCss + extraCss + viewportFix,
   js: obfuscated,
 };
 
