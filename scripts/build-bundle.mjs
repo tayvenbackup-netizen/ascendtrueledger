@@ -330,20 +330,16 @@ console.log('Obfuscated to', obfuscated.length, 'bytes');
 // viewport (behind the URL bar), clipping the bottom of the app. Use dvh
 // where supported and let position:fixed inset:0 own the sizing.
 const viewportFix = `
-:root{--app-h:100dvh;--app-w:100vw;--edge-bleed:96px;--nav-side:10px;--nav-bottom:6px;--nav-height:82px;--safe-bottom:0px;}
+:root{--app-h:100dvh;--app-w:100vw;--edge-bleed:96px;--nav-side:10px;--nav-bottom:6px;--nav-height:71px;--safe-bottom:0px;}
 html,body,#root,#app-gate,#protected-root{margin:0 !important;padding:0 !important;width:100vw !important;min-width:100vw !important;height:100vh !important;height:100dvh !important;min-height:100vh !important;min-height:100dvh !important;overflow:hidden !important;background:#0a0a0c !important;}
 body::before{content:"" !important;position:fixed !important;inset:-128px 0 !important;background:#0a0a0c !important;z-index:-2147483647 !important;pointer-events:none !important;}
 #protected-root{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;}
 .app,.txn-detail-overlay{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;width:100vw !important;max-width:none !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;margin:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
 .scrollable{height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 220px) !important;background:#0a0a0c !important;}
 .txn-detail-screen{height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:none !important;background:#0a0a0c !important;}
-.bottom-nav{position:fixed !important;bottom:var(--nav-bottom) !important;left:var(--nav-side) !important;right:var(--nav-side) !important;width:auto !important;height:var(--nav-height) !important;max-width:none !important;margin:0 !important;padding:0 !important;isolation:isolate !important;background:transparent !important;}
+.bottom-nav{position:fixed !important;bottom:var(--nav-bottom) !important;left:var(--nav-side) !important;right:var(--nav-side) !important;width:auto !important;height:71px !important;max-width:none !important;margin:0 !important;padding:0 !important;isolation:isolate !important;background:transparent !important;background-image:url('/assets/nav-bar.png') !important;background-repeat:no-repeat !important;background-size:100% 71px !important;background-position:center !important;}
 .bottom-nav::before{content:none !important;}
-.nav-pill{width:100% !important;height:var(--nav-height) !important;min-height:var(--nav-height) !important;padding:7px 10px !important;border-radius:34px !important;overflow:visible !important;background:rgba(20,20,24,0.92) !important;box-sizing:border-box !important;}
-.nav-btn{height:68px !important;min-height:68px !important;border-radius:28px !important;gap:4px !important;font-size:11px !important;font-weight:600 !important;}
-.nav-btn.active{background:rgba(255,255,255,0.075) !important;}
-.nav-btn svg{width:25px !important;height:25px !important;}
-.nav-btn .nav-icon-img{width:36px !important;height:36px !important;}
+.nav-pill{display:none !important;}
 #appIntro{top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;background:#0a0a0c !important;}
 #appIntro video{width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;object-fit:cover !important;}
 .bg-glow{height:567px !important;}
@@ -360,12 +356,12 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
  .explore-row > *{scroll-snap-align:start !important;}
  .asset-list{gap:10px !important;}
  /* Single promo card - thin rectangle */
- .promo-single-wrap{padding:4px 16px 12px !important;}
- .promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:14px;padding:10px 14px;min-height:64px;max-height:64px;overflow:hidden;}
+ .promo-single-wrap{padding:22px 16px 14px !important;}
+ .promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:14px;padding:10px 14px;min-height:68px;max-height:68px;overflow:hidden;}
  .promo-single .ps-text{flex:1;min-width:0;padding-right:8px;}
  .promo-single .ps-title{color:#fff;font-size:14px;font-weight:700;line-height:1.2;margin-bottom:3px;}
  .promo-single .ps-sub{color:#9a9aa2;font-size:12px;line-height:1.2;}
- .promo-single .ps-art{height:56px;width:auto;max-width:34%;object-fit:contain;flex-shrink:0;margin-right:22px;}
+ .promo-single .ps-art{height:60px;width:auto;max-width:38%;object-fit:contain;flex-shrink:0;margin-right:6px;}
 .promo-single .ps-close{position:absolute;top:10px;right:10px;background:transparent;border:none;color:#9a9aa2;width:22px;height:22px;padding:0;cursor:pointer;}
 .promo-single .ps-close svg{width:18px;height:18px;}
 `;
