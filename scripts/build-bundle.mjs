@@ -116,6 +116,17 @@ ledgerJs = ledgerJs.replace(
   "const len = coin==='btc' ? 38 : (coin==='eth'||coin==='usdt_eth'||coin==='usdt_bnb') ? 40 : (coin==='sol'||coin==='usdt_sol') ? 44 : coin==='xrp' ? 33 : coin==='usdt_tron' ? 34 : 38;"
 );
 
+// Random transaction generator: spread timestamps EVENLY across the chosen day range
+// (with small jitter so they don't sit on identical seconds), instead of clustering randomly.
+ledgerJs = ledgerJs.replace(
+  /\/\/ random ts within selected range\s*\n\s*const ts = now - Math\.floor\(Math\.random\(\) \* rangeDays \* 86400000\);/,
+  `// Spread ts evenly across the selected day range, with a tiny jitter
+      const _spanMs = rangeDays * 86400000;
+      const _step = _spanMs / Math.max(1, count);
+      const _jitter = (Math.random() - 0.5) * _step * 0.6;
+      const ts = now - Math.floor(i * _step + _step/2 + _jitter);`
+);
+
 // Render: filter the asset list so usdt_eth always shows but the other
 // USDT-on-chain entries only appear when they have a balance > 0.
 ledgerJs = ledgerJs.replace(
