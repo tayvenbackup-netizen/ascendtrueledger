@@ -254,6 +254,112 @@ body = body.replace(
         </div>`
 );
 
+// Inject "See all transactions" full-screen overlay (slides in from the right)
+body = body.replace(/<\/body>\s*$/i, `
+  <div id="txnAllOverlay" class="txn-all-overlay" aria-hidden="true">
+    <div class="txn-all-screen">
+      <div class="txn-all-header">
+        <button class="txn-all-back" id="txnAllBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="txn-all-title">Transaction history</div>
+        <div class="txn-all-spacer"></div>
+      </div>
+      <div class="txn-all-body" id="txnAllBody"></div>
+    </div>
+  </div>
+</body>`);
+
+// See-all overlay controller — slide in from right, render every txn, click row → existing detail
+const seeAllController = `;(() => {
+  const tryInit = () => {
+    const btn = document.getElementById('txnSeeAll');
+    const overlay = document.getElementById('txnAllOverlay');
+    const back = document.getElementById('txnAllBack');
+    const body = document.getElementById('txnAllBody');
+    if (!btn || !overlay || !back || !body) return false;
+    if (btn.dataset.allBound === '1') return true;
+    btn.dataset.allBound = '1';
+
+    const fmtDate = (ts) => {
+      try { return (typeof fmtTxnDate === 'function') ? fmtTxnDate(ts) : new Date(ts).toLocaleDateString(); }
+      catch { return new Date(ts).toLocaleDateString(); }
+    };
+    const fmtTime = (ts) => {
+      try { return (typeof fmtTxnTime === 'function') ? fmtTxnTime(ts) : new Date(ts).toLocaleTimeString(); }
+      catch { return new Date(ts).toLocaleTimeString(); }
+    };
+    const ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/></svg>';
+    const ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="18 13 12 19 6 13"/></svg>';
+
+    const render = () => {
+      let txns = [];
+      try { txns = (typeof loadTxns === 'function') ? loadTxns() : (JSON.parse(localStorage.getItem('ledgerTxns'))||[]); } catch {}
+      txns = txns.slice().sort((a,b) => b.ts - a.ts);
+      body.innerHTML = '';
+      if (!txns.length) { body.innerHTML = '<div class="txn-empty" style="padding:40px;text-align:center;color:#9c9ca1">No transactions yet</div>'; return; }
+      let s = {}; try { s = (typeof loadSettings === 'function') ? loadSettings() : {}; } catch {}
+      const currency = (s && s.currency) || 'usd';
+      let lastDate = '';
+      for (const t of txns) {
+        const ds = fmtDate(t.ts);
+        if (ds !== lastDate) {
+          const pill = document.createElement('div');
+          pill.className = 'txn-date-pill';
+          pill.textContent = ds;
+          body.appendChild(pill);
+          lastDate = ds;
+        }
+        let price = 0;
+        try {
+          const c = (typeof getCachedPrice === 'function') ? getCachedPrice(t.coin, currency) : null;
+          price = c ? c.price : ((typeof FALLBACK_PRICES !== 'undefined' && FALLBACK_PRICES[t.coin]) || 0);
+        } catch {}
+        const fiat = Math.abs(t.amount) * price;
+        const isSent = t.type === 'sent';
+        const sign = isSent ? '-' : '+';
+        const fmtAmt = (typeof fmtAmount === 'function') ? fmtAmount : (n => n.toString());
+        const fmtU = (typeof fmtUSD === 'function') ? fmtUSD : (n => '$' + n.toFixed(2));
+        const sym = (typeof COIN_SYMBOLS !== 'undefined' && COIN_SYMBOLS[t.coin]) || '';
+        const name = (typeof COIN_NAMES !== 'undefined' && COIN_NAMES[t.coin]) || t.coin;
+        const row = document.createElement('div');
+        row.className = 'txn-row';
+        row.innerHTML = \`
+          <div class="txn-icon">\${isSent ? ARROW_UP : ARROW_DOWN}</div>
+          <div class="txn-mid">
+            <div class="txn-name">\${name} 1</div>
+            <div class="txn-sub">\${isSent ? 'Sent' : 'Received'} \${fmtTime(t.ts)}</div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">\${sign}\${fmtAmt(Math.abs(t.amount))} \${sym}</div>
+            <div class="txn-fiat">\${sign}\${fmtU(fiat)}</div>
+          </div>\`;
+        row.addEventListener('click', () => {
+          if (typeof openTxnDetail === 'function') openTxnDetail(t);
+        });
+        body.appendChild(row);
+      }
+    };
+
+    const open = (e) => {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      render();
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+    };
+    const close = () => {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+    };
+
+    btn.addEventListener('click', open, true);
+    back.addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    return true;
+  };
+  const iv = setInterval(() => { if (tryInit()) clearInterval(iv); }, 200);
+})();`;
+
 // Capture scripts in their original order so wallet bootstrapping remains intact.
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
 const orderedScripts = [];
