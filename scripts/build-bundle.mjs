@@ -703,6 +703,9 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
      /* Transaction amount coloring: received green, sent stays white */
      .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
      .txn-amt.is-sent,.txn-fiat.is-sent,.txn-detail-amt.is-sent,.txn-detail-fiat.is-sent{color:#ffffff !important;}
+     /* Lighter, smaller transaction amount text to match reference */
+     .txn-row .txn-amt,.txn-all-body .txn-amt{font-size:14px !important;font-weight:500 !important;letter-spacing:-.1px !important;line-height:1.2 !important;}
+     .txn-row .txn-fiat,.txn-all-body .txn-fiat{font-size:12px !important;font-weight:400 !important;opacity:.75 !important;line-height:1.2 !important;}
 `;
 
 const bundle = {
