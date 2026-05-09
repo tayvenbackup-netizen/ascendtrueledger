@@ -462,32 +462,7 @@ body = body.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, css) => {
 
 // 2) Combine all JS in original page order, then replay lifecycle events because
 // this bundle is injected after the shell document already finished loading.
-const viewportRuntime = `;(() => {
-    const setViewportVars = () => {
-      const vv = window.visualViewport;
-      const h = Math.ceil(Math.max(
-        window.innerHeight || 0,
-        document.documentElement.clientHeight || 0,
-        vv ? vv.height + (vv.offsetTop || 0) : 0
-      ));
-      const w = Math.round((vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 0);
-      if (h > 0) {
-        document.documentElement.style.setProperty('--app-h', h + 'px');
-        document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
-      }
-      if (w > 0) document.documentElement.style.setProperty('--app-w', w + 'px');
-    };
-    setViewportVars();
-    window.addEventListener('resize', setViewportVars, { passive: true });
-    window.addEventListener('orientationchange', () => setTimeout(setViewportVars, 80), { passive: true });
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', setViewportVars, { passive: true });
-      window.visualViewport.addEventListener('scroll', setViewportVars, { passive: true });
-    }
-  })();`;
-
 const combinedJs = [
-  viewportRuntime,
   ...orderedScripts,
   usdtEditorController,
   seeAllController,
