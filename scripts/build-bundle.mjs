@@ -526,8 +526,8 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 .nav-btn{flex:1 1 0 !important;height:77px !important;min-height:77px !important;background:transparent !important;border:none !important;border-radius:0 !important;color:transparent !important;cursor:pointer !important;padding:0 !important;margin:0 !important;}
 .nav-btn.active{background:transparent !important;}
 .nav-btn > *{visibility:hidden !important;pointer-events:none !important;}
-#appIntro{top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;background:#0a0a0c !important;}
-#appIntro video{width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;object-fit:cover !important;}
+#appIntro{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100% !important;max-height:none !important;background:#0a0a0c !important;}
+#appIntro video{width:100% !important;height:100% !important;object-fit:cover !important;}
 .bg-glow{height:567px !important;}
 .asset-logo{position:relative !important;overflow:visible !important;background:transparent !important;border-radius:50% !important;}
 .cc-logo{position:relative !important;overflow:hidden !important;background:transparent !important;border-radius:50% !important;}
