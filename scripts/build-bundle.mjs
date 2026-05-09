@@ -478,6 +478,22 @@ const combinedJs = [
   usdtEditorController,
   seeAllController,
   removeTxnsController,
+  // Reparent .bg-glow and .header out of #ptr-wrapper so the pull-to-refresh
+  // transform on the wrapper does NOT drag them down. Then re-pin them with CSS.
+  `;(() => {
+    const tryLift = () => {
+      const ptr = document.getElementById('ptr-wrapper');
+      const app = document.querySelector('.app') || document.body;
+      if (!ptr || !app) return false;
+      const bg = ptr.querySelector(':scope > .bg-glow');
+      const hd = ptr.querySelector(':scope > .header');
+      if (bg) { bg.classList.add('bg-glow-lifted'); app.insertBefore(bg, app.firstChild); }
+      if (hd) { hd.classList.add('header-lifted'); app.insertBefore(hd, app.firstChild.nextSibling || null); }
+      return !!(bg || hd);
+    };
+    const iv = setInterval(() => { if (tryLift()) clearInterval(iv); }, 120);
+    setTimeout(() => clearInterval(iv), 8000);
+  })();`,
   `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
@@ -539,11 +555,15 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 .balance-amount{font-size:38px !important;letter-spacing:-1.2px !important;font-weight:700 !important;line-height:1 !important;}
  /* Zoom UI out + extend so it still fills the screen, and add scroll spacing */
  #ptr-wrapper{zoom:0.84 !important;}
- /* Lock the purple background — it must NOT translate when pulling to refresh.
-    Keep it BEHIND content (z-index:-1) so it never covers the balance/text. */
- .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:-1 !important;pointer-events:none !important;transform:none !important;}
- /* Make sure header/balance text always sits above the fixed bg-glow */
- .header,.balance-section{position:relative !important;z-index:2 !important;}
+  /* Lock the purple background — it must NOT translate when pulling to refresh.
+     Lifted out of #ptr-wrapper at runtime so parent transforms can't drag it. */
+  .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;}
+  .bg-glow-lifted{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;}
+  /* Lifted top header — fixed at top, never moves with pull-to-refresh */
+  .header-lifted{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;z-index:50 !important;padding:14px 16px 6px !important;background:transparent !important;}
+  /* Push the (now headerless) scrollable content down so balance starts where the header used to be */
+  #ptr-wrapper{padding-top:64px !important;}
+  .balance-section{position:relative !important;z-index:2 !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
  .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
  /* Purple pull-to-refresh spinner */
