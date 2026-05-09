@@ -205,7 +205,7 @@ body = body.replace(
 );
 
 // Remove promo carousel block (the scrollable promo cards above Explore market)
-body = body.replace(/<!--\s*PROMO CAROUSEL\s*-->[\s\S]*?<div class="promo-dots"[^>]*><\/div>\s*<\/div>/i, '');
+body = body.replace(/<!--\s*PROMO CAROUSEL\s*-->[\s\S]*?(?=<!--\s*EXPLORE MARKET\s*-->)/i, '');
 // Remove "For you" section header + cards row
 body = body.replace(/<!--\s*FOR YOU\s*-->[\s\S]*?(?=<!--\s*TRANSACTION HISTORY\s*-->)/i, '');
 
