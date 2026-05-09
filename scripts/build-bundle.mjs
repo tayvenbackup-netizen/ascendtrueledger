@@ -199,33 +199,9 @@ body = body
   .replace(/\/assets\/litecoin\.png/g, '/assets/coin-ltc.png')
   .replace(/\/assets\/usdt\.png/g, '/assets/coin-usdt.png')
   .replace(/\/assets\/tron\.webp/g, '/assets/coin-tron.png');
-// Remove the entire EXPLORE MARKET section (header + explore-row).
 body = body.replace(
-  /<!-- EXPLORE MARKET -->[\s\S]*?<\/div>\s*(?=<!-- ASSETS \/ ACCOUNTS TABS -->)/,
-  ''
-);
-
-// Replace promo-carousel with a single "Diversify your assets securely" card
-body = body.replace(
-  /<div class="promo-carousel-wrap">[\s\S]*?<\/div>\s*<\/div>/,
-  `<div class="diversify-card-wrap">
-    <div class="diversify-card">
-      <div class="diversify-text">
-        <div class="diversify-title">Diversify your assets securely</div>
-        <div class="diversify-sub">Compare quotes for your swap →</div>
-      </div>
-      <img class="diversify-img" src="/assets/diversify-coins.png" alt=""/>
-      <button class="diversify-close" aria-label="Dismiss">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-    </div>
-  </div>`
-);
-
-// Remove the "For you" section entirely
-body = body.replace(
-  /<!-- FOR YOU -->[\s\S]*?<\/div>\s*(?=<!-- TRANSACTION HISTORY -->)/,
-  ''
+  /(<div class="explore-card coin-card" data-coin="sol">[\s\S]*?<\/div>\s*<\/div>)/,
+  `$1\n${USDT_EXPLORE_CARD}`
 );
 
 // Inject USDT row into the crypto editor (after LTC row).
@@ -352,30 +328,14 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 #appIntro{top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;background:#0a0a0c !important;}
 #appIntro video{width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;object-fit:cover !important;}
 .bg-glow{height:567px !important;}
-
-/* Coin logos: keep them perfectly circular without breaking original sizing */
-.asset-logo{position:relative !important;overflow:visible !important;background:transparent !important;}
-.asset-logo > img:not(.asset-chain-badge){border-radius:50% !important;background:transparent !important;}
-.cc-logo{background:transparent !important;}
-.cc-logo > img{border-radius:50% !important;background:transparent !important;}
-.asset-chain-badge{position:absolute !important;right:-3px !important;bottom:-3px !important;top:auto !important;left:auto !important;width:18px !important;height:18px !important;border-radius:50% !important;background:#0a0a0c !important;padding:0 !important;border:2px solid #0a0a0c !important;object-fit:cover !important;z-index:5 !important;}
-
-/* USDT editor row */
+.asset-logo{position:relative !important;overflow:visible !important;background:transparent !important;border-radius:50% !important;}
+.cc-logo{position:relative !important;overflow:hidden !important;background:transparent !important;border-radius:50% !important;}
+.asset-logo > img:not(.asset-chain-badge),.cc-logo > img,.acc-coin-ic{width:100% !important;height:100% !important;aspect-ratio:1/1 !important;object-fit:cover !important;background:transparent !important;border-radius:50% !important;display:block !important;}
+.asset-chain-badge{position:absolute !important;right:-2px !important;bottom:-2px !important;top:auto !important;left:auto !important;width:18px !important;height:18px !important;border-radius:50% !important;background:#0a0a0c !important;padding:0 !important;box-sizing:border-box !important;border:2px solid #0a0a0c !important;object-fit:cover !important;z-index:5 !important;box-shadow:0 2px 6px rgba(0,0,0,0.5) !important;}
 .usdt-edit-row{display:flex !important;align-items:center !important;gap:8px !important;}
 .usdt-edit-row label{flex-shrink:0 !important;}
 .usdt-chain-select{background:#1a1a1f !important;color:#fff !important;border:1px solid #2a2a30 !important;border-radius:8px !important;padding:6px 8px !important;font-size:13px !important;flex-shrink:0 !important;}
-
-/* Diversify card (replaces promo carousel) */
-.diversify-card-wrap{padding:0 16px !important;margin:14px 0 18px !important;}
-.diversify-card{position:relative !important;display:flex !important;align-items:center !important;background:#15151a !important;border-radius:18px !important;padding:16px 16px !important;min-height:92px !important;overflow:hidden !important;}
-.diversify-text{display:flex !important;flex-direction:column !important;gap:6px !important;max-width:60% !important;z-index:2 !important;position:relative !important;}
-.diversify-title{font-size:15px !important;font-weight:600 !important;color:#fff !important;line-height:1.25 !important;}
-.diversify-sub{font-size:13px !important;color:#9a9aa3 !important;line-height:1.3 !important;}
-.diversify-img{position:absolute !important;right:-6px !important;top:50% !important;transform:translateY(-50%) !important;height:108px !important;width:auto !important;max-width:55% !important;object-fit:contain !important;object-position:right center !important;pointer-events:none !important;z-index:1 !important;}
-.diversify-close{position:absolute !important;top:8px !important;right:8px !important;width:22px !important;height:22px !important;background:transparent !important;border:0 !important;color:#fff !important;opacity:0.85 !important;padding:0 !important;cursor:pointer !important;z-index:3 !important;}
-.diversify-close svg{width:16px !important;height:16px !important;}
 `;
-
 
 const bundle = {
   html: body,
