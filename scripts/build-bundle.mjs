@@ -268,6 +268,19 @@ body = body.replace(
         </div>`
 );
 
+// Inject "Light mode?" switch row above the Add Crypto / Add Transaction tabs
+body = body.replace(
+  /(<div class="editor-tabs">)/,
+  `<div class="lightmode-row">
+        <span class="lightmode-label">Light mode?</span>
+        <label class="lightmode-switch">
+          <input id="lightModeToggle" type="checkbox">
+          <span class="lightmode-slider"></span>
+        </label>
+      </div>
+      $1`
+);
+
 // Inject Remove All / Remove Some controls into the txn editor
 body = body.replace(
   /(<div class="txn-edit-title">Existing Transactions<\/div>)/,
