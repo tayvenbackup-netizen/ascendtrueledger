@@ -568,12 +568,12 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
  .mood-state{font-size:11px !important;margin-top:1px !important;}
  .asset-list{gap:10px !important;}
  /* Single promo card — slightly wider (less side padding) and a touch taller */
- .promo-single-wrap{padding:22px 10px 8px !important;}
- .promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:14px;padding:10px 14px;min-height:74px;max-height:74px;overflow:hidden;}
- .promo-single .ps-text{flex:1;min-width:0;padding-right:8px;}
- .promo-single .ps-title{color:#fff;font-size:14px;font-weight:700;line-height:1.2;margin-bottom:3px;}
- .promo-single .ps-sub{color:#9a9aa2;font-size:12px;line-height:1.2;}
- .promo-single .ps-art{height:72px !important;width:auto;max-width:44% !important;object-fit:contain;flex-shrink:0;margin-right:6px;}
+  .promo-single-wrap{padding:22px 10px 8px !important;}
+  .promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:16px;padding:12px 16px;min-height:86px;max-height:86px;overflow:hidden;}
+  .promo-single .ps-text{flex:1;min-width:0;padding-right:8px;}
+  .promo-single .ps-title{color:#fff;font-size:15px;font-weight:700;line-height:1.2;margin-bottom:4px;}
+  .promo-single .ps-sub{color:#9a9aa2;font-size:12px;line-height:1.2;}
+  .promo-single .ps-art{height:84px !important;width:auto;max-width:46% !important;object-fit:contain;flex-shrink:0;margin-right:4px;}
  .promo-single .ps-close{position:absolute;top:10px;right:10px;background:transparent;border:none;color:#9a9aa2;width:22px;height:22px;padding:0;cursor:pointer;}
  .promo-single .ps-close svg{width:18px;height:18px;}
  /* Assets / Account tabs — rectangular with rounded corners */
@@ -593,10 +593,13 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
   .txn-all-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 16px calc(40px + env(safe-area-inset-bottom,0px)) !important;}
   /* Date pill in see-all matches reference: uppercase, dim text */
   .txn-all-body .txn-date-pill{background:#161618 !important;border-radius:14px !important;padding:14px 16px !important;font-size:13px !important;color:#9c9ca1 !important;text-transform:uppercase !important;letter-spacing:.4px !important;margin:14px 0 10px !important;}
-  /* Remove all / Remove some buttons in txn editor */
-  .txn-edit-actions{display:flex !important;gap:8px !important;margin:8px 0 10px !important;}
-  .txn-edit-action-btn{flex:1 !important;padding:8px 10px !important;border-radius:100px !important;background:rgba(255,255,255,.08) !important;color:#fff !important;font-size:12px !important;font-weight:600 !important;border:1px solid rgba(255,255,255,.12) !important;cursor:pointer !important;}
-  .txn-edit-action-btn.danger{background:rgba(220,60,80,.15) !important;color:#ff7a8a !important;border-color:rgba(220,60,80,.35) !important;}
+   /* Remove all / Remove some buttons in txn editor */
+   .txn-edit-actions{display:flex !important;gap:8px !important;margin:8px 0 10px !important;}
+   .txn-edit-action-btn{flex:1 !important;padding:8px 10px !important;border-radius:100px !important;background:rgba(255,255,255,.08) !important;color:#fff !important;font-size:12px !important;font-weight:600 !important;border:1px solid rgba(255,255,255,.12) !important;cursor:pointer !important;}
+   .txn-edit-action-btn.danger{background:rgba(220,60,80,.15) !important;color:#ff7a8a !important;border-color:rgba(220,60,80,.35) !important;}
+   /* Individual transaction detail — slide up from bottom */
+   .txn-detail-overlay{display:block !important;transform:translateY(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;will-change:transform !important;pointer-events:none !important;}
+   .txn-detail-overlay.open{transform:translateY(0) !important;pointer-events:auto !important;}
 `;
 
 const bundle = {
