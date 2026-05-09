@@ -354,18 +354,18 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 .usdt-edit-row{display:flex !important;align-items:center !important;gap:8px !important;}
 .usdt-edit-row label{flex-shrink:0 !important;}
 .usdt-chain-select{background:#1a1a1f !important;color:#fff !important;border:1px solid #2a2a30 !important;border-radius:8px !important;padding:6px 8px !important;font-size:13px !important;flex-shrink:0 !important;}
-/* Zoom UI out + extend so it still fills the screen, and add scroll spacing */
-#ptr-wrapper{zoom:0.93 !important;}
-.explore-row{gap:14px !important;padding-left:16px !important;padding-right:16px !important;scroll-padding-left:16px !important;}
-.explore-row > *{scroll-snap-align:start !important;}
-.asset-list{gap:6px !important;}
-/* Single promo card */
-.promo-single-wrap{padding:6px 16px 14px !important;}
-.promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:18px;padding:18px 18px;min-height:96px;overflow:hidden;}
-.promo-single .ps-text{flex:1;min-width:0;padding-right:8px;}
-.promo-single .ps-title{color:#fff;font-size:17px;font-weight:700;line-height:1.2;margin-bottom:6px;}
-.promo-single .ps-sub{color:#9a9aa2;font-size:14px;line-height:1.25;}
-.promo-single .ps-art{height:96px;width:auto;max-width:42%;object-fit:contain;flex-shrink:0;margin-right:18px;}
+ /* Zoom UI out + extend so it still fills the screen, and add scroll spacing */
+ #ptr-wrapper{zoom:0.84 !important;}
+ .explore-row{gap:20px !important;padding-left:18px !important;padding-right:18px !important;scroll-padding-left:18px !important;}
+ .explore-row > *{scroll-snap-align:start !important;}
+ .asset-list{gap:10px !important;}
+ /* Single promo card - thin rectangle */
+ .promo-single-wrap{padding:4px 16px 12px !important;}
+ .promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:14px;padding:10px 14px;min-height:64px;max-height:64px;overflow:hidden;}
+ .promo-single .ps-text{flex:1;min-width:0;padding-right:8px;}
+ .promo-single .ps-title{color:#fff;font-size:14px;font-weight:700;line-height:1.2;margin-bottom:3px;}
+ .promo-single .ps-sub{color:#9a9aa2;font-size:12px;line-height:1.2;}
+ .promo-single .ps-art{height:56px;width:auto;max-width:34%;object-fit:contain;flex-shrink:0;margin-right:22px;}
 .promo-single .ps-close{position:absolute;top:10px;right:10px;background:transparent;border:none;color:#9a9aa2;width:22px;height:22px;padding:0;cursor:pointer;}
 .promo-single .ps-close svg{width:18px;height:18px;}
 `;
