@@ -475,18 +475,46 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 .balance-amount{font-size:38px !important;letter-spacing:-1.2px !important;font-weight:700 !important;line-height:1 !important;}
  /* Zoom UI out + extend so it still fills the screen, and add scroll spacing */
  #ptr-wrapper{zoom:0.84 !important;}
- .explore-row{gap:20px !important;padding-left:18px !important;padding-right:18px !important;scroll-padding-left:18px !important;}
+ /* Lock the purple background — it must NOT translate when pulling to refresh */
+ .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;}
+ /* Purple pull-to-refresh spinner */
+ #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;}
+ @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:transparent}}
+ /* Tighten gap between promo card and Explore market header */
+ .section-header{padding-top:18px !important;}
+ /* Smaller explore market cards */
+ .explore-row{gap:10px !important;padding-left:16px !important;padding-right:16px !important;scroll-padding-left:16px !important;}
  .explore-row > *{scroll-snap-align:start !important;}
+ .explore-card{flex:0 0 88px !important;height:108px !important;padding:10px 6px !important;}
+ .explore-card.coin-card{padding-top:14px !important;gap:6px !important;}
+ .cc-logo{width:38px !important;height:38px !important;}
+ .cc-name{font-size:13px !important;}
+ .cc-pct{font-size:12px !important;}
  .asset-list{gap:10px !important;}
- /* Single promo card - thin rectangle */
- .promo-single-wrap{padding:22px 16px 14px !important;}
- .promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:14px;padding:10px 14px;min-height:68px;max-height:68px;overflow:hidden;}
+ /* Single promo card — slightly wider (less side padding) and a touch taller */
+ .promo-single-wrap{padding:22px 10px 8px !important;}
+ .promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:14px;padding:10px 14px;min-height:74px;max-height:74px;overflow:hidden;}
  .promo-single .ps-text{flex:1;min-width:0;padding-right:8px;}
  .promo-single .ps-title{color:#fff;font-size:14px;font-weight:700;line-height:1.2;margin-bottom:3px;}
  .promo-single .ps-sub{color:#9a9aa2;font-size:12px;line-height:1.2;}
- .promo-single .ps-art{height:60px;width:auto;max-width:38%;object-fit:contain;flex-shrink:0;margin-right:6px;}
-.promo-single .ps-close{position:absolute;top:10px;right:10px;background:transparent;border:none;color:#9a9aa2;width:22px;height:22px;padding:0;cursor:pointer;}
-.promo-single .ps-close svg{width:18px;height:18px;}
+ .promo-single .ps-art{height:72px !important;width:auto;max-width:44% !important;object-fit:contain;flex-shrink:0;margin-right:6px;}
+ .promo-single .ps-close{position:absolute;top:10px;right:10px;background:transparent;border:none;color:#9a9aa2;width:22px;height:22px;padding:0;cursor:pointer;}
+ .promo-single .ps-close svg{width:18px;height:18px;}
+ /* Assets / Account tabs — rectangular with rounded corners */
+ .aa-tabs{border-radius:14px !important;padding:4px !important;gap:4px !important;}
+ .aa-tab{border-radius:10px !important;}
+ .aa-tab.active{background:rgba(80,80,90,0.55) !important;border-radius:10px !important;}
+ /* See-all transactions full-screen overlay (slides in from the right) */
+ .txn-all-overlay{position:fixed !important;inset:0 !important;z-index:300 !important;pointer-events:none !important;background:transparent !important;}
+ .txn-all-overlay.open{pointer-events:auto !important;}
+ .txn-all-screen{position:absolute !important;inset:0 !important;background:#0a0a0c !important;transform:translateX(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;}
+ .txn-all-overlay.open .txn-all-screen{transform:translateX(0) !important;}
+ .txn-all-header{display:flex !important;align-items:center !important;gap:10px !important;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 14px !important;flex:none !important;}
+ .txn-all-back{width:36px !important;height:36px !important;display:flex !important;align-items:center !important;justify-content:center !important;background:transparent !important;border:none !important;color:#fff !important;padding:0 !important;cursor:pointer !important;}
+ .txn-all-back svg{width:22px !important;height:22px !important;}
+ .txn-all-title{flex:1 !important;text-align:center !important;color:#fff !important;font-size:18px !important;font-weight:700 !important;letter-spacing:-.3px !important;margin-right:36px !important;}
+ .txn-all-spacer{width:0 !important;}
+ .txn-all-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 16px calc(40px + env(safe-area-inset-bottom,0px)) !important;}
 `;
 
 const bundle = {
