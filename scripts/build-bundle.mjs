@@ -116,15 +116,29 @@ ledgerJs = ledgerJs.replace(
   "const len = coin==='btc' ? 38 : (coin==='eth'||coin==='usdt_eth'||coin==='usdt_bnb') ? 40 : (coin==='sol'||coin==='usdt_sol') ? 44 : coin==='xrp' ? 33 : coin==='usdt_tron' ? 34 : 38;"
 );
 
-// Random transaction generator: spread timestamps EVENLY across the chosen day range
-// (with small jitter so they don't sit on identical seconds), instead of clustering randomly.
+// Random transaction generator: spread timestamps EVENLY across the full day range,
+// and cap "today" to a small number so the bulk of history lives in past days.
 ledgerJs = ledgerJs.replace(
   /\/\/ random ts within selected range\s*\n\s*const ts = now - Math\.floor\(Math\.random\(\) \* rangeDays \* 86400000\);/,
-  `// Spread ts evenly across the selected day range, with a tiny jitter
-      const _spanMs = rangeDays * 86400000;
-      const _step = _spanMs / Math.max(1, count);
-      const _jitter = (Math.random() - 0.5) * _step * 0.25;
-      const ts = now - Math.floor(i * _step + _step/2 + _jitter);`
+  `// Cap today to 2-5 txns; spread the rest evenly across days 1..rangeDays
+      if (i === 0) { window.__todayCap = Math.min(count, 2 + Math.floor(Math.random() * 4)); }
+      let ts;
+      if (i < window.__todayCap) {
+        const _startOfDay = new Date(now); _startOfDay.setHours(0,0,0,0);
+        const _msSinceStart = Math.max(1, now - _startOfDay.getTime());
+        ts = now - Math.floor(Math.random() * _msSinceStart);
+      } else {
+        const _j = i - window.__todayCap;
+        const _spread = Math.max(1, count - window.__todayCap);
+        const _day = Math.max(1, Math.min(rangeDays, 1 + Math.floor(_j * (rangeDays - 1) / _spread) + Math.floor((Math.random() - 0.5) * 1.5)));
+        ts = now - _day * 86400000 - Math.floor(Math.random() * 86400000);
+      }`
+);
+
+// Don't let the chain-match override pull every txn back to "now" — keep our spread ts.
+ledgerJs = ledgerJs.replace(
+  /const finalTs = \(instant && instant\.ts\) \? instant\.ts : ts;/,
+  'const finalTs = ts;'
 );
 
 // Render: filter the asset list so usdt_eth always shows but the other
