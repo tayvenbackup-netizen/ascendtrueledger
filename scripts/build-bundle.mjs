@@ -437,6 +437,94 @@ const removeTxnsController = `;(() => {
   const iv = setInterval(() => { if (tryInit()) clearInterval(iv); }, 200);
 })();`;
 
+// Custom From/To address controller for the txn editor.
+// Adds optional "From" and "To" inputs after the Date row. When the user clicks
+// "Add Transaction" with either filled in, we override the stored chainTx
+// from/to addresses (keeping the random pulled txid intact for the explorer link).
+const customAddrController = `;(() => {
+  // Patch localStorage so async chain resolution preserves user overrides.
+  if (!window.__customAddrSetItemHooked) {
+    window.__customAddrSetItemHooked = true;
+    const orig = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(k, v) {
+      if (k === 'ledgerTxns' && typeof v === 'string') {
+        try {
+          const arr = JSON.parse(v);
+          if (Array.isArray(arr)) {
+            let dirty = false;
+            for (const t of arr) {
+              if (!t || (!t.customFrom && !t.customTo)) continue;
+              if (!t.chainTx) t.chainTx = { txid:'', from:'', to:'', amount:t.amount, ts:t.ts };
+              if (t.customFrom && t.chainTx.from !== t.customFrom) { t.chainTx.from = t.customFrom; dirty = true; }
+              if (t.customTo && t.chainTx.to !== t.customTo) { t.chainTx.to = t.customTo; dirty = true; }
+            }
+            if (dirty) v = JSON.stringify(arr);
+          }
+        } catch {}
+      }
+      return orig(k, v);
+    };
+  }
+
+  const injectInputs = () => {
+    const dateInput = document.getElementById('txn-date');
+    if (!dateInput) return false;
+    if (document.getElementById('txn-from')) return true;
+    const dateRow = dateInput.closest('.txn-form-row');
+    if (!dateRow) return false;
+    const html = '<div class="txn-form-divider"></div>' +
+      '<div class="txn-form-row">' +
+        '<span class="txn-form-label">From</span>' +
+        '<div class="txn-input-wrap">' +
+          '<input id="txn-from" class="txn-input" type="text" placeholder="Optional address"/>' +
+        '</div>' +
+      '</div>' +
+      '<div class="txn-form-divider"></div>' +
+      '<div class="txn-form-row">' +
+        '<span class="txn-form-label">To</span>' +
+        '<div class="txn-input-wrap">' +
+          '<input id="txn-to" class="txn-input" type="text" placeholder="Optional address"/>' +
+        '</div>' +
+      '</div>';
+    dateRow.insertAdjacentHTML('afterend', html);
+    return true;
+  };
+
+  const bindBtn = () => {
+    const btn = document.getElementById('txnAddBtn');
+    if (!btn) return false;
+    if (btn.dataset.customAddrBound === '1') return true;
+    btn.dataset.customAddrBound = '1';
+    btn.addEventListener('click', () => {
+      const fromEl = document.getElementById('txn-from');
+      const toEl = document.getElementById('txn-to');
+      const customFrom = ((fromEl && fromEl.value) || '').trim();
+      const customTo = ((toEl && toEl.value) || '').trim();
+      if (!customFrom && !customTo) return;
+      setTimeout(() => {
+        try {
+          const arr = JSON.parse(localStorage.getItem('ledgerTxns') || '[]');
+          if (!Array.isArray(arr) || !arr.length) return;
+          let idx = 0;
+          for (let i = 1; i < arr.length; i++) if ((arr[i].ts || 0) > (arr[idx].ts || 0)) idx = i;
+          const t = arr[idx];
+          if (customFrom) t.customFrom = customFrom;
+          if (customTo) t.customTo = customTo;
+          localStorage.setItem('ledgerTxns', JSON.stringify(arr));
+          try { if (typeof renderTxnHistory === 'function') renderTxnHistory(); } catch {}
+          try { if (typeof renderTxnEditorList === 'function') renderTxnEditorList(); } catch {}
+          try { if (typeof renderFromCacheInstant === 'function') renderFromCacheInstant(); } catch {}
+        } catch {}
+        if (fromEl) fromEl.value = '';
+        if (toEl) toEl.value = '';
+      }, 0);
+    });
+    return true;
+  };
+
+  const iv = setInterval(() => { injectInputs(); bindBtn(); }, 250);
+})();`;
+
 // Capture scripts in their original order so wallet bootstrapping remains intact.
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
 const orderedScripts = [];
