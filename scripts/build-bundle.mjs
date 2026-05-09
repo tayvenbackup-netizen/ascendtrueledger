@@ -613,7 +613,13 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
    .txn-edit-action-btn.danger{background:rgba(220,60,80,.15) !important;color:#ff7a8a !important;border-color:rgba(220,60,80,.35) !important;}
    /* Individual transaction detail — slide up from bottom */
    .txn-detail-overlay{display:block !important;transform:translateY(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;will-change:transform !important;pointer-events:none !important;}
-   .txn-detail-overlay.open{transform:translateY(0) !important;pointer-events:auto !important;}
+    .txn-detail-overlay.open{transform:translateY(0) !important;pointer-events:auto !important;}
+    /* Add ~18px breathing room between balance and the Transfer/Swap/Buy buttons, plus more space between sections */
+    .quick-actions{padding-top:48px !important;}
+    .promo-single-wrap{margin-top:18px !important;}
+    .section-header{margin-top:22px !important;}
+    .txn-section{margin-top:18px !important;}
+    .scrollable{padding-bottom:180px !important;}
 `;
 
 const bundle = {
