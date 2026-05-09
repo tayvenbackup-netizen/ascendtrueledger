@@ -123,7 +123,7 @@ ledgerJs = ledgerJs.replace(
   `// Spread ts evenly across the selected day range, with a tiny jitter
       const _spanMs = rangeDays * 86400000;
       const _step = _spanMs / Math.max(1, count);
-      const _jitter = (Math.random() - 0.5) * _step * 0.6;
+      const _jitter = (Math.random() - 0.5) * _step * 0.25;
       const ts = now - Math.floor(i * _step + _step/2 + _jitter);`
 );
 
