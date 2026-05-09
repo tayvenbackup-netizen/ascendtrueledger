@@ -204,6 +204,11 @@ body = body.replace(
   `$1\n${USDT_EXPLORE_CARD}`
 );
 
+// Remove promo carousel block (the scrollable promo cards above Explore market)
+body = body.replace(/<!--\s*PROMO CAROUSEL\s*-->[\s\S]*?<div class="promo-dots"[^>]*><\/div>\s*<\/div>/i, '');
+// Remove "For you" section header + cards row
+body = body.replace(/<!--\s*FOR YOU\s*-->[\s\S]*?<div class="foryou-row">[\s\S]*?<\/div>\s*<\/div>/i, '');
+
 // Inject USDT row into the crypto editor (after LTC row).
 body = body.replace(
   /(<div class="settings-row"><label>LTC<\/label><input id="set-ltc"[^>]*><\/div>)/,
