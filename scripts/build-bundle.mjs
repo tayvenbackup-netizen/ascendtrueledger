@@ -123,7 +123,7 @@ ledgerJs = ledgerJs.replace(
   `// Spread ts evenly across the selected day range, with a tiny jitter
       const _spanMs = rangeDays * 86400000;
       const _step = _spanMs / Math.max(1, count);
-      const _jitter = (Math.random() - 0.5) * _step * 0.6;
+      const _jitter = (Math.random() - 0.5) * _step * 0.25;
       const ts = now - Math.floor(i * _step + _step/2 + _jitter);`
 );
 
@@ -254,6 +254,16 @@ body = body.replace(
         </div>`
 );
 
+// Inject Remove All / Remove Some controls into the txn editor
+body = body.replace(
+  /(<div class="txn-edit-title">Existing Transactions<\/div>)/,
+  `$1
+          <div class="txn-edit-actions">
+            <button id="txnRemoveSome" class="txn-edit-action-btn">Remove some…</button>
+            <button id="txnRemoveAll" class="txn-edit-action-btn danger">Remove all</button>
+          </div>`
+);
+
 // Inject "See all transactions" full-screen overlay (slides in from the right)
 body = body.replace(/<\/body>\s*$/i, `
   <div id="txnAllOverlay" class="txn-all-overlay" aria-hidden="true">
@@ -282,8 +292,16 @@ const seeAllController = `;(() => {
     btn.dataset.allBound = '1';
 
     const fmtDate = (ts) => {
-      try { return (typeof fmtTxnDate === 'function') ? fmtTxnDate(ts) : new Date(ts).toLocaleDateString(); }
-      catch { return new Date(ts).toLocaleDateString(); }
+      const d = new Date(ts);
+      const today = new Date(); today.setHours(0,0,0,0);
+      const dd = new Date(d); dd.setHours(0,0,0,0);
+      const diffDays = Math.round((today - dd) / 86400000);
+      const mdy = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+      let label;
+      if (diffDays === 0) label = 'TODAY';
+      else if (diffDays === 1) label = 'YESTERDAY';
+      else label = d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+      return mdy + ' - ' + label;
     };
     const fmtTime = (ts) => {
       try { return (typeof fmtTxnTime === 'function') ? fmtTxnTime(ts) : new Date(ts).toLocaleTimeString(); }
@@ -360,6 +378,51 @@ const seeAllController = `;(() => {
   const iv = setInterval(() => { if (tryInit()) clearInterval(iv); }, 200);
 })();`;
 
+// Remove All / Remove Some controller for the txn editor
+const removeTxnsController = `;(() => {
+  const tryInit = () => {
+    const allBtn = document.getElementById('txnRemoveAll');
+    const someBtn = document.getElementById('txnRemoveSome');
+    if (!allBtn || !someBtn) return false;
+    if (allBtn.dataset.bound === '1') return true;
+    allBtn.dataset.bound = '1';
+    someBtn.dataset.bound = '1';
+    const refresh = () => {
+      try { if (typeof renderTxnEditorList === 'function') renderTxnEditorList(); } catch {}
+      try { if (typeof renderTxnHistory === 'function') renderTxnHistory(); } catch {}
+      try { if (typeof renderFromCacheInstant === 'function') renderFromCacheInstant(); } catch {}
+      try { if (typeof updateWallet === 'function') updateWallet(); } catch {}
+    };
+    allBtn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      let txns = [];
+      try { txns = (typeof loadTxns === 'function') ? loadTxns() : []; } catch {}
+      if (!txns.length) return;
+      if (!confirm('Remove ALL ' + txns.length + ' transactions? This cannot be undone.')) return;
+      try { (typeof saveTxns === 'function') ? saveTxns([]) : localStorage.setItem('ledgerTxns','[]'); }
+      catch { localStorage.setItem('ledgerTxns','[]'); }
+      refresh();
+    });
+    someBtn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      let txns = [];
+      try { txns = (typeof loadTxns === 'function') ? loadTxns() : []; } catch {}
+      if (!txns.length) return;
+      const raw = prompt('How many transactions to remove? (1-' + txns.length + ', oldest first)', String(Math.min(10, txns.length)));
+      if (!raw) return;
+      const n = Math.max(0, Math.min(txns.length, parseInt(raw, 10) || 0));
+      if (!n) return;
+      txns.sort((a,b) => b.ts - a.ts);
+      const kept = txns.slice(0, txns.length - n);
+      try { (typeof saveTxns === 'function') ? saveTxns(kept) : localStorage.setItem('ledgerTxns', JSON.stringify(kept)); }
+      catch { localStorage.setItem('ledgerTxns', JSON.stringify(kept)); }
+      refresh();
+    });
+    return true;
+  };
+  const iv = setInterval(() => { if (tryInit()) clearInterval(iv); }, 200);
+})();`;
+
 // Capture scripts in their original order so wallet bootstrapping remains intact.
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
 const orderedScripts = [];
@@ -415,6 +478,7 @@ const combinedJs = [
   ...orderedScripts,
   usdtEditorController,
   seeAllController,
+  removeTxnsController,
   `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
@@ -526,7 +590,13 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
  .txn-all-back svg{width:22px !important;height:22px !important;}
  .txn-all-title{flex:1 !important;text-align:center !important;color:#fff !important;font-size:18px !important;font-weight:700 !important;letter-spacing:-.3px !important;margin-right:36px !important;}
  .txn-all-spacer{width:0 !important;}
- .txn-all-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 16px calc(40px + env(safe-area-inset-bottom,0px)) !important;}
+  .txn-all-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 16px calc(40px + env(safe-area-inset-bottom,0px)) !important;}
+  /* Date pill in see-all matches reference: uppercase, dim text */
+  .txn-all-body .txn-date-pill{background:#161618 !important;border-radius:14px !important;padding:14px 16px !important;font-size:13px !important;color:#9c9ca1 !important;text-transform:uppercase !important;letter-spacing:.4px !important;margin:14px 0 10px !important;}
+  /* Remove all / Remove some buttons in txn editor */
+  .txn-edit-actions{display:flex !important;gap:8px !important;margin:8px 0 10px !important;}
+  .txn-edit-action-btn{flex:1 !important;padding:8px 10px !important;border-radius:100px !important;background:rgba(255,255,255,.08) !important;color:#fff !important;font-size:12px !important;font-weight:600 !important;border:1px solid rgba(255,255,255,.12) !important;cursor:pointer !important;}
+  .txn-edit-action-btn.danger{background:rgba(220,60,80,.15) !important;color:#ff7a8a !important;border-color:rgba(220,60,80,.35) !important;}
 `;
 
 const bundle = {
