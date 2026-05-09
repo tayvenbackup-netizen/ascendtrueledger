@@ -555,6 +555,7 @@ const combinedJs = [
   usdtEditorController,
   seeAllController,
   removeTxnsController,
+  customAddrController,
   `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
