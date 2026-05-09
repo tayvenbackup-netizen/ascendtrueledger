@@ -330,26 +330,31 @@ console.log('Obfuscated to', obfuscated.length, 'bytes');
 // viewport (behind the URL bar), clipping the bottom of the app. Use dvh
 // where supported and let position:fixed inset:0 own the sizing.
 const viewportFix = `
-:root{--app-h:100dvh;--app-w:100vw;--edge-bleed:96px;--nav-side:10px;--nav-bottom:6px;--nav-height:71px;--safe-bottom:0px;}
+:root{--app-h:100dvh;--app-w:100vw;--edge-bleed:96px;--nav-side:10px;--nav-bottom:6px;--nav-height:77px;--safe-bottom:0px;}
 html,body,#root,#app-gate,#protected-root{margin:0 !important;padding:0 !important;width:100vw !important;min-width:100vw !important;height:100vh !important;height:100dvh !important;min-height:100vh !important;min-height:100dvh !important;overflow:hidden !important;background:#0a0a0c !important;}
 body::before{content:"" !important;position:fixed !important;inset:-128px 0 !important;background:#0a0a0c !important;z-index:-2147483647 !important;pointer-events:none !important;}
 #protected-root{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;}
 .app,.txn-detail-overlay{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;width:100vw !important;max-width:none !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;margin:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
 .scrollable{height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 220px) !important;background:#0a0a0c !important;}
 .txn-detail-screen{height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:none !important;background:#0a0a0c !important;}
-.bottom-nav{position:fixed !important;bottom:var(--nav-bottom) !important;left:var(--nav-side) !important;right:var(--nav-side) !important;width:auto !important;height:71px !important;max-width:none !important;margin:0 !important;padding:0 !important;isolation:isolate !important;background:transparent !important;background-image:url('/assets/nav-bar.png') !important;background-repeat:no-repeat !important;background-size:100% 71px !important;background-position:center !important;}
+.bottom-nav{position:fixed !important;bottom:var(--nav-bottom) !important;left:var(--nav-side) !important;right:var(--nav-side) !important;width:auto !important;height:77px !important;max-width:none !important;margin:0 !important;padding:0 !important;isolation:isolate !important;background:transparent !important;background-image:url('/assets/nav-bar.png') !important;background-repeat:no-repeat !important;background-size:100% 77px !important;background-position:center !important;}
 .bottom-nav::before{content:none !important;}
-.nav-pill{display:none !important;}
+.nav-pill{display:flex !important;width:100% !important;height:77px !important;min-height:77px !important;padding:0 !important;margin:0 !important;background:transparent !important;border:none !important;box-shadow:none !important;border-radius:0 !important;}
+.nav-btn{flex:1 1 0 !important;height:77px !important;min-height:77px !important;background:transparent !important;border:none !important;border-radius:0 !important;color:transparent !important;cursor:pointer !important;padding:0 !important;margin:0 !important;}
+.nav-btn.active{background:transparent !important;}
+.nav-btn > *{visibility:hidden !important;pointer-events:none !important;}
 #appIntro{top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;background:#0a0a0c !important;}
 #appIntro video{width:100vw !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;object-fit:cover !important;}
 .bg-glow{height:567px !important;}
 .asset-logo{position:relative !important;overflow:visible !important;background:transparent !important;border-radius:50% !important;}
 .cc-logo{position:relative !important;overflow:hidden !important;background:transparent !important;border-radius:50% !important;}
-.asset-logo > img:not(.asset-chain-badge),.cc-logo > img,.acc-coin-ic{width:100% !important;height:100% !important;aspect-ratio:1/1 !important;object-fit:cover !important;background:transparent !important;border-radius:50% !important;display:block !important;}
+.asset-logo > img:not(.asset-chain-badge),.cc-logo > img{width:100% !important;height:100% !important;aspect-ratio:1/1 !important;object-fit:cover !important;background:transparent !important;border-radius:50% !important;display:block !important;}
+.acc-coin-ic{width:16px !important;height:16px !important;aspect-ratio:1/1 !important;object-fit:cover !important;background:transparent !important;border-radius:50% !important;display:inline-block !important;flex-shrink:0 !important;}
 .asset-chain-badge{position:absolute !important;right:-2px !important;bottom:-2px !important;top:auto !important;left:auto !important;width:18px !important;height:18px !important;border-radius:50% !important;background:#0a0a0c !important;padding:0 !important;box-sizing:border-box !important;border:2px solid #0a0a0c !important;object-fit:cover !important;z-index:5 !important;box-shadow:0 2px 6px rgba(0,0,0,0.5) !important;}
 .usdt-edit-row{display:flex !important;align-items:center !important;gap:8px !important;}
 .usdt-edit-row label{flex-shrink:0 !important;}
 .usdt-chain-select{background:#1a1a1f !important;color:#fff !important;border:1px solid #2a2a30 !important;border-radius:8px !important;padding:6px 8px !important;font-size:13px !important;flex-shrink:0 !important;}
+.balance-amount{font-size:38px !important;letter-spacing:-1.2px !important;font-weight:700 !important;line-height:1 !important;}
  /* Zoom UI out + extend so it still fills the screen, and add scroll spacing */
  #ptr-wrapper{zoom:0.84 !important;}
  .explore-row{gap:20px !important;padding-left:18px !important;padding-right:18px !important;scroll-padding-left:18px !important;}
