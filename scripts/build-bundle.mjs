@@ -358,7 +358,25 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 .usdt-edit-row{display:flex !important;align-items:center !important;gap:8px !important;}
 .usdt-edit-row label{flex-shrink:0 !important;}
 .usdt-chain-select{background:#1a1a1f !important;color:#fff !important;border:1px solid #2a2a30 !important;border-radius:8px !important;padding:6px 8px !important;font-size:13px !important;flex-shrink:0 !important;}
+
+/* Diversify card (replaces promo carousel) */
+.diversify-card-wrap{padding:0 16px;margin:18px 0 22px;}
+.diversify-card{position:relative;display:flex;align-items:center;justify-content:space-between;background:#15151a;border-radius:18px;padding:18px 18px;min-height:96px;overflow:hidden;}
+.diversify-text{display:flex;flex-direction:column;gap:6px;max-width:62%;z-index:2;}
+.diversify-title{font-size:16px;font-weight:600;color:#fff;line-height:1.25;}
+.diversify-sub{font-size:13px;color:#9a9aa3;line-height:1.3;}
+.diversify-img{position:absolute;right:8px;top:50%;transform:translateY(-50%);height:130px;width:auto;object-fit:contain;pointer-events:none;}
+.diversify-close{position:absolute;top:10px;right:10px;width:22px;height:22px;background:transparent;border:0;color:#fff;opacity:0.85;padding:0;cursor:pointer;z-index:3;}
+.diversify-close svg{width:18px;height:18px;}
+
+/* Tighter section spacing + zoom-out feel */
+.section-header{margin-top:22px !important;margin-bottom:12px !important;font-size:20px !important;}
+.aa-tabs{margin-top:18px !important;margin-bottom:14px !important;}
+.txn-section{margin-top:20px !important;}
+.qa-row{margin-top:22px !important;margin-bottom:6px !important;}
+.balance-display, .total-balance{margin-top:14px !important;}
 `;
+
 
 const bundle = {
   html: body,
