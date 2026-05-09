@@ -557,6 +557,21 @@ const combinedJs = [
   removeTxnsController,
   customAddrController,
   `;(() => {
+    // Color transaction amounts: received => green, sent => white
+    const tag = (root) => {
+      const nodes = (root || document).querySelectorAll('.txn-amt, .txn-fiat, .txn-detail-amt, .txn-detail-fiat');
+      nodes.forEach(n => {
+        const t = (n.textContent || '').trim();
+        if (!t) return;
+        if (t.charAt(0) === '+') { n.classList.add('is-received'); n.classList.remove('is-sent'); }
+        else if (t.charAt(0) === '-') { n.classList.add('is-sent'); n.classList.remove('is-received'); }
+      });
+    };
+    const mo = new MutationObserver(() => tag(document));
+    const start = () => { tag(document); mo.observe(document.body, { childList: true, subtree: true, characterData: true }); };
+    if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+  })();`,
+  `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
     document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
@@ -684,7 +699,10 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
     .promo-single-wrap{margin-top:18px !important;}
     .section-header{margin-top:22px !important;}
     .txn-section{margin-top:18px !important;}
-    .scrollable{padding-bottom:180px !important;}
+     .scrollable{padding-bottom:180px !important;}
+     /* Transaction amount coloring: received green, sent stays white */
+     .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
+     .txn-amt.is-sent,.txn-fiat.is-sent,.txn-detail-amt.is-sent,.txn-detail-fiat.is-sent{color:#ffffff !important;}
 `;
 
 const bundle = {
