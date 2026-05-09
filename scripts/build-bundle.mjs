@@ -490,7 +490,9 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
  /* Smaller explore market cards */
  .explore-row{gap:10px !important;padding-left:16px !important;padding-right:16px !important;scroll-padding-left:16px !important;}
  .explore-row > *{scroll-snap-align:start !important;}
- .explore-card{flex:0 0 88px !important;height:108px !important;padding:10px 6px !important;}
+  .explore-card{flex:0 0 95px !important;height:115px !important;padding:10px 6px !important;}
+  .quick-actions{gap:10px !important;padding-left:22px !important;padding-right:22px !important;}
+  .qa-btn{padding-top:10px !important;padding-bottom:10px !important;font-size:13px !important;}
  .explore-card.coin-card{padding-top:14px !important;gap:6px !important;}
  .cc-logo{width:38px !important;height:38px !important;}
  .cc-name{font-size:13px !important;}
