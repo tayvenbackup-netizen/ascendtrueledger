@@ -340,6 +340,11 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 .usdt-edit-row{display:flex !important;align-items:center !important;gap:8px !important;}
 .usdt-edit-row label{flex-shrink:0 !important;}
 .usdt-chain-select{background:#1a1a1f !important;color:#fff !important;border:1px solid #2a2a30 !important;border-radius:8px !important;padding:6px 8px !important;font-size:13px !important;flex-shrink:0 !important;}
+/* Zoom UI out + extend so it still fills the screen, and add scroll spacing */
+#ptr-wrapper{zoom:0.93 !important;}
+.explore-row{gap:14px !important;padding-left:16px !important;padding-right:16px !important;scroll-padding-left:16px !important;}
+.explore-row > *{scroll-snap-align:start !important;}
+.asset-list{gap:6px !important;}
 `;
 
 const bundle = {
