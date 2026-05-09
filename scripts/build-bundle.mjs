@@ -557,6 +557,21 @@ const combinedJs = [
   removeTxnsController,
   customAddrController,
   `;(() => {
+    // Color transaction amounts: received => green, sent => white
+    const tag = (root) => {
+      const nodes = (root || document).querySelectorAll('.txn-amt, .txn-fiat, .txn-detail-amt, .txn-detail-fiat');
+      nodes.forEach(n => {
+        const t = (n.textContent || '').trim();
+        if (!t) return;
+        if (t.charAt(0) === '+') { n.classList.add('is-received'); n.classList.remove('is-sent'); }
+        else if (t.charAt(0) === '-') { n.classList.add('is-sent'); n.classList.remove('is-received'); }
+      });
+    };
+    const mo = new MutationObserver(() => tag(document));
+    const start = () => { tag(document); mo.observe(document.body, { childList: true, subtree: true, characterData: true }); };
+    if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+  })();`,
+  `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
     document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
