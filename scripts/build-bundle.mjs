@@ -359,6 +359,15 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 .explore-row{gap:14px !important;padding-left:16px !important;padding-right:16px !important;scroll-padding-left:16px !important;}
 .explore-row > *{scroll-snap-align:start !important;}
 .asset-list{gap:6px !important;}
+/* Single promo card */
+.promo-single-wrap{padding:6px 16px 14px !important;}
+.promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:18px;padding:18px 18px;min-height:96px;overflow:hidden;}
+.promo-single .ps-text{flex:1;min-width:0;padding-right:8px;}
+.promo-single .ps-title{color:#fff;font-size:17px;font-weight:700;line-height:1.2;margin-bottom:6px;}
+.promo-single .ps-sub{color:#9a9aa2;font-size:14px;line-height:1.25;}
+.promo-single .ps-art{height:96px;width:auto;max-width:42%;object-fit:contain;flex-shrink:0;margin-right:18px;}
+.promo-single .ps-close{position:absolute;top:10px;right:10px;background:transparent;border:none;color:#9a9aa2;width:22px;height:22px;padding:0;cursor:pointer;}
+.promo-single .ps-close svg{width:18px;height:18px;}
 `;
 
 const bundle = {
