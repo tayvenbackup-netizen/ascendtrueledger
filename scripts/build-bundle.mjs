@@ -686,7 +686,7 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
  .txn-all-spacer{width:0 !important;}
   .txn-all-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 16px calc(40px + env(safe-area-inset-bottom,0px)) !important;}
   /* Date pill in see-all matches reference: uppercase, dim text */
-  .txn-all-body .txn-date-pill{background:#161618 !important;border-radius:14px !important;padding:14px 16px !important;font-size:13px !important;color:#9c9ca1 !important;text-transform:uppercase !important;letter-spacing:.4px !important;margin:14px 0 10px !important;}
+  .txn-date-pill,.txn-all-body .txn-date-pill{background:#272727 !important;border-radius:14px !important;padding:14px 16px !important;font-size:13px !important;color:#9c9ca1 !important;text-transform:uppercase !important;letter-spacing:.4px !important;margin:14px 0 10px !important;}
    /* Remove all / Remove some buttons in txn editor */
    .txn-edit-actions{display:flex !important;gap:8px !important;margin:8px 0 10px !important;}
    .txn-edit-action-btn{flex:1 !important;padding:8px 10px !important;border-radius:100px !important;background:rgba(255,255,255,.08) !important;color:#fff !important;font-size:12px !important;font-weight:600 !important;border:1px solid rgba(255,255,255,.12) !important;cursor:pointer !important;}
