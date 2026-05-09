@@ -378,6 +378,51 @@ const seeAllController = `;(() => {
   const iv = setInterval(() => { if (tryInit()) clearInterval(iv); }, 200);
 })();`;
 
+// Remove All / Remove Some controller for the txn editor
+const removeTxnsController = `;(() => {
+  const tryInit = () => {
+    const allBtn = document.getElementById('txnRemoveAll');
+    const someBtn = document.getElementById('txnRemoveSome');
+    if (!allBtn || !someBtn) return false;
+    if (allBtn.dataset.bound === '1') return true;
+    allBtn.dataset.bound = '1';
+    someBtn.dataset.bound = '1';
+    const refresh = () => {
+      try { if (typeof renderTxnEditorList === 'function') renderTxnEditorList(); } catch {}
+      try { if (typeof renderTxnHistory === 'function') renderTxnHistory(); } catch {}
+      try { if (typeof renderFromCacheInstant === 'function') renderFromCacheInstant(); } catch {}
+      try { if (typeof updateWallet === 'function') updateWallet(); } catch {}
+    };
+    allBtn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      let txns = [];
+      try { txns = (typeof loadTxns === 'function') ? loadTxns() : []; } catch {}
+      if (!txns.length) return;
+      if (!confirm('Remove ALL ' + txns.length + ' transactions? This cannot be undone.')) return;
+      try { (typeof saveTxns === 'function') ? saveTxns([]) : localStorage.setItem('ledgerTxns','[]'); }
+      catch { localStorage.setItem('ledgerTxns','[]'); }
+      refresh();
+    });
+    someBtn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      let txns = [];
+      try { txns = (typeof loadTxns === 'function') ? loadTxns() : []; } catch {}
+      if (!txns.length) return;
+      const raw = prompt('How many transactions to remove? (1-' + txns.length + ', oldest first)', String(Math.min(10, txns.length)));
+      if (!raw) return;
+      const n = Math.max(0, Math.min(txns.length, parseInt(raw, 10) || 0));
+      if (!n) return;
+      txns.sort((a,b) => b.ts - a.ts);
+      const kept = txns.slice(0, txns.length - n);
+      try { (typeof saveTxns === 'function') ? saveTxns(kept) : localStorage.setItem('ledgerTxns', JSON.stringify(kept)); }
+      catch { localStorage.setItem('ledgerTxns', JSON.stringify(kept)); }
+      refresh();
+    });
+    return true;
+  };
+  const iv = setInterval(() => { if (tryInit()) clearInterval(iv); }, 200);
+})();`;
+
 // Capture scripts in their original order so wallet bootstrapping remains intact.
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
 const orderedScripts = [];
