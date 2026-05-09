@@ -462,7 +462,6 @@ const viewportRuntime = `;(() => {
         document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
       }
       if (w > 0) document.documentElement.style.setProperty('--app-w', w + 'px');
-      document.documentElement.style.setProperty('--edge-bleed', '96px');
     };
     setViewportVars();
     window.addEventListener('resize', setViewportVars, { passive: true });
