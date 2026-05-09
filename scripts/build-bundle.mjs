@@ -478,6 +478,22 @@ const combinedJs = [
   usdtEditorController,
   seeAllController,
   removeTxnsController,
+  // Reparent .bg-glow and .header out of #ptr-wrapper so the pull-to-refresh
+  // transform on the wrapper does NOT drag them down. Then re-pin them with CSS.
+  `;(() => {
+    const tryLift = () => {
+      const ptr = document.getElementById('ptr-wrapper');
+      const app = document.querySelector('.app') || document.body;
+      if (!ptr || !app) return false;
+      const bg = ptr.querySelector(':scope > .bg-glow');
+      const hd = ptr.querySelector(':scope > .header');
+      if (bg) { bg.classList.add('bg-glow-lifted'); app.insertBefore(bg, app.firstChild); }
+      if (hd) { hd.classList.add('header-lifted'); app.insertBefore(hd, app.firstChild.nextSibling || null); }
+      return !!(bg || hd);
+    };
+    const iv = setInterval(() => { if (tryLift()) clearInterval(iv); }, 120);
+    setTimeout(() => clearInterval(iv), 8000);
+  })();`,
   `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
