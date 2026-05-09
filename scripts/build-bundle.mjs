@@ -499,7 +499,7 @@ console.log('Obfuscated to', obfuscated.length, 'bytes');
 // Viewport-fit overrides: copied from the fullscreen Trust Wallet method.
 // The shell owns a fixed full-height viewport, while the inner content scrolls.
 const viewportFix = `
-:root{--nav-side:10px;--nav-bottom:6px;--nav-height:77px;}
+:root{--nav-side:10px;--nav-bottom:19px;--nav-height:86px;}
 html{height:100% !important;background:#0a0a0c !important;-webkit-text-size-adjust:100% !important;}
 body{height:100% !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:#0a0a0c !important;-ms-overflow-style:none !important;scrollbar-width:none !important;}
 body::-webkit-scrollbar{display:none !important;}
@@ -509,10 +509,10 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
 .app,.txn-detail-overlay{position:fixed !important;inset:0 !important;display:flex !important;flex-direction:column !important;width:100% !important;max-width:none !important;height:100% !important;min-height:0 !important;margin:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
 .scrollable{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 160px) !important;background:#0a0a0c !important;}
 .txn-detail-screen{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;background:#0a0a0c !important;padding-bottom:72px !important;}
-.bottom-nav{position:fixed !important;bottom:var(--nav-bottom) !important;left:var(--nav-side) !important;right:var(--nav-side) !important;width:auto !important;height:77px !important;max-width:none !important;margin:0 !important;padding:0 !important;isolation:isolate !important;background:transparent !important;background-image:url('/assets/nav-bar.png') !important;background-repeat:no-repeat !important;background-size:100% 77px !important;background-position:center !important;}
+.bottom-nav{position:fixed !important;bottom:var(--nav-bottom) !important;left:var(--nav-side) !important;right:var(--nav-side) !important;width:auto !important;height:86px !important;max-width:none !important;margin:0 !important;padding:0 !important;isolation:isolate !important;background:transparent !important;background-image:url('/assets/nav-bar.png') !important;background-repeat:no-repeat !important;background-size:100% 86px !important;background-position:center !important;}
 .bottom-nav::before{content:none !important;}
-.nav-pill{display:flex !important;width:100% !important;height:77px !important;min-height:77px !important;padding:0 !important;margin:0 !important;background:transparent !important;border:none !important;box-shadow:none !important;border-radius:0 !important;}
-.nav-btn{flex:1 1 0 !important;height:77px !important;min-height:77px !important;background:transparent !important;border:none !important;border-radius:0 !important;color:transparent !important;cursor:pointer !important;padding:0 !important;margin:0 !important;}
+.nav-pill{display:flex !important;width:100% !important;height:86px !important;min-height:86px !important;padding:0 !important;margin:0 !important;background:transparent !important;border:none !important;box-shadow:none !important;border-radius:0 !important;}
+.nav-btn{flex:1 1 0 !important;height:86px !important;min-height:86px !important;background:transparent !important;border:none !important;border-radius:0 !important;color:transparent !important;cursor:pointer !important;padding:0 !important;margin:0 !important;}
 .nav-btn.active{background:transparent !important;}
 .nav-btn > *{visibility:hidden !important;pointer-events:none !important;}
 #appIntro{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100% !important;max-height:none !important;background:#0a0a0c !important;}
