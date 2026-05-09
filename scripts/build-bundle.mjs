@@ -745,7 +745,52 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
      .txn-amt.is-sent,.txn-fiat.is-sent,.txn-detail-amt.is-sent,.txn-detail-fiat.is-sent{color:#ffffff !important;}
      /* Lighter, smaller transaction amount text to match reference */
      .txn-row .txn-amt,.txn-all-body .txn-amt{font-size:14px !important;font-weight:500 !important;letter-spacing:-.1px !important;line-height:1.2 !important;}
-     .txn-row .txn-fiat,.txn-all-body .txn-fiat{font-size:12px !important;font-weight:400 !important;opacity:.75 !important;line-height:1.2 !important;}
+      .txn-row .txn-fiat,.txn-all-body .txn-fiat{font-size:12px !important;font-weight:400 !important;opacity:.75 !important;line-height:1.2 !important;}
+
+      /* ── Light mode toggle row inside Settings overlay ─────────────────── */
+      .lightmode-row{display:flex !important;align-items:center !important;justify-content:space-between !important;padding:12px 14px !important;margin:6px 12px 10px !important;background:rgba(255,255,255,.06) !important;border-radius:14px !important;border:1px solid rgba(255,255,255,.08) !important;}
+      .lightmode-label{color:#fff !important;font-size:14px !important;font-weight:600 !important;}
+      .lightmode-switch{position:relative !important;display:inline-block !important;width:46px !important;height:26px !important;}
+      .lightmode-switch input{opacity:0 !important;width:0 !important;height:0 !important;}
+      .lightmode-slider{position:absolute !important;cursor:pointer !important;inset:0 !important;background:#3a3a42 !important;border-radius:999px !important;transition:background .2s !important;}
+      .lightmode-slider::before{content:"" !important;position:absolute !important;width:20px !important;height:20px !important;left:3px !important;top:3px !important;background:#fff !important;border-radius:50% !important;transition:transform .2s !important;box-shadow:0 1px 3px rgba(0,0,0,.35) !important;}
+      .lightmode-switch input:checked + .lightmode-slider{background:#34c759 !important;}
+      .lightmode-switch input:checked + .lightmode-slider::before{transform:translateX(20px) !important;}
+
+      /* ── Light mode theme overrides ────────────────────────────────────── */
+      html.light, html.light body, html.light #root, html.light #app-gate, html.light #protected-root{background:#ffffff !important;color:#0a0a0c !important;}
+      html.light body::before{background:#ffffff !important;}
+      html.light .app, html.light .scrollable, html.light .txn-detail-overlay, html.light .txn-detail-screen{background:#ffffff !important;color:#0a0a0c !important;}
+      html.light .bg-glow{opacity:.35 !important;filter:saturate(.7) brightness(1.3) !important;}
+      /* Top-row circle buttons */
+      html.light .circle-btn{background:#f1f1f3 !important;color:#0a0a0c !important;border-color:transparent !important;}
+      html.light .circle-btn svg{stroke:#0a0a0c !important;color:#0a0a0c !important;}
+      /* Balance + headers + generic text */
+      html.light .balance-amount, html.light .header, html.light .section-header, html.light .ps-title, html.light .txn-name, html.light .asset-name, html.light .cc-name, html.light .mood-num, html.light .mood-label, html.light .aa-tab, html.light .txn-all-title{color:#0a0a0c !important;}
+      html.light .ps-sub, html.light .txn-sub, html.light .asset-sub, html.light .mood-state, html.light .txn-section-title{color:#6b6b75 !important;}
+      /* Quick action tiles + promo + cards */
+      html.light .qa-btn, html.light .promo-single, html.light .explore-card, html.light .asset-row, html.light .acc-row, html.light .see-all-btn{background:#f4f4f6 !important;color:#0a0a0c !important;border-color:transparent !important;}
+      html.light .qa-btn svg, html.light .qa-btn{color:#0a0a0c !important;}
+      html.light .promo-single .ps-close{color:#6b6b75 !important;}
+      /* Tabs (Assets / Accounts) */
+      html.light .aa-tabs{background:#f4f4f6 !important;border:1px solid #ececef !important;}
+      html.light .aa-tab{color:#6b6b75 !important;}
+      html.light .aa-tab.active{background:#ffffff !important;color:#0a0a0c !important;box-shadow:0 1px 4px rgba(0,0,0,.06) !important;}
+      /* Transaction history */
+      html.light .txn-section-title{color:#9a9aa2 !important;}
+      html.light .txn-date-pill, html.light .txn-all-body .txn-date-pill{background:#f1f1f3 !important;color:#6b6b75 !important;}
+      html.light .txn-icon{background:#ffffff !important;border:1px solid #ececef !important;color:#0a0a0c !important;}
+      html.light .txn-icon svg{stroke:#0a0a0c !important;}
+      html.light .txn-amt.is-sent, html.light .txn-fiat.is-sent, html.light .txn-detail-amt.is-sent, html.light .txn-detail-fiat.is-sent{color:#0a0a0c !important;}
+      html.light .see-all-btn{color:#0a0a0c !important;border:1px solid #ececef !important;}
+      /* See-all overlay */
+      html.light .txn-all-screen{background:#ffffff !important;}
+      html.light .txn-all-back{color:#0a0a0c !important;}
+      html.light .txn-all-back svg{stroke:#0a0a0c !important;}
+      /* Transaction detail screen */
+      html.light .txn-detail-overlay, html.light .txn-detail-screen{background:#ffffff !important;color:#0a0a0c !important;}
+      /* Bottom nav (uses PNG art) — keep image, lighten badge area subtly */
+      html.light .bottom-nav{filter:invert(1) hue-rotate(180deg) brightness(.95) !important;}
 `;
 
 const bundle = {
