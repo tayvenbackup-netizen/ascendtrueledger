@@ -205,7 +205,21 @@ body = body.replace(
 );
 
 // Remove promo carousel block (the scrollable promo cards above Explore market)
-body = body.replace(/<!--\s*PROMO CAROUSEL\s*-->[\s\S]*?(?=<!--\s*EXPLORE MARKET\s*-->)/i, '');
+body = body.replace(/<!--\s*PROMO CAROUSEL\s*-->[\s\S]*?(?=<!--\s*EXPLORE MARKET\s*-->)/i,
+`<!-- PROMO CARD -->
+    <div class="promo-single-wrap">
+      <div class="promo-single">
+        <div class="ps-text">
+          <div class="ps-title">Diversify your assets securely</div>
+          <div class="ps-sub">Compare quotes for your swap →</div>
+        </div>
+        <img class="ps-art" src="/assets/promo-swap.png" alt=""/>
+        <button class="ps-close" aria-label="Dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+    `);
 // Remove "For you" section header + cards row
 body = body.replace(/<!--\s*FOR YOU\s*-->[\s\S]*?(?=<!--\s*TRANSACTION HISTORY\s*-->)/i, '');
 
@@ -321,7 +335,7 @@ html,body,#root,#app-gate,#protected-root{margin:0 !important;padding:0 !importa
 body::before{content:"" !important;position:fixed !important;inset:-128px 0 !important;background:#0a0a0c !important;z-index:-2147483647 !important;pointer-events:none !important;}
 #protected-root{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;}
 .app,.txn-detail-overlay{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:calc(-1 * var(--edge-bleed)) !important;width:100vw !important;max-width:none !important;height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;margin:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
-.scrollable{height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 18px) !important;background:#0a0a0c !important;}
+.scrollable{height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;min-height:calc(var(--app-h,100dvh) + var(--edge-bleed)) !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 220px) !important;background:#0a0a0c !important;}
 .txn-detail-screen{height:var(--app-h,100dvh) !important;min-height:var(--app-h,100dvh) !important;max-height:none !important;background:#0a0a0c !important;}
 .bottom-nav{position:fixed !important;bottom:var(--nav-bottom) !important;left:var(--nav-side) !important;right:var(--nav-side) !important;width:auto !important;height:var(--nav-height) !important;max-width:none !important;margin:0 !important;padding:0 !important;isolation:isolate !important;background:transparent !important;}
 .bottom-nav::before{content:none !important;}
@@ -345,6 +359,15 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 .explore-row{gap:14px !important;padding-left:16px !important;padding-right:16px !important;scroll-padding-left:16px !important;}
 .explore-row > *{scroll-snap-align:start !important;}
 .asset-list{gap:6px !important;}
+/* Single promo card */
+.promo-single-wrap{padding:6px 16px 14px !important;}
+.promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:18px;padding:18px 18px;min-height:96px;overflow:hidden;}
+.promo-single .ps-text{flex:1;min-width:0;padding-right:8px;}
+.promo-single .ps-title{color:#fff;font-size:17px;font-weight:700;line-height:1.2;margin-bottom:6px;}
+.promo-single .ps-sub{color:#9a9aa2;font-size:14px;line-height:1.25;}
+.promo-single .ps-art{height:96px;width:auto;max-width:42%;object-fit:contain;flex-shrink:0;margin-right:18px;}
+.promo-single .ps-close{position:absolute;top:10px;right:10px;background:transparent;border:none;color:#9a9aa2;width:22px;height:22px;padding:0;cursor:pointer;}
+.promo-single .ps-close svg{width:18px;height:18px;}
 `;
 
 const bundle = {
