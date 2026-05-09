@@ -475,8 +475,13 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
 .balance-amount{font-size:38px !important;letter-spacing:-1.2px !important;font-weight:700 !important;line-height:1 !important;}
  /* Zoom UI out + extend so it still fills the screen, and add scroll spacing */
  #ptr-wrapper{zoom:0.84 !important;}
- /* Lock the purple background — it must NOT translate when pulling to refresh */
- .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;}
+ /* Lock the purple background — it must NOT translate when pulling to refresh.
+    Keep it BEHIND content (z-index:-1) so it never covers the balance/text. */
+ .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:-1 !important;pointer-events:none !important;transform:none !important;}
+ /* Make sure header/balance text always sits above the fixed bg-glow */
+ .header,.balance-section{position:relative !important;z-index:2 !important;}
+ /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
+ .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
  /* Purple pull-to-refresh spinner */
  #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;}
  @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:transparent}}
@@ -490,6 +495,11 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
  .cc-logo{width:38px !important;height:38px !important;}
  .cc-name{font-size:13px !important;}
  .cc-pct{font-size:12px !important;}
+ /* Smaller Mood card contents to match */
+ .mood-gauge{width:48px !important;height:30px !important;margin-bottom:2px !important;}
+ .mood-num{font-size:14px !important;}
+ .mood-label{font-size:12px !important;margin-top:3px !important;}
+ .mood-state{font-size:11px !important;margin-top:1px !important;}
  .asset-list{gap:10px !important;}
  /* Single promo card — slightly wider (less side padding) and a touch taller */
  .promo-single-wrap{padding:22px 10px 8px !important;}
