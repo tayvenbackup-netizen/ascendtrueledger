@@ -292,8 +292,16 @@ const seeAllController = `;(() => {
     btn.dataset.allBound = '1';
 
     const fmtDate = (ts) => {
-      try { return (typeof fmtTxnDate === 'function') ? fmtTxnDate(ts) : new Date(ts).toLocaleDateString(); }
-      catch { return new Date(ts).toLocaleDateString(); }
+      const d = new Date(ts);
+      const today = new Date(); today.setHours(0,0,0,0);
+      const dd = new Date(d); dd.setHours(0,0,0,0);
+      const diffDays = Math.round((today - dd) / 86400000);
+      const mdy = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+      let label;
+      if (diffDays === 0) label = 'TODAY';
+      else if (diffDays === 1) label = 'YESTERDAY';
+      else label = d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+      return mdy + ' - ' + label;
     };
     const fmtTime = (ts) => {
       try { return (typeof fmtTxnTime === 'function') ? fmtTxnTime(ts) : new Date(ts).toLocaleTimeString(); }
