@@ -204,6 +204,29 @@ body = body.replace(
   `$1\n${USDT_EXPLORE_CARD}`
 );
 
+// Replace promo-carousel with a single "Diversify your assets securely" card
+body = body.replace(
+  /<div class="promo-carousel-wrap">[\s\S]*?<\/div>\s*<\/div>/,
+  `<div class="diversify-card-wrap">
+    <div class="diversify-card">
+      <div class="diversify-text">
+        <div class="diversify-title">Diversify your assets securely</div>
+        <div class="diversify-sub">Compare quotes for your swap →</div>
+      </div>
+      <img class="diversify-img" src="/assets/diversify-coins.png" alt=""/>
+      <button class="diversify-close" aria-label="Dismiss">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>`
+);
+
+// Remove the "For you" section entirely
+body = body.replace(
+  /<!-- FOR YOU -->[\s\S]*?<\/div>\s*(?=<!-- TRANSACTION HISTORY -->)/,
+  ''
+);
+
 // Inject USDT row into the crypto editor (after LTC row).
 body = body.replace(
   /(<div class="settings-row"><label>LTC<\/label><input id="set-ltc"[^>]*><\/div>)/,
