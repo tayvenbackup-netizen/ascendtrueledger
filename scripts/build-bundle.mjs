@@ -414,6 +414,7 @@ const combinedJs = [
   viewportRuntime,
   ...orderedScripts,
   usdtEditorController,
+  seeAllController,
   `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
