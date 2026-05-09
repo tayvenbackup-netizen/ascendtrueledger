@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Ledger Wallet</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="robots" content="noindex, nofollow">
   <link rel="manifest" href="/manifest.json?v=4" />
   <meta name="apple-mobile-web-app-title" content="Ledger">
@@ -22,22 +22,6 @@
   <meta property="og:type" content="website">
 </head>
 <body>
-  <script>
-    (function(){
-      var maxH = 0;
-      function setVH(){
-        var h = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0);
-        var installed = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches;
-        if (installed) maxH = h;
-        else if (h > maxH) maxH = h;
-        document.documentElement.style.setProperty('--vh', (maxH * 0.01) + 'px');
-        document.documentElement.style.setProperty('--app-h', maxH + 'px');
-      }
-      setVH();
-      window.addEventListener('resize', setVH, {passive:true});
-      window.addEventListener('orientationchange', function(){ maxH = 0; setTimeout(setVH, 120); }, {passive:true});
-    })();
-  </script>
   <div id="protected-root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
