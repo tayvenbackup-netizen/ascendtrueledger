@@ -598,8 +598,8 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
    .txn-edit-action-btn{flex:1 !important;padding:8px 10px !important;border-radius:100px !important;background:rgba(255,255,255,.08) !important;color:#fff !important;font-size:12px !important;font-weight:600 !important;border:1px solid rgba(255,255,255,.12) !important;cursor:pointer !important;}
    .txn-edit-action-btn.danger{background:rgba(220,60,80,.15) !important;color:#ff7a8a !important;border-color:rgba(220,60,80,.35) !important;}
    /* Individual transaction detail — slide up from bottom */
-   .txn-detail-overlay{transform:translateY(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;will-change:transform !important;}
-   .txn-detail-overlay.open,.txn-detail-overlay.is-open,.txn-detail-overlay[data-open="1"]{transform:translateY(0) !important;}
+   .txn-detail-overlay{display:block !important;transform:translateY(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;will-change:transform !important;pointer-events:none !important;}
+   .txn-detail-overlay.open{transform:translateY(0) !important;pointer-events:auto !important;}
 `;
 
 const bundle = {
