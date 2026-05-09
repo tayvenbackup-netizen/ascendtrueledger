@@ -568,12 +568,12 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
  .mood-state{font-size:11px !important;margin-top:1px !important;}
  .asset-list{gap:10px !important;}
  /* Single promo card — slightly wider (less side padding) and a touch taller */
- .promo-single-wrap{padding:22px 10px 8px !important;}
- .promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:14px;padding:10px 14px;min-height:74px;max-height:74px;overflow:hidden;}
- .promo-single .ps-text{flex:1;min-width:0;padding-right:8px;}
- .promo-single .ps-title{color:#fff;font-size:14px;font-weight:700;line-height:1.2;margin-bottom:3px;}
- .promo-single .ps-sub{color:#9a9aa2;font-size:12px;line-height:1.2;}
- .promo-single .ps-art{height:72px !important;width:auto;max-width:44% !important;object-fit:contain;flex-shrink:0;margin-right:6px;}
+  .promo-single-wrap{padding:22px 10px 8px !important;}
+  .promo-single{position:relative;display:flex;align-items:center;justify-content:space-between;background:#16161a;border-radius:16px;padding:12px 16px;min-height:86px;max-height:86px;overflow:hidden;}
+  .promo-single .ps-text{flex:1;min-width:0;padding-right:8px;}
+  .promo-single .ps-title{color:#fff;font-size:15px;font-weight:700;line-height:1.2;margin-bottom:4px;}
+  .promo-single .ps-sub{color:#9a9aa2;font-size:12px;line-height:1.2;}
+  .promo-single .ps-art{height:84px !important;width:auto;max-width:46% !important;object-fit:contain;flex-shrink:0;margin-right:4px;}
  .promo-single .ps-close{position:absolute;top:10px;right:10px;background:transparent;border:none;color:#9a9aa2;width:22px;height:22px;padding:0;cursor:pointer;}
  .promo-single .ps-close svg{width:18px;height:18px;}
  /* Assets / Account tabs — rectangular with rounded corners */
