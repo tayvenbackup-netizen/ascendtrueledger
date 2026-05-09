@@ -205,7 +205,21 @@ body = body.replace(
 );
 
 // Remove promo carousel block (the scrollable promo cards above Explore market)
-body = body.replace(/<!--\s*PROMO CAROUSEL\s*-->[\s\S]*?(?=<!--\s*EXPLORE MARKET\s*-->)/i, '');
+body = body.replace(/<!--\s*PROMO CAROUSEL\s*-->[\s\S]*?(?=<!--\s*EXPLORE MARKET\s*-->)/i,
+`<!-- PROMO CARD -->
+    <div class="promo-single-wrap">
+      <div class="promo-single">
+        <div class="ps-text">
+          <div class="ps-title">Diversify your assets securely</div>
+          <div class="ps-sub">Compare quotes for your swap →</div>
+        </div>
+        <img class="ps-art" src="/assets/promo-swap.png" alt=""/>
+        <button class="ps-close" aria-label="Dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+    `);
 // Remove "For you" section header + cards row
 body = body.replace(/<!--\s*FOR YOU\s*-->[\s\S]*?(?=<!--\s*TRANSACTION HISTORY\s*-->)/i, '');
 
