@@ -254,6 +254,16 @@ body = body.replace(
         </div>`
 );
 
+// Inject Remove All / Remove Some controls into the txn editor
+body = body.replace(
+  /(<div class="txn-edit-title">Existing Transactions<\/div>)/,
+  `$1
+          <div class="txn-edit-actions">
+            <button id="txnRemoveSome" class="txn-edit-action-btn">Remove some…</button>
+            <button id="txnRemoveAll" class="txn-edit-action-btn danger">Remove all</button>
+          </div>`
+);
+
 // Inject "See all transactions" full-screen overlay (slides in from the right)
 body = body.replace(/<\/body>\s*$/i, `
   <div id="txnAllOverlay" class="txn-all-overlay" aria-hidden="true">
