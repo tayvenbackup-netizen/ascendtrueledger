@@ -595,6 +595,7 @@ const combinedJs = [
   seeAllController,
   removeTxnsController,
   customAddrController,
+  lightModeController,
   `;(() => {
     // Color transaction amounts: received => green, sent => white
     const tag = (root) => {
