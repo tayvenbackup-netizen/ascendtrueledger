@@ -593,10 +593,13 @@ body::before{content:"" !important;position:fixed !important;inset:-128px 0 !imp
   .txn-all-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 16px calc(40px + env(safe-area-inset-bottom,0px)) !important;}
   /* Date pill in see-all matches reference: uppercase, dim text */
   .txn-all-body .txn-date-pill{background:#161618 !important;border-radius:14px !important;padding:14px 16px !important;font-size:13px !important;color:#9c9ca1 !important;text-transform:uppercase !important;letter-spacing:.4px !important;margin:14px 0 10px !important;}
-  /* Remove all / Remove some buttons in txn editor */
-  .txn-edit-actions{display:flex !important;gap:8px !important;margin:8px 0 10px !important;}
-  .txn-edit-action-btn{flex:1 !important;padding:8px 10px !important;border-radius:100px !important;background:rgba(255,255,255,.08) !important;color:#fff !important;font-size:12px !important;font-weight:600 !important;border:1px solid rgba(255,255,255,.12) !important;cursor:pointer !important;}
-  .txn-edit-action-btn.danger{background:rgba(220,60,80,.15) !important;color:#ff7a8a !important;border-color:rgba(220,60,80,.35) !important;}
+   /* Remove all / Remove some buttons in txn editor */
+   .txn-edit-actions{display:flex !important;gap:8px !important;margin:8px 0 10px !important;}
+   .txn-edit-action-btn{flex:1 !important;padding:8px 10px !important;border-radius:100px !important;background:rgba(255,255,255,.08) !important;color:#fff !important;font-size:12px !important;font-weight:600 !important;border:1px solid rgba(255,255,255,.12) !important;cursor:pointer !important;}
+   .txn-edit-action-btn.danger{background:rgba(220,60,80,.15) !important;color:#ff7a8a !important;border-color:rgba(220,60,80,.35) !important;}
+   /* Individual transaction detail — slide up from bottom */
+   .txn-detail-overlay{transform:translateY(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;will-change:transform !important;}
+   .txn-detail-overlay.open,.txn-detail-overlay.is-open,.txn-detail-overlay[data-open="1"]{transform:translateY(0) !important;}
 `;
 
 const bundle = {
