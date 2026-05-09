@@ -199,9 +199,10 @@ body = body
   .replace(/\/assets\/litecoin\.png/g, '/assets/coin-ltc.png')
   .replace(/\/assets\/usdt\.png/g, '/assets/coin-usdt.png')
   .replace(/\/assets\/tron\.webp/g, '/assets/coin-tron.png');
+// Remove the entire EXPLORE MARKET section (header + explore-row).
 body = body.replace(
-  /(<div class="explore-card coin-card" data-coin="sol">[\s\S]*?<\/div>\s*<\/div>)/,
-  `$1\n${USDT_EXPLORE_CARD}`
+  /<!-- EXPLORE MARKET -->[\s\S]*?<\/div>\s*(?=<!-- ASSETS \/ ACCOUNTS TABS -->)/,
+  ''
 );
 
 // Replace promo-carousel with a single "Diversify your assets securely" card
