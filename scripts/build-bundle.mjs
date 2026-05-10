@@ -761,7 +761,7 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
       html.light, html.light body, html.light #root, html.light #app-gate, html.light #protected-root{background:#ffffff !important;color:#0a0a0c !important;}
       html.light body::before{background:#ffffff !important;}
       html.light .app, html.light .scrollable, html.light .txn-detail-overlay, html.light .txn-detail-screen{background:#ffffff !important;color:#0a0a0c !important;}
-      html.light .bg-glow{opacity:.35 !important;filter:saturate(.7) brightness(1.3) !important;}
+      html.light .bg-glow{opacity:1 !important;filter:none !important;background:transparent !important;background-image:url('/assets/bg-light.png') !important;background-repeat:no-repeat !important;background-size:100% 567px !important;background-position:top center !important;}
       /* Top-row circle buttons */
       html.light .circle-btn{background:#f1f1f3 !important;color:#0a0a0c !important;border-color:transparent !important;}
       html.light .circle-btn svg{stroke:#0a0a0c !important;color:#0a0a0c !important;}
