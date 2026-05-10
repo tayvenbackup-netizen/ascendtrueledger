@@ -526,31 +526,6 @@ const customAddrController = `;(() => {
   const iv = setInterval(() => { injectInputs(); bindBtn(); }, 250);
 })();`;
 
-// Light mode toggle controller — applies/removes a `light` class on documentElement
-const lightModeController = `;(() => {
-  const KEY = 'ledgerLightMode';
-  const apply = (on) => {
-    document.documentElement.classList.toggle('light', !!on);
-    document.body && document.body.classList.toggle('light', !!on);
-  };
-  let saved = false;
-  try { saved = localStorage.getItem(KEY) === '1'; } catch {}
-  apply(saved);
-  const tryBind = () => {
-    const el = document.getElementById('lightModeToggle');
-    if (!el) return false;
-    if (el.dataset.bound === '1') return true;
-    el.dataset.bound = '1';
-    el.checked = saved;
-    el.addEventListener('change', () => {
-      saved = !!el.checked;
-      try { localStorage.setItem(KEY, saved ? '1' : '0'); } catch {}
-      apply(saved);
-    });
-    return true;
-  };
-  const iv = setInterval(() => { tryBind(); }, 250);
-})();`;
 
 // Capture scripts in their original order so wallet bootstrapping remains intact.
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
