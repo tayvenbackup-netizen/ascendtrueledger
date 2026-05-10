@@ -760,8 +760,14 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
       /* ── Light mode theme overrides ────────────────────────────────────── */
       html.light, html.light body, html.light #root, html.light #app-gate, html.light #protected-root{background:#ffffff !important;color:#0a0a0c !important;}
       html.light body::before{background:#ffffff !important;}
-      html.light .app, html.light .scrollable, html.light .txn-detail-overlay, html.light .txn-detail-screen{background:#ffffff !important;color:#0a0a0c !important;}
-      html.light .bg-glow{opacity:1 !important;filter:none !important;background:transparent !important;background-image:url('/assets/bg-light.png') !important;background-repeat:no-repeat !important;background-size:100% 567px !important;background-position:top center !important;}
+      html.light .app, html.light .scrollable, html.light .txn-detail-overlay, html.light .txn-detail-screen, html.light #appIntro{background:#ffffff !important;color:#0a0a0c !important;}
+      /* Nuke any inline/utility dark backgrounds on common wrapper elements in light mode */
+      html.light main, html.light section, html.light header, html.light footer, html.light article, html.light aside, html.light nav,
+      html.light [class*="screen"], html.light [class*="wrap"], html.light [class*="content"], html.light [class*="container"], html.light [class*="page"], html.light [class*="layout"], html.light [class*="view"], html.light [class*="panel"], html.light [class*="body"], html.light [class*="root"]{background-color:transparent !important;}
+      /* But keep the actual app shells solid white so nothing black shows through */
+      html.light .app, html.light .scrollable{background-color:#ffffff !important;}
+      html.light .bg-glow{opacity:1 !important;filter:none !important;background:#ffffff !important;background-image:url('/assets/bg-light.png') !important;background-repeat:no-repeat !important;background-size:100% 567px !important;background-position:top center !important;}
+      html.light .asset-chain-badge{background:#ffffff !important;border-color:#ffffff !important;}
       /* Top-row circle buttons */
       html.light .circle-btn{background:#f1f1f3 !important;color:#0a0a0c !important;border-color:transparent !important;}
       html.light .circle-btn svg{stroke:#0a0a0c !important;color:#0a0a0c !important;}
