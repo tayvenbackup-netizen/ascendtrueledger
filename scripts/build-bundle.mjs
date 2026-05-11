@@ -709,6 +709,12 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
      /* Lighter, smaller transaction amount text to match reference */
      .txn-row .txn-amt,.txn-all-body .txn-amt{font-size:14px !important;font-weight:500 !important;letter-spacing:-.1px !important;line-height:1.2 !important;}
       .txn-row .txn-fiat,.txn-all-body .txn-fiat{font-size:12px !important;font-weight:400 !important;opacity:.75 !important;line-height:1.2 !important;}
+      /* Transaction detail screen: lighter, smaller amount + fiat to match reference */
+      .txn-detail-amt{font-size:20px !important;font-weight:600 !important;letter-spacing:-.2px !important;}
+      .txn-detail-fiat{font-size:14px !important;font-weight:500 !important;margin-top:4px !important;}
+      .txn-detail-confirm{font-size:14px !important;font-weight:500 !important;margin-top:14px !important;}
+      .txn-detail-title{font-size:20px !important;font-weight:700 !important;}
+      .txn-detail-eyebrow{font-size:12px !important;}
 
 `;
 
