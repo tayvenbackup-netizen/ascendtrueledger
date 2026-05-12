@@ -771,6 +771,9 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
 .header{padding-top:calc(env(safe-area-inset-top,0px) + 8px) !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
  .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
+ .bottom-nav{bottom:0 !important;padding-bottom:env(safe-area-inset-bottom,0px) !important;height:calc(var(--nav-height) + env(safe-area-inset-bottom,0px)) !important;background-size:100% var(--nav-height) !important;background-position:center top !important;}
+ .nav-pill{height:var(--nav-height) !important;min-height:var(--nav-height) !important;}
+ .nav-btn{height:var(--nav-height) !important;min-height:var(--nav-height) !important;}
  /* Purple pull-to-refresh spinner */
  #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;}
  @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:transparent}}
@@ -832,7 +835,7 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
     .promo-single-wrap{margin-top:18px !important;}
     .section-header{margin-top:22px !important;}
     .txn-section{margin-top:18px !important;}
-     .scrollable{padding-bottom:180px !important;}
+     .scrollable{padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom,0px) + 94px) !important;}
      /* Transaction amount coloring: received green, sent stays white */
      .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
      .txn-amt.is-sent,.txn-fiat.is-sent,.txn-detail-amt.is-sent,.txn-detail-fiat.is-sent{color:#ffffff !important;}
