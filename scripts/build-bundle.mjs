@@ -296,6 +296,18 @@ body = body.replace(/<\/body>\s*$/i, `
       <div class="txn-all-body" id="txnAllBody"></div>
     </div>
   </div>
+  <div id="marketAllOverlay" class="market-overlay" aria-hidden="true">
+    <div class="market-screen">
+      <div class="market-header">
+        <button class="market-back" id="marketBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="market-title">Explore the market</div>
+        <div class="market-spacer"></div>
+      </div>
+      <div class="market-body" id="marketBody"><div class="market-loading">Loading market…</div></div>
+    </div>
+  </div>
 </body>`);
 
 // See-all overlay controller — slide in from right, render every txn, click row → existing detail
