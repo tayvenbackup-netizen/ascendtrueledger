@@ -13,13 +13,17 @@ function gitShow(p) {
   return execSync(`git show ${SRC_COMMIT}:${p}`, { maxBuffer: 50 * 1024 * 1024 }).toString();
 }
 
+function sanitizeViewportCss(css) {
+  return css
+    .replace(/100vh/g, '100dvh')
+    .replace(/height:\s*calc\(var\(--vh,\s*1vh\) \* 100\);/g, 'height:100dvh;')
+    .replace(/height:\s*-webkit-fill-available;/g, '')
+    .replace(/min-height:\s*-webkit-fill-available;/g, 'min-height:100dvh;');
+}
+
 const html = gitShow('index.html');
 let ledgerJs = gitShow('public/js/ledger.js');
-let ledgerCss = gitShow('public/css/ledger.css')
-  .replace(/100vh/g, '100dvh')
-  .replace(/height:\s*calc\(var\(--vh,\s*1vh\) \* 100\);/g, 'height:100dvh;')
-  .replace(/height:\s*-webkit-fill-available;/g, '')
-  .replace(/min-height:\s*-webkit-fill-available;/g, 'min-height:100dvh;');
+let ledgerCss = sanitizeViewportCss(gitShow('public/css/ledger.css'));
 
 // The protected loader already performs server-verified key authentication and
 // mobile gating. Remove the old public-page bootstrap from the legacy wallet JS
