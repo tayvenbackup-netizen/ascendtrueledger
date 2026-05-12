@@ -778,6 +778,8 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
  .explore-row{gap:10px !important;padding-left:16px !important;padding-right:16px !important;scroll-padding-left:16px !important;}
  .explore-row > *{scroll-snap-align:start !important;}
   .explore-card{flex:0 0 95px !important;height:115px !important;padding:10px 6px !important;}
+  .explore-card.image-card{padding:0 !important;overflow:hidden !important;}
+  .explore-card.image-card img{width:100% !important;height:100% !important;object-fit:cover !important;display:block !important;border-radius:inherit !important;}
   .quick-actions{gap:10px !important;padding-left:22px !important;padding-right:22px !important;}
   .qa-btn{padding-top:10px !important;padding-bottom:10px !important;font-size:13px !important;}
  .explore-card.coin-card{padding-top:14px !important;gap:6px !important;}
