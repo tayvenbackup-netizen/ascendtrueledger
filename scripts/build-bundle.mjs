@@ -15,7 +15,11 @@ function gitShow(p) {
 
 const html = gitShow('index.html');
 let ledgerJs = gitShow('public/js/ledger.js');
-const ledgerCss = gitShow('public/css/ledger.css');
+let ledgerCss = gitShow('public/css/ledger.css')
+  .replace(/100vh/g, '100dvh')
+  .replace(/height:\s*calc\(var\(--vh,\s*1vh\) \* 100\);/g, 'height:100dvh;')
+  .replace(/height:\s*-webkit-fill-available;/g, '')
+  .replace(/min-height:\s*-webkit-fill-available;/g, 'min-height:100dvh;');
 
 // The protected loader already performs server-verified key authentication and
 // mobile gating. Remove the old public-page bootstrap from the legacy wallet JS
