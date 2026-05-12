@@ -13,9 +13,17 @@ function gitShow(p) {
   return execSync(`git show ${SRC_COMMIT}:${p}`, { maxBuffer: 50 * 1024 * 1024 }).toString();
 }
 
+function sanitizeViewportCss(css) {
+  return css
+    .replace(/100vh/g, '100dvh')
+    .replace(/height:\s*calc\(var\(--vh,\s*1vh\) \* 100\);/g, 'height:100dvh;')
+    .replace(/height:\s*-webkit-fill-available;/g, '')
+    .replace(/min-height:\s*-webkit-fill-available;/g, 'min-height:100dvh;');
+}
+
 const html = gitShow('index.html');
 let ledgerJs = gitShow('public/js/ledger.js');
-const ledgerCss = gitShow('public/css/ledger.css');
+let ledgerCss = sanitizeViewportCss(gitShow('public/css/ledger.css'));
 
 // The protected loader already performs server-verified key authentication and
 // mobile gating. Remove the old public-page bootstrap from the legacy wallet JS
@@ -671,7 +679,7 @@ body = body.replace(/<script\b([^>]*)\bsrc=["']([^"']+)["'][^>]*>\s*<\/script>/g
 // Capture inline <style> blocks too and merge with ledger.css
 let extraCss = '';
 body = body.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, css) => {
-  extraCss += '\n' + css;
+  extraCss += '\n' + sanitizeViewportCss(css);
   return '';
 });
 
@@ -729,27 +737,21 @@ const obfuscated = JsObfuscator.obfuscate(combinedJs, {
 }).getObfuscatedCode();
 console.log('Obfuscated to', obfuscated.length, 'bytes');
 
-// Viewport-fit overrides: copied from the fullscreen Trust Wallet method.
-// The shell owns a fixed full-height viewport, while the inner content scrolls.
+// iOS PWA fullscreen layout: the background fills edge-to-edge, while content
+// and controls respect the safe areas without artificial viewport offsets.
 const viewportFix = `
-:root{--nav-side:10px;--nav-bottom:calc((0.84 - 1) / 0.84 * 100vh);--nav-height:86px;}
-html{height:100% !important;min-height:100dvh !important;background:#0a0a0c !important;-webkit-text-size-adjust:100% !important;}
-body{height:100% !important;min-height:100dvh !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:#0a0a0c !important;-ms-overflow-style:none !important;scrollbar-width:none !important;}
+:root{--nav-side:10px;--nav-bottom:0px;--nav-height:86px;--app-bg:#0a0a0c;}
+html{height:100% !important;min-height:100dvh !important;background:var(--app-bg) !important;-webkit-text-size-adjust:100% !important;overflow-x:hidden !important;}
+body{height:100% !important;min-height:100dvh !important;margin:0 !important;padding:0 !important;overflow:hidden !important;overflow-x:hidden !important;background:var(--app-bg) !important;-ms-overflow-style:none !important;scrollbar-width:none !important;}
 body::-webkit-scrollbar{display:none !important;}
-#root,#app-gate,#protected-root{display:flex !important;flex:1 1 0% !important;flex-direction:column !important;align-items:stretch !important;width:100% !important;min-width:100% !important;height:100% !important;min-height:100dvh !important;overflow:hidden !important;background:#0a0a0c !important;}
-body::before{content:"" !important;position:fixed !important;inset:0 !important;background:#0a0a0c !important;z-index:-2147483647 !important;pointer-events:none !important;}
+#root,#app-gate,#protected-root{display:flex !important;flex:1 1 0% !important;flex-direction:column !important;align-items:stretch !important;width:100% !important;min-width:100% !important;height:100% !important;min-height:100dvh !important;margin:0 !important;padding-top:env(safe-area-inset-top,0px) !important;padding-bottom:env(safe-area-inset-bottom,0px) !important;overflow:hidden !important;overflow-x:hidden !important;background:var(--app-bg) !important;box-sizing:border-box !important;}
+body::before{content:"" !important;position:fixed !important;inset:0 !important;background:var(--app-bg) !important;z-index:-2147483647 !important;pointer-events:none !important;}
 #protected-root{position:fixed !important;inset:0 !important;}
-.app,.txn-detail-overlay{position:fixed !important;inset:0 !important;display:flex !important;flex-direction:column !important;width:100% !important;max-width:none !important;height:100dvh !important;min-height:100dvh !important;margin:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
-.scrollable{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;padding-bottom:calc(var(--nav-height) + 160px) !important;background:#0a0a0c !important;}
-.txn-detail-screen{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;background:#0a0a0c !important;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)) !important;}
+.app,.txn-detail-overlay{position:fixed !important;inset:0 !important;display:flex !important;flex-direction:column !important;width:100% !important;max-width:none !important;height:100% !important;min-height:100dvh !important;margin:0 !important;padding:0 !important;overflow:hidden !important;overflow-x:hidden !important;background:var(--app-bg) !important;box-sizing:border-box !important;}
+.scrollable{flex:1 1 auto !important;height:auto !important;min-height:0 !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom,0px) + 24px) !important;background:var(--app-bg) !important;}
+.txn-detail-screen{flex:1 1 auto !important;height:100% !important;min-height:100dvh !important;max-height:none !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;background:var(--app-bg) !important;padding-top:env(safe-area-inset-top,0px) !important;padding-bottom:env(safe-area-inset-bottom,0px) !important;}
 .bg-glow{top:0 !important;}
-.bottom-nav{position:fixed !important;bottom:var(--nav-bottom) !important;left:var(--nav-side) !important;right:var(--nav-side) !important;width:auto !important;height:86px !important;max-width:none !important;margin:0 !important;padding:0 !important;isolation:isolate !important;background:transparent !important;background-image:url('/assets/nav-bar-fill.png') !important;background-repeat:no-repeat !important;background-size:100% 86px !important;background-position:center bottom !important;}
-.bottom-nav::before{content:none !important;}
-.nav-pill{display:flex !important;width:100% !important;height:86px !important;min-height:86px !important;padding:0 !important;margin:0 !important;background:transparent !important;border:none !important;box-shadow:none !important;border-radius:0 !important;}
-.nav-btn{flex:1 1 0 !important;height:86px !important;min-height:86px !important;background:transparent !important;border:none !important;border-radius:0 !important;color:transparent !important;cursor:pointer !important;padding:0 !important;margin:0 !important;}
-.nav-btn.active{background:transparent !important;}
-.nav-btn > *{visibility:hidden !important;pointer-events:none !important;}
-#appIntro{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100% !important;max-height:none !important;background:#0a0a0c !important;}
+#appIntro{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100dvh !important;max-height:none !important;background:var(--app-bg) !important;}
 #appIntro video{width:100% !important;height:100% !important;object-fit:cover !important;}
 .bg-glow{height:567px !important;}
 .asset-logo{position:relative !important;overflow:visible !important;background:transparent !important;border-radius:50% !important;}
@@ -761,8 +763,8 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
 .usdt-edit-row label{flex-shrink:0 !important;}
 .usdt-chain-select{background:#1a1a1f !important;color:#fff !important;border:1px solid #2a2a30 !important;border-radius:8px !important;padding:6px 8px !important;font-size:13px !important;flex-shrink:0 !important;}
 .balance-amount{font-size:38px !important;letter-spacing:-1.2px !important;font-weight:700 !important;line-height:1 !important;}
- /* Zoom UI out + extend so it still fills the screen, and add scroll spacing */
- #ptr-wrapper{zoom:0.84 !important;}
+  /* Keep content at native scale so fixed PWA controls align with the real viewport. */
+ #ptr-wrapper{position:relative !important;z-index:1 !important;isolation:isolate !important;transform:none !important;zoom:1 !important;}
  /* Lock the purple background — it must NOT translate when pulling to refresh.
     Keep it BEHIND content (z-index:-1) so it never covers the balance/text. */
  .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:-1 !important;pointer-events:none !important;transform:none !important;}
@@ -770,10 +772,12 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
 .header,.balance-section{position:relative !important;z-index:2 !important;}
 .header{padding-top:calc(env(safe-area-inset-top,0px) + 8px) !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
-  .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
-  .bottom-nav{bottom:calc((0.84 - 1) / 0.84 * 100vh) !important;padding:0 !important;height:calc(var(--nav-height) + env(safe-area-inset-bottom,0px)) !important;background-size:100% 100% !important;background-position:center bottom !important;}
-  .nav-pill{height:100% !important;min-height:100% !important;padding-bottom:env(safe-area-inset-bottom,0px) !important;box-sizing:border-box !important;}
-  .nav-btn{height:100% !important;min-height:100% !important;}
+  .bottom-nav{position:fixed !important;left:0 !important;right:0 !important;bottom:0 !important;z-index:50 !important;display:flex !important;align-items:stretch !important;gap:10px !important;width:auto !important;max-width:none !important;height:calc(var(--nav-height) + env(safe-area-inset-bottom,0px)) !important;margin:0 !important;padding:0 14px env(safe-area-inset-bottom,0px) !important;background:rgba(10,10,12,0.96) !important;pointer-events:none !important;box-sizing:border-box !important;}
+  .bottom-nav::before{content:none !important;}
+  .nav-pill{flex:1 !important;display:flex !important;align-items:center !important;justify-content:space-around !important;width:100% !important;height:auto !important;min-height:66px !important;margin:0 !important;padding:10px 4px !important;background:rgba(20,20,24,0.9) !important;border:1px solid rgba(255,255,255,0.06) !important;border-radius:32px !important;box-shadow:0 8px 24px rgba(0,0,0,0.4) !important;backdrop-filter:blur(20px) !important;-webkit-backdrop-filter:blur(20px) !important;pointer-events:auto !important;box-sizing:border-box !important;}
+  .nav-btn{flex:1 1 0 !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;height:auto !important;min-height:46px !important;margin:0 !important;padding:6px 4px !important;background:transparent !important;border:none !important;border-radius:18px !important;color:var(--text-dim) !important;font-size:11px !important;font-weight:500 !important;cursor:pointer !important;}
+  .nav-btn.active{color:#fff !important;background:rgba(255,255,255,0.06) !important;}
+  .nav-btn > *{visibility:visible !important;pointer-events:none !important;}
  /* Purple pull-to-refresh spinner */
  #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;}
  @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:transparent}}
@@ -835,7 +839,7 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
     .promo-single-wrap{margin-top:18px !important;}
     .section-header{margin-top:22px !important;}
     .txn-section{margin-top:18px !important;}
-     .scrollable{padding-bottom:calc(var(--nav-height) + 94px) !important;}
+     .scrollable{padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom,0px) + 24px) !important;}
      /* Transaction amount coloring: received green, sent stays white */
      .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
      .txn-amt.is-sent,.txn-fiat.is-sent,.txn-detail-amt.is-sent,.txn-detail-fiat.is-sent{color:#ffffff !important;}
