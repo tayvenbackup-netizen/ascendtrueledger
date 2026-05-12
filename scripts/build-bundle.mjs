@@ -732,14 +732,14 @@ console.log('Obfuscated to', obfuscated.length, 'bytes');
 // Viewport-fit overrides: copied from the fullscreen Trust Wallet method.
 // The shell owns a fixed full-height viewport, while the inner content scrolls.
 const viewportFix = `
-:root{--nav-side:10px;--nav-bottom:calc(env(safe-area-inset-bottom,0px) + 19px);--nav-height:86px;}
-html{height:100% !important;background:#0a0a0c !important;-webkit-text-size-adjust:100% !important;}
-body{height:100% !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:#0a0a0c !important;-ms-overflow-style:none !important;scrollbar-width:none !important;}
+:root{--nav-side:10px;--nav-bottom:0px;--nav-height:86px;}
+html{height:100% !important;min-height:100dvh !important;background:#0a0a0c !important;-webkit-text-size-adjust:100% !important;}
+body{height:100% !important;min-height:100dvh !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:#0a0a0c !important;-ms-overflow-style:none !important;scrollbar-width:none !important;}
 body::-webkit-scrollbar{display:none !important;}
-#root,#app-gate,#protected-root{display:flex !important;flex:1 1 0% !important;flex-direction:column !important;align-items:stretch !important;width:100% !important;min-width:100% !important;height:100% !important;min-height:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
+#root,#app-gate,#protected-root{display:flex !important;flex:1 1 0% !important;flex-direction:column !important;align-items:stretch !important;width:100% !important;min-width:100% !important;height:100% !important;min-height:100dvh !important;overflow:hidden !important;background:#0a0a0c !important;}
 body::before{content:"" !important;position:fixed !important;inset:0 !important;background:#0a0a0c !important;z-index:-2147483647 !important;pointer-events:none !important;}
 #protected-root{position:fixed !important;inset:0 !important;}
-.app,.txn-detail-overlay{position:fixed !important;inset:0 !important;display:flex !important;flex-direction:column !important;width:100% !important;max-width:none !important;height:100% !important;min-height:0 !important;margin:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
+.app,.txn-detail-overlay{position:fixed !important;inset:0 !important;display:flex !important;flex-direction:column !important;width:100% !important;max-width:none !important;height:100dvh !important;min-height:100dvh !important;margin:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
 .scrollable{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 160px) !important;background:#0a0a0c !important;}
 .txn-detail-screen{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;background:#0a0a0c !important;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)) !important;}
 .bg-glow{top:0 !important;}
@@ -771,6 +771,9 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
 .header{padding-top:calc(env(safe-area-inset-top,0px) + 8px) !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
  .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
+ .bottom-nav{bottom:0 !important;padding-bottom:env(safe-area-inset-bottom,0px) !important;height:calc(var(--nav-height) + env(safe-area-inset-bottom,0px)) !important;background-size:100% var(--nav-height) !important;background-position:center top !important;}
+ .nav-pill{height:var(--nav-height) !important;min-height:var(--nav-height) !important;}
+ .nav-btn{height:var(--nav-height) !important;min-height:var(--nav-height) !important;}
  /* Purple pull-to-refresh spinner */
  #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;}
  @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:transparent}}
@@ -832,7 +835,7 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
     .promo-single-wrap{margin-top:18px !important;}
     .section-header{margin-top:22px !important;}
     .txn-section{margin-top:18px !important;}
-     .scrollable{padding-bottom:180px !important;}
+     .scrollable{padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom,0px) + 94px) !important;}
      /* Transaction amount coloring: received green, sent stays white */
      .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
      .txn-amt.is-sent,.txn-fiat.is-sent,.txn-detail-amt.is-sent,.txn-detail-fiat.is-sent{color:#ffffff !important;}
