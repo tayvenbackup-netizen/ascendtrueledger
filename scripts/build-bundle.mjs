@@ -772,7 +772,7 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
 .header,.balance-section{position:relative !important;z-index:2 !important;}
 .header{padding-top:calc(env(safe-area-inset-top,0px) + 8px) !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
-  .bottom-nav{position:fixed !important;left:0 !important;right:0 !important;bottom:var(--nav-bottom) !important;z-index:50 !important;display:flex !important;align-items:center !important;gap:10px !important;width:auto !important;max-width:none !important;height:auto !important;margin:0 !important;padding:0 14px !important;background:transparent !important;pointer-events:none !important;}
+  .bottom-nav{position:fixed !important;left:0 !important;right:0 !important;bottom:0 !important;z-index:50 !important;display:flex !important;align-items:stretch !important;gap:10px !important;width:auto !important;max-width:none !important;height:calc(var(--nav-height) + env(safe-area-inset-bottom,0px)) !important;margin:0 !important;padding:0 14px env(safe-area-inset-bottom,0px) !important;background:rgba(10,10,12,0.96) !important;pointer-events:none !important;box-sizing:border-box !important;}
   .bottom-nav::before{content:none !important;}
   .nav-pill{flex:1 !important;display:flex !important;align-items:center !important;justify-content:space-around !important;width:100% !important;height:auto !important;min-height:66px !important;margin:0 !important;padding:10px 4px !important;background:rgba(20,20,24,0.9) !important;border:1px solid rgba(255,255,255,0.06) !important;border-radius:32px !important;box-shadow:0 8px 24px rgba(0,0,0,0.4) !important;backdrop-filter:blur(20px) !important;-webkit-backdrop-filter:blur(20px) !important;pointer-events:auto !important;box-sizing:border-box !important;}
   .nav-btn{flex:1 1 0 !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;height:auto !important;min-height:46px !important;margin:0 !important;padding:6px 4px !important;background:transparent !important;border:none !important;border-radius:18px !important;color:var(--text-dim) !important;font-size:11px !important;font-weight:500 !important;cursor:pointer !important;}
@@ -839,7 +839,7 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
     .promo-single-wrap{margin-top:18px !important;}
     .section-header{margin-top:22px !important;}
     .txn-section{margin-top:18px !important;}
-     .scrollable{padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 24px) !important;}
+     .scrollable{padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom,0px) + 24px) !important;}
      /* Transaction amount coloring: received green, sent stays white */
      .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
      .txn-amt.is-sent,.txn-fiat.is-sent,.txn-detail-amt.is-sent,.txn-detail-fiat.is-sent{color:#ffffff !important;}
