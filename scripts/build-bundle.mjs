@@ -732,7 +732,7 @@ console.log('Obfuscated to', obfuscated.length, 'bytes');
 // Viewport-fit overrides: copied from the fullscreen Trust Wallet method.
 // The shell owns a fixed full-height viewport, while the inner content scrolls.
 const viewportFix = `
-:root{--nav-side:10px;--nav-bottom:0px;--nav-height:86px;}
+:root{--nav-side:10px;--nav-bottom:calc((0.84 - 1) / 0.84 * 100vh);--nav-height:86px;}
 html{height:100% !important;min-height:100dvh !important;background:#0a0a0c !important;-webkit-text-size-adjust:100% !important;}
 body{height:100% !important;min-height:100dvh !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:#0a0a0c !important;-ms-overflow-style:none !important;scrollbar-width:none !important;}
 body::-webkit-scrollbar{display:none !important;}
@@ -771,7 +771,7 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
 .header{padding-top:calc(env(safe-area-inset-top,0px) + 8px) !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
   .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
-  .bottom-nav{bottom:0 !important;padding:0 !important;height:calc(var(--nav-height) + env(safe-area-inset-bottom,0px)) !important;background-size:100% 100% !important;background-position:center bottom !important;}
+  .bottom-nav{bottom:calc((0.84 - 1) / 0.84 * 100vh) !important;padding:0 !important;height:calc(var(--nav-height) + env(safe-area-inset-bottom,0px)) !important;background-size:100% 100% !important;background-position:center bottom !important;}
   .nav-pill{height:100% !important;min-height:100% !important;padding-bottom:env(safe-area-inset-bottom,0px) !important;box-sizing:border-box !important;}
   .nav-btn{height:100% !important;min-height:100% !important;}
  /* Purple pull-to-refresh spinner */
