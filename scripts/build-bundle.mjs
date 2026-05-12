@@ -835,7 +835,7 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
     .promo-single-wrap{margin-top:18px !important;}
     .section-header{margin-top:22px !important;}
     .txn-section{margin-top:18px !important;}
-     .scrollable{padding-bottom:calc(var(--nav-height) + 94px) !important;}
+     .scrollable{padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 24px) !important;}
      /* Transaction amount coloring: received green, sent stays white */
      .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
      .txn-amt.is-sent,.txn-fiat.is-sent,.txn-detail-amt.is-sent,.txn-detail-fiat.is-sent{color:#ffffff !important;}
