@@ -229,6 +229,9 @@ body = body.replace(
   `$1\n${USDT_EXPLORE_CARD}`
 );
 
+// Rename "Explore market" → "Explore the market"
+body = body.replace(/>Explore market</g, '>Explore the market<');
+
 // Remove promo carousel block (the scrollable promo cards above Explore market)
 body = body.replace(/<!--\s*PROMO CAROUSEL\s*-->[\s\S]*?(?=<!--\s*EXPLORE MARKET\s*-->)/i,
 `<!-- PROMO CARD -->
@@ -291,6 +294,18 @@ body = body.replace(/<\/body>\s*$/i, `
         <div class="txn-all-spacer"></div>
       </div>
       <div class="txn-all-body" id="txnAllBody"></div>
+    </div>
+  </div>
+  <div id="marketAllOverlay" class="market-overlay" aria-hidden="true">
+    <div class="market-screen">
+      <div class="market-header">
+        <button class="market-back" id="marketBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="market-title">Explore the market</div>
+        <div class="market-spacer"></div>
+      </div>
+      <div class="market-body" id="marketBody"><div class="market-loading">Loading market…</div></div>
     </div>
   </div>
 </body>`);
@@ -526,6 +541,116 @@ const customAddrController = `;(() => {
   const iv = setInterval(() => { injectInputs(); bindBtn(); }, 250);
 })();`;
 
+// Explore-the-market full-screen overlay controller
+const marketController = `;(() => {
+  let cache = null;
+  const fmtPrice = (p) => {
+    if (p == null || isNaN(p)) return '$0.00';
+    if (p >= 1) return '$' + p.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+    if (p >= 0.01) return '$' + p.toFixed(4);
+    return '$' + p.toPrecision(3);
+  };
+  const fmtMcap = (n) => {
+    if (n == null || isNaN(n)) return '—';
+    if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+    if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return '$' + (n/1e3).toFixed(2) + 'K';
+    return '$' + n.toFixed(0);
+  };
+  const sparkPath = (pts, w, h) => {
+    if (!pts || !pts.length) return '';
+    const min = Math.min(...pts), max = Math.max(...pts);
+    const range = (max - min) || 1;
+    const stepX = w / Math.max(1, pts.length - 1);
+    return pts.map((v, i) => {
+      const x = (i * stepX).toFixed(2);
+      const y = (h - ((v - min) / range) * h).toFixed(2);
+      return (i === 0 ? 'M' : 'L') + x + ' ' + y;
+    }).join(' ');
+  };
+  const render = (body, items) => {
+    body.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    items.forEach((c, idx) => {
+      const pct = c.priceChangePercentage24h;
+      const up = (pct || 0) >= 0;
+      const color = up ? '#22c55e' : '#ef4444';
+      const sign = up ? '+' : '';
+      const row = document.createElement('div');
+      row.className = 'market-row';
+      row.style.animationDelay = (idx * 18) + 'ms';
+      row.innerHTML = \`
+        <div class="market-rank">\${c.marketCapRank ?? ''}</div>
+        <div class="market-logo"><img src="\${c.image}" alt="\${c.ticker}" loading="lazy" onerror="this.style.visibility='hidden'"/></div>
+        <div class="market-id">
+          <div class="market-ticker">\${(c.ticker || '').toUpperCase()}</div>
+          <div class="market-name">\${c.name || ''}</div>
+          <div class="market-mcap">MCap \${fmtMcap(c.marketCap)}</div>
+        </div>
+        <div class="market-spark">
+          <svg viewBox="0 0 80 28" preserveAspectRatio="none">
+            <path d="\${sparkPath(c.sparkline || [], 80, 28)}" fill="none" stroke="\${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="market-right">
+          <div class="market-price">\${fmtPrice(c.price)}</div>
+          <div class="market-pct" style="color:\${color}">\${sign}\${(pct ?? 0).toFixed(2)}%</div>
+        </div>\`;
+      frag.appendChild(row);
+    });
+    body.appendChild(frag);
+  };
+  const load = async (body) => {
+    if (cache) { render(body, cache); return; }
+    try {
+      const res = await fetch('/assets/markets.json', { cache: 'no-store' });
+      const data = await res.json();
+      cache = (Array.isArray(data) ? data : []).slice().sort((a,b) => (a.marketCapRank||9e9) - (b.marketCapRank||9e9));
+      render(body, cache);
+    } catch (e) {
+      body.innerHTML = '<div class="market-loading">Failed to load market data.</div>';
+    }
+  };
+  const tryInit = () => {
+    const overlay = document.getElementById('marketAllOverlay');
+    const back = document.getElementById('marketBack');
+    const body = document.getElementById('marketBody');
+    if (!overlay || !back || !body) return false;
+    if (overlay.dataset.bound === '1') return true;
+    overlay.dataset.bound = '1';
+    const open = (e) => {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+      load(body);
+    };
+    const close = () => {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+    };
+    back.addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    // Bind triggers: section header + view-all card
+    document.querySelectorAll('.section-header').forEach((h) => {
+      const t = (h.textContent || '').toLowerCase();
+      if (t.includes('explore the market') && h.dataset.marketBound !== '1') {
+        h.dataset.marketBound = '1';
+        h.style.cursor = 'pointer';
+        h.addEventListener('click', open);
+      }
+    });
+    document.querySelectorAll('.explore-card[data-coin="viewall"]').forEach((el) => {
+      if (el.dataset.marketBound === '1') return;
+      el.dataset.marketBound = '1';
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', open);
+    });
+    return true;
+  };
+  const iv = setInterval(() => { tryInit(); }, 250);
+})();`;
+
 
 // Capture scripts in their original order so wallet bootstrapping remains intact.
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
@@ -558,6 +683,7 @@ const combinedJs = [
   seeAllController,
   removeTxnsController,
   customAddrController,
+  marketController,
   
   `;(() => {
     // Color transaction amounts: received => green, sent => white
@@ -713,8 +839,36 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
       .txn-detail-amt{font-size:20px !important;font-weight:600 !important;letter-spacing:-.2px !important;}
       .txn-detail-fiat{font-size:14px !important;font-weight:500 !important;margin-top:4px !important;}
       .txn-detail-confirm{font-size:14px !important;font-weight:500 !important;margin-top:14px !important;}
-      .txn-detail-title{font-size:20px !important;font-weight:700 !important;}
-      .txn-detail-eyebrow{font-size:12px !important;}
+       .txn-detail-title{font-size:20px !important;font-weight:700 !important;}
+       .txn-detail-eyebrow{font-size:12px !important;}
+
+      /* Explore the market overlay */
+      .market-overlay{position:fixed !important;inset:0 !important;z-index:310 !important;pointer-events:none !important;background:transparent !important;}
+      .market-overlay.open{pointer-events:auto !important;}
+      .market-screen{position:absolute !important;inset:0 !important;background:#0a0a0c !important;background-image:radial-gradient(1200px 600px at 50% -10%, rgba(187,174,252,.18), transparent 60%), linear-gradient(180deg,#0a0a0c,#0a0a0c) !important;transform:translateX(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;}
+      .market-overlay.open .market-screen{transform:translateX(0) !important;}
+      .market-header{display:flex !important;align-items:center !important;gap:10px !important;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 14px !important;flex:none !important;}
+      .market-back{width:36px !important;height:36px !important;display:flex !important;align-items:center !important;justify-content:center !important;background:transparent !important;border:none !important;color:#fff !important;padding:0 !important;cursor:pointer !important;}
+      .market-back svg{width:22px !important;height:22px !important;}
+      .market-title{flex:1 !important;text-align:center !important;color:#fff !important;font-size:18px !important;font-weight:700 !important;letter-spacing:-.3px !important;margin-right:36px !important;}
+      .market-spacer{width:0 !important;}
+      .market-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 12px calc(40px + env(safe-area-inset-bottom,0px)) !important;display:flex !important;flex-direction:column !important;gap:8px !important;}
+      .market-loading{padding:40px;text-align:center;color:#9c9ca1;font-size:14px;}
+      .market-row{display:grid !important;grid-template-columns:18px 36px minmax(0,1fr) 70px auto !important;align-items:center !important;gap:10px !important;padding:12px 12px !important;border-radius:16px !important;background:rgba(255,255,255,.04) !important;backdrop-filter:blur(14px) saturate(140%) !important;-webkit-backdrop-filter:blur(14px) saturate(140%) !important;border:1px solid rgba(255,255,255,.06) !important;box-shadow:0 4px 18px rgba(0,0,0,.25) !important;opacity:0 !important;transform:translateY(8px) !important;animation:marketIn .35s ease-out forwards !important;transition:transform .15s ease, background .15s ease !important;}
+      .market-row:active{transform:scale(.985) !important;background:rgba(255,255,255,.07) !important;}
+      @keyframes marketIn{to{opacity:1;transform:translateY(0);}}
+      .market-rank{font-size:11px !important;color:#7a7a82 !important;text-align:center !important;font-weight:600 !important;}
+      .market-logo{width:36px !important;height:36px !important;border-radius:50% !important;overflow:hidden !important;background:rgba(255,255,255,.06) !important;flex-shrink:0 !important;}
+      .market-logo img{width:100% !important;height:100% !important;object-fit:cover !important;display:block !important;}
+      .market-id{min-width:0 !important;display:flex !important;flex-direction:column !important;gap:1px !important;}
+      .market-ticker{color:#fff !important;font-size:14px !important;font-weight:700 !important;letter-spacing:.2px !important;line-height:1.15 !important;}
+      .market-name{color:#9c9ca1 !important;font-size:11.5px !important;line-height:1.15 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
+      .market-mcap{color:#6f6f78 !important;font-size:10.5px !important;line-height:1.15 !important;margin-top:1px !important;}
+      .market-spark{width:70px !important;height:28px !important;flex-shrink:0 !important;}
+      .market-spark svg{width:100% !important;height:100% !important;display:block !important;}
+      .market-right{text-align:right !important;display:flex !important;flex-direction:column !important;gap:2px !important;min-width:72px !important;}
+      .market-price{color:#fff !important;font-size:13.5px !important;font-weight:600 !important;letter-spacing:-.1px !important;}
+      .market-pct{font-size:11.5px !important;font-weight:600 !important;}
 
 `;
 
