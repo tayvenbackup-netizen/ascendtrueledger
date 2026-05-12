@@ -573,6 +573,7 @@ const combinedJs = [
   seeAllController,
   removeTxnsController,
   customAddrController,
+  marketController,
   
   `;(() => {
     // Color transaction amounts: received => green, sent => white
