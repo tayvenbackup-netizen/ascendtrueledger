@@ -679,7 +679,7 @@ body = body.replace(/<script\b([^>]*)\bsrc=["']([^"']+)["'][^>]*>\s*<\/script>/g
 // Capture inline <style> blocks too and merge with ledger.css
 let extraCss = '';
 body = body.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (_, css) => {
-  extraCss += '\n' + css;
+  extraCss += '\n' + sanitizeViewportCss(css);
   return '';
 });
 
