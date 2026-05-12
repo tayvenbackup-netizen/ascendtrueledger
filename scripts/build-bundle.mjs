@@ -732,7 +732,7 @@ console.log('Obfuscated to', obfuscated.length, 'bytes');
 // Viewport-fit overrides: copied from the fullscreen Trust Wallet method.
 // The shell owns a fixed full-height viewport, while the inner content scrolls.
 const viewportFix = `
-:root{--nav-side:10px;--nav-bottom:19px;--nav-height:86px;}
+:root{--nav-side:10px;--nav-bottom:calc(env(safe-area-inset-bottom,0px) + 19px);--nav-height:86px;}
 html{height:100% !important;background:#0a0a0c !important;-webkit-text-size-adjust:100% !important;}
 body{height:100% !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:#0a0a0c !important;-ms-overflow-style:none !important;scrollbar-width:none !important;}
 body::-webkit-scrollbar{display:none !important;}
