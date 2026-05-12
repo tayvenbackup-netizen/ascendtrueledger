@@ -229,6 +229,9 @@ body = body.replace(
   `$1\n${USDT_EXPLORE_CARD}`
 );
 
+// Rename "Explore market" → "Explore the market"
+body = body.replace(/>Explore market</g, '>Explore the market<');
+
 // Remove promo carousel block (the scrollable promo cards above Explore market)
 body = body.replace(/<!--\s*PROMO CAROUSEL\s*-->[\s\S]*?(?=<!--\s*EXPLORE MARKET\s*-->)/i,
 `<!-- PROMO CARD -->
