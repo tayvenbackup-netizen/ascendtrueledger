@@ -748,7 +748,7 @@ body::-webkit-scrollbar{display:none !important;}
 body::before{content:"" !important;position:fixed !important;inset:0 !important;background:var(--app-bg) !important;z-index:-2147483647 !important;pointer-events:none !important;}
 #protected-root{position:fixed !important;inset:0 !important;}
 .app,.txn-detail-overlay{position:fixed !important;inset:0 !important;display:flex !important;flex-direction:column !important;width:100% !important;max-width:none !important;height:100% !important;min-height:100dvh !important;margin:0 !important;padding:0 !important;overflow:hidden !important;overflow-x:hidden !important;background:var(--app-bg) !important;box-sizing:border-box !important;}
-.scrollable{flex:1 1 auto !important;height:auto !important;min-height:0 !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom,0px) + 24px) !important;background:var(--app-bg) !important;}
+.scrollable{flex:1 1 auto !important;height:auto !important;min-height:0 !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom,0px) + 96px) !important;background:var(--app-bg) !important;}
 .txn-detail-screen{flex:1 1 auto !important;height:100% !important;min-height:100dvh !important;max-height:none !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;background:var(--app-bg) !important;padding-top:env(safe-area-inset-top,0px) !important;padding-bottom:env(safe-area-inset-bottom,0px) !important;}
 .bg-glow{top:0 !important;}
 #appIntro{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100dvh !important;max-height:none !important;background:var(--app-bg) !important;}
@@ -839,7 +839,7 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
     .promo-single-wrap{margin-top:18px !important;}
     .section-header{margin-top:22px !important;}
     .txn-section{margin-top:18px !important;}
-     .scrollable{padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom,0px) + 24px) !important;}
+     .scrollable{padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom,0px) + 96px) !important;}
      /* Transaction amount coloring: received green, sent stays white */
      .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
      .txn-amt.is-sent,.txn-fiat.is-sent,.txn-detail-amt.is-sent,.txn-detail-fiat.is-sent{color:#ffffff !important;}
