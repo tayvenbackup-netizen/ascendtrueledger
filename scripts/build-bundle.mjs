@@ -541,6 +541,116 @@ const customAddrController = `;(() => {
   const iv = setInterval(() => { injectInputs(); bindBtn(); }, 250);
 })();`;
 
+// Explore-the-market full-screen overlay controller
+const marketController = `;(() => {
+  let cache = null;
+  const fmtPrice = (p) => {
+    if (p == null || isNaN(p)) return '$0.00';
+    if (p >= 1) return '$' + p.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+    if (p >= 0.01) return '$' + p.toFixed(4);
+    return '$' + p.toPrecision(3);
+  };
+  const fmtMcap = (n) => {
+    if (n == null || isNaN(n)) return '—';
+    if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+    if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return '$' + (n/1e3).toFixed(2) + 'K';
+    return '$' + n.toFixed(0);
+  };
+  const sparkPath = (pts, w, h) => {
+    if (!pts || !pts.length) return '';
+    const min = Math.min(...pts), max = Math.max(...pts);
+    const range = (max - min) || 1;
+    const stepX = w / Math.max(1, pts.length - 1);
+    return pts.map((v, i) => {
+      const x = (i * stepX).toFixed(2);
+      const y = (h - ((v - min) / range) * h).toFixed(2);
+      return (i === 0 ? 'M' : 'L') + x + ' ' + y;
+    }).join(' ');
+  };
+  const render = (body, items) => {
+    body.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    items.forEach((c, idx) => {
+      const pct = c.priceChangePercentage24h;
+      const up = (pct || 0) >= 0;
+      const color = up ? '#22c55e' : '#ef4444';
+      const sign = up ? '+' : '';
+      const row = document.createElement('div');
+      row.className = 'market-row';
+      row.style.animationDelay = (idx * 18) + 'ms';
+      row.innerHTML = \`
+        <div class="market-rank">\${c.marketCapRank ?? ''}</div>
+        <div class="market-logo"><img src="\${c.image}" alt="\${c.ticker}" loading="lazy" onerror="this.style.visibility='hidden'"/></div>
+        <div class="market-id">
+          <div class="market-ticker">\${(c.ticker || '').toUpperCase()}</div>
+          <div class="market-name">\${c.name || ''}</div>
+          <div class="market-mcap">MCap \${fmtMcap(c.marketCap)}</div>
+        </div>
+        <div class="market-spark">
+          <svg viewBox="0 0 80 28" preserveAspectRatio="none">
+            <path d="\${sparkPath(c.sparkline || [], 80, 28)}" fill="none" stroke="\${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="market-right">
+          <div class="market-price">\${fmtPrice(c.price)}</div>
+          <div class="market-pct" style="color:\${color}">\${sign}\${(pct ?? 0).toFixed(2)}%</div>
+        </div>\`;
+      frag.appendChild(row);
+    });
+    body.appendChild(frag);
+  };
+  const load = async (body) => {
+    if (cache) { render(body, cache); return; }
+    try {
+      const res = await fetch('/assets/markets.json', { cache: 'no-store' });
+      const data = await res.json();
+      cache = (Array.isArray(data) ? data : []).slice().sort((a,b) => (a.marketCapRank||9e9) - (b.marketCapRank||9e9));
+      render(body, cache);
+    } catch (e) {
+      body.innerHTML = '<div class="market-loading">Failed to load market data.</div>';
+    }
+  };
+  const tryInit = () => {
+    const overlay = document.getElementById('marketAllOverlay');
+    const back = document.getElementById('marketBack');
+    const body = document.getElementById('marketBody');
+    if (!overlay || !back || !body) return false;
+    if (overlay.dataset.bound === '1') return true;
+    overlay.dataset.bound = '1';
+    const open = (e) => {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+      load(body);
+    };
+    const close = () => {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+    };
+    back.addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    // Bind triggers: section header + view-all card
+    document.querySelectorAll('.section-header').forEach((h) => {
+      const t = (h.textContent || '').toLowerCase();
+      if (t.includes('explore the market') && h.dataset.marketBound !== '1') {
+        h.dataset.marketBound = '1';
+        h.style.cursor = 'pointer';
+        h.addEventListener('click', open);
+      }
+    });
+    document.querySelectorAll('.explore-card[data-coin="viewall"]').forEach((el) => {
+      if (el.dataset.marketBound === '1') return;
+      el.dataset.marketBound = '1';
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', open);
+    });
+    return true;
+  };
+  const iv = setInterval(() => { tryInit(); }, 250);
+})();`;
+
 
 // Capture scripts in their original order so wallet bootstrapping remains intact.
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
