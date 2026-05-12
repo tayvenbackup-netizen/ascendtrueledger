@@ -770,10 +770,10 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
 .header,.balance-section{position:relative !important;z-index:2 !important;}
 .header{padding-top:calc(env(safe-area-inset-top,0px) + 8px) !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
- .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
- .bottom-nav{bottom:0 !important;padding-bottom:env(safe-area-inset-bottom,0px) !important;height:calc(var(--nav-height) + env(safe-area-inset-bottom,0px)) !important;background-size:100% var(--nav-height) !important;background-position:center top !important;}
- .nav-pill{height:var(--nav-height) !important;min-height:var(--nav-height) !important;}
- .nav-btn{height:var(--nav-height) !important;min-height:var(--nav-height) !important;}
+  .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
+  .bottom-nav{bottom:0 !important;padding:0 !important;height:calc(var(--nav-height) + env(safe-area-inset-bottom,0px)) !important;background-size:100% 100% !important;background-position:center bottom !important;}
+  .nav-pill{height:100% !important;min-height:100% !important;padding-bottom:env(safe-area-inset-bottom,0px) !important;box-sizing:border-box !important;}
+  .nav-btn{height:100% !important;min-height:100% !important;}
  /* Purple pull-to-refresh spinner */
  #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;}
  @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:transparent}}
