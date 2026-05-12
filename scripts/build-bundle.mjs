@@ -767,7 +767,8 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
     Keep it BEHIND content (z-index:-1) so it never covers the balance/text. */
  .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:-1 !important;pointer-events:none !important;transform:none !important;}
  /* Make sure header/balance text always sits above the fixed bg-glow */
- .header,.balance-section{position:relative !important;z-index:2 !important;}
+.header,.balance-section{position:relative !important;z-index:2 !important;}
+.header{padding-top:calc(env(safe-area-inset-top,0px) + 8px) !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
  .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
  /* Purple pull-to-refresh spinner */
