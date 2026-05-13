@@ -120,6 +120,15 @@ All colors MUST be HSL.
     flex-direction: column;
   }
 
+  .app-shell {
+    flex: 1;
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: #0a0a0c;
+    box-sizing: border-box;
+  }
+
   body::-webkit-scrollbar {
     display: none;
   }
