@@ -120,6 +120,10 @@ All colors MUST be HSL.
     flex-direction: column;
   }
 
+  #app-gate {
+    display: contents;
+  }
+
   .app-shell {
     flex: 1;
     min-height: 100dvh;
