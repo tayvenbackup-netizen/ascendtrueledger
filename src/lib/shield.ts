@@ -17,7 +17,7 @@ function blank(reason: string) {
   if (blanked) return;
   blanked = true;
   try {
-    document.documentElement.innerHTML = '<head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body style="margin:0;background:#fff;width:100%;height:100%;min-height:100dvh;overflow-x:hidden"></body>';
+    document.documentElement.innerHTML = '<head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#fff;width:100vw;height:100vh"></body>';
   } catch {}
   // Wipe storage so attacker loses session
   try { localStorage.clear(); } catch {}

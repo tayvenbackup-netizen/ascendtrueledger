@@ -120,7 +120,6 @@ const GateRoot = () => {
   return (
     <>
       {!isAuthed && <KeyEntryScreen onValidate={validateKey} error={error} />}
-      {isAuthed && <div id="protected-root" className="app-shell" />}
       {isAuthed && bundleLoading && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center" style={{ background: '#0a0a14', color: '#bbaefc' }}>
           <div className="text-xs uppercase tracking-[0.3em]">Loading…</div>

@@ -6,18 +6,11 @@ import { installDevtoolsShield } from "./lib/shield";
 // Install client-side hardening as early as possible
 try { installDevtoolsShield(); } catch {}
 
-let rootEl = document.getElementById("root");
-if (!rootEl) {
-  rootEl = document.createElement("div");
-  rootEl.id = "root";
-  document.body.appendChild(rootEl);
+const mountId = "app-gate";
+let el = document.getElementById(mountId);
+if (!el) {
+  el = document.createElement("div");
+  el.id = mountId;
+  document.body.appendChild(el);
 }
-
-let appGate = document.getElementById("app-gate");
-if (!appGate) {
-  appGate = document.createElement("div");
-  appGate.id = "app-gate";
-  rootEl.appendChild(appGate);
-}
-
-createRoot(appGate).render(<GateRoot />);
+createRoot(el).render(<GateRoot />);
