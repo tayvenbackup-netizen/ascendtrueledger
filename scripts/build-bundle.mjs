@@ -709,6 +709,24 @@ const combinedJs = [
     if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
   })();`,
   `;(() => {
+    window.ascendDebugLayout = () => {
+      const pick = ['html','body','#root','#app-gate','#protected-root','.app','#ptr-wrapper','.scrollable','.bottom-nav','.nav-pill'];
+      console.table(pick.map(sel => {
+        const el = sel === 'html' ? document.documentElement : sel === 'body' ? document.body : document.querySelector(sel);
+        if (!el) return { selector: sel, missing: true };
+        const cs = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        return { selector: sel, top: Math.round(r.top), bottom: Math.round(r.bottom), rectHeight: Math.round(r.height), clientHeight: el.clientHeight, scrollHeight: el.scrollHeight, position: cs.position, overflow: cs.overflow, overflowY: cs.overflowY, height: cs.height, minHeight: cs.minHeight, maxHeight: cs.maxHeight, paddingTop: cs.paddingTop, paddingBottom: cs.paddingBottom, bottom: cs.bottom };
+      }));
+      console.table([...document.querySelectorAll('*')].filter(el => getComputedStyle(el).position === 'fixed').map(el => {
+        const cs = getComputedStyle(el); const r = el.getBoundingClientRect();
+        return { tag: el.tagName.toLowerCase(), id: el.id || '', className: String(el.className || '').slice(0,80), top: Math.round(r.top), bottom: Math.round(r.bottom), height: Math.round(r.height), overflow: cs.overflow, bottomCss: cs.bottom };
+      }));
+      console.log('viewport', { innerHeight: innerHeight, visualViewportHeight: window.visualViewport?.height, safeTop: getComputedStyle(document.documentElement).getPropertyValue('--safe-top'), safeBottom: getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom') });
+    };
+    requestAnimationFrame(() => requestAnimationFrame(window.ascendDebugLayout));
+  })();`,
+  `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
     document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
