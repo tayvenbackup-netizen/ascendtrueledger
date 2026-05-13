@@ -797,7 +797,7 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
    .bottom-nav::before{content:none !important;}
    .nav-pill{flex:1 !important;display:flex !important;align-items:center !important;justify-content:space-around !important;width:100% !important;height:auto !important;min-height:66px !important;margin:0 !important;padding:10px 4px !important;background:transparent !important;border:none !important;border-radius:0 !important;box-shadow:none !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;pointer-events:auto !important;box-sizing:border-box !important;}
   .nav-btn{flex:1 1 0 !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;height:auto !important;min-height:46px !important;margin:0 !important;padding:6px 4px !important;background:transparent !important;border:none !important;border-radius:18px !important;color:var(--text-dim) !important;font-size:11px !important;font-weight:500 !important;cursor:pointer !important;}
-  .nav-btn.active{color:#fff !important;background:rgba(255,255,255,0.06) !important;}
+  .nav-btn.active{color:#fff !important;background:transparent !important;}
   .nav-btn > *{visibility:visible !important;pointer-events:none !important;}
  /* Purple pull-to-refresh spinner */
  #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;}
