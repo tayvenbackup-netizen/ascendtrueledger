@@ -6,7 +6,7 @@ import { installDevtoolsShield } from "./lib/shield";
 // Install client-side hardening as early as possible
 try { installDevtoolsShield(); } catch {}
 
-const mountId = "app-gate";
+const mountId = "root";
 let el = document.getElementById(mountId);
 if (!el) {
   el = document.createElement("div");
