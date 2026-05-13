@@ -29,7 +29,7 @@ const KeyEntryScreen = ({ onValidate, error }: Props) => {
     <div
       onKeyDown={blockKeys}
       onContextMenu={(e) => e.preventDefault()}
-      className="app-shell fixed left-0 right-0 top-0 bottom-0 z-[9999] flex items-center justify-center px-4 select-none"
+      className="app-shell relative z-[9999] flex items-center justify-center px-4 select-none"
       data-fullscreen-gate="true"
       style={{ flex: 1, minHeight: '100dvh', paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)', background: 'radial-gradient(circle at 30% 0%, #1a1530 0%, #0a0a14 60%, #050509 100%)', color: '#fff' }}
     >
