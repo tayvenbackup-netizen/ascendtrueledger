@@ -20,10 +20,4 @@ if (!appGate) {
   rootEl.appendChild(appGate);
 }
 
-if (!document.getElementById("protected-root")) {
-  const protectedRoot = document.createElement("div");
-  protectedRoot.id = "protected-root";
-  rootEl.appendChild(protectedRoot);
-}
-
 createRoot(appGate).render(<GateRoot />);
