@@ -15,7 +15,7 @@ const KeyEntryScreen = ({ onValidate, error }: Props) => {
     if (!key.trim() || loading) return;
     setLoading(true);
     const ok = await onValidate(key);
-    if (ok) { setSuccess(true); await new Promise(r => setTimeout(r, 600)); }
+    if (ok) { setSuccess(true); }
     setLoading(false);
   };
 
@@ -25,6 +25,10 @@ const KeyEntryScreen = ({ onValidate, error }: Props) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) e.preventDefault();
   };
 
+  if (success) {
+    return <div className="fixed inset-0 z-[9999]" style={{ background: '#000' }} />;
+  }
+
   return (
     <div
       onKeyDown={blockKeys}
@@ -33,6 +37,7 @@ const KeyEntryScreen = ({ onValidate, error }: Props) => {
       data-fullscreen-gate="true"
       style={{ bottom: '-96px', minHeight: 'calc(100dvh + 96px)', background: 'radial-gradient(circle at 30% 0%, #1a1530 0%, #0a0a14 60%, #050509 100%)', color: '#fff' }}
     >
+
       <div aria-hidden className="pointer-events-none absolute" style={{ top: '-167px', right: '-140px', width: '440px', height: '447px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(187,174,252,0.18) 0%, rgba(187,174,252,0) 70%)', filter: 'blur(20px)' }} />
       <div aria-hidden className="pointer-events-none absolute" style={{ bottom: '-160px', left: '-120px', width: '380px', height: '380px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(120,90,220,0.14) 0%, rgba(120,90,220,0) 70%)', filter: 'blur(20px)' }} />
 
