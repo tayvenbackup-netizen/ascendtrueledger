@@ -815,6 +815,7 @@ input,textarea,select{font-size:16px !important;}
 #appIntro{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100dvh !important;max-height:none !important;background:var(--app-bg) !important;}
 #appIntro video{width:100% !important;height:100% !important;object-fit:cover !important;}
 .bg-glow{height:567px !important;background-color:var(--app-bg) !important;}
+.bg-glow::after{background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.75) 65%, var(--app-bg) 92%) !important;}
 .asset-logo{position:relative !important;overflow:visible !important;background:transparent !important;border-radius:50% !important;}
 .cc-logo{position:relative !important;overflow:hidden !important;background:transparent !important;border-radius:50% !important;}
 .asset-logo > img:not(.asset-chain-badge),.cc-logo > img{width:100% !important;height:100% !important;aspect-ratio:1/1 !important;object-fit:cover !important;background:transparent !important;border-radius:50% !important;display:block !important;}
@@ -829,6 +830,7 @@ input,textarea,select{font-size:16px !important;}
  /* Lock the purple background — it must NOT translate when pulling to refresh.
     Keep it above the black backdrop and BEHIND content so it remains visible. */
  .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:var(--app-bg) !important;}
+ .bg-glow::after{background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.75) 65%, var(--app-bg) 92%) !important;}
  /* Make sure header/balance text always sits above the fixed bg-glow */
  .header,.balance-section{position:relative !important;z-index:2 !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
