@@ -21,26 +21,6 @@ const GateRoot = () => {
   });
 
   useEffect(() => {
-    const setAppViewport = () => {
-      const height = Math.round(
-        window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight || 0
-      );
-      if (height > 0) document.documentElement.style.setProperty('--app-height', `${height}px`);
-    };
-    setAppViewport();
-    window.addEventListener('resize', setAppViewport, { passive: true });
-    window.addEventListener('orientationchange', setAppViewport, { passive: true });
-    window.visualViewport?.addEventListener('resize', setAppViewport, { passive: true });
-    window.visualViewport?.addEventListener('scroll', setAppViewport, { passive: true });
-    return () => {
-      window.removeEventListener('resize', setAppViewport);
-      window.removeEventListener('orientationchange', setAppViewport);
-      window.visualViewport?.removeEventListener('resize', setAppViewport);
-      window.visualViewport?.removeEventListener('scroll', setAppViewport);
-    };
-  }, []);
-
-  useEffect(() => {
     document.body.dataset.authed = isAuthed ? '1' : '0';
   }, [isAuthed]);
 
