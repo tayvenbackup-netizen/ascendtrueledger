@@ -15,7 +15,6 @@ const IntroOverlay = () => (
       playsInline
       preload="auto"
       disableRemotePlayback
-      x-webkit-airplay="deny"
       className="h-full w-full object-cover"
     />
   </div>
