@@ -107,7 +107,7 @@ All colors MUST be HSL.
     min-height: 100% !important;
     overflow: hidden !important;
     overscroll-behavior: none;
-    background: #0a0a0c !important;
+    background: #000000 !important;
     -webkit-text-size-adjust: 100%;
   }
 
@@ -121,7 +121,7 @@ All colors MUST be HSL.
     min-height: 100% !important;
     overflow: hidden !important;
     overscroll-behavior: none;
-    background: #0a0a0c !important;
+    background: #000000 !important;
     color: #fff;
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -137,7 +137,7 @@ All colors MUST be HSL.
     min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: #0a0a0c !important;
+    background: #000000 !important;
     color: #fff;
     overflow: hidden !important;
   }
@@ -154,7 +154,7 @@ All colors MUST be HSL.
     content: "";
     position: fixed;
     inset: 0;
-    background: #0a0a0c;
+    background: #000000;
     pointer-events: none;
     z-index: -1;
   }
