@@ -810,10 +810,10 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
  .header,.balance-section{position:relative !important;z-index:2 !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
  .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
-  /* Purple pull-to-refresh spinner — keep above fixed header so it's visible */
-  #pullSpinner{z-index:9999 !important;}
-  #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;}
-  @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:transparent}}
+  /* Purple pull-to-refresh spinner — must sit ABOVE the fixed header (z:60) */
+  #pullSpinner{position:fixed !important;top:14px !important;left:50% !important;margin-left:-10px !important;z-index:2147483646 !important;pointer-events:none !important;}
+  #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;background-color:#BBAEFC !important;}
+  @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:rgba(187,174,252,0.1)}}
  /* Tighten gap between promo card and Explore market header */
  .section-header{padding-top:18px !important;}
  /* Smaller explore market cards */
