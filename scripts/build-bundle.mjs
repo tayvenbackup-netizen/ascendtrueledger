@@ -685,6 +685,27 @@ const combinedJs = [
   customAddrController,
   marketController,
   `;(() => {
+    // Hydrate and pin the PTR spinner before the legacy pull handler binds.
+    // The source markup ships empty + display:none, so opacity/z-index alone
+    // cannot reveal it during the pull gesture.
+    const ensurePullSpinner = () => {
+      const spinner = document.getElementById('pullSpinner');
+      if (!spinner) return false;
+      if (!spinner.querySelector('.spinner-blade')) {
+        spinner.innerHTML = Array.from({ length: 8 }, () => '<div class="spinner-blade"></div>').join('');
+      }
+      spinner.style.display = 'block';
+      spinner.style.position = 'fixed';
+      spinner.style.top = '14px';
+      spinner.style.left = '50%';
+      spinner.style.zIndex = '2147483646';
+      spinner.style.pointerEvents = 'none';
+      return true;
+    };
+    const tryEnsure = () => { if (!ensurePullSpinner()) setTimeout(tryEnsure, 50); };
+    if (document.body) tryEnsure(); else document.addEventListener('DOMContentLoaded', tryEnsure);
+  })();`,
+  `;(() => {
     // Keep top header (4 circle icons) AND the purple bg-glow background static
     // while pulling to refresh. The PTR translates #ptr-wrapper, so anything
     // that must stay locked has to be moved OUT of that wrapper. (position:fixed
@@ -811,8 +832,8 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
  .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
   /* Purple pull-to-refresh spinner — must sit ABOVE the fixed header (z:60) */
-  #pullSpinner{position:fixed !important;top:14px !important;left:50% !important;margin-left:-10px !important;z-index:2147483646 !important;pointer-events:none !important;}
-  #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;background-color:#BBAEFC !important;}
+   #pullSpinner{display:block !important;position:fixed !important;top:14px !important;left:50% !important;margin-left:0 !important;z-index:2147483646 !important;pointer-events:none !important;}
+   #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;background-color:#BBAEFC !important;box-shadow:0 0 7px rgba(187,174,252,.35) !important;}
   @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:rgba(187,174,252,0.1)}}
  /* Tighten gap between promo card and Explore market header */
  .section-header{padding-top:18px !important;}
