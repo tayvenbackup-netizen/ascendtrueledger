@@ -719,14 +719,14 @@ const combinedJs = [
       const scrollable = app.querySelector('.scrollable');
 
       // Move bg-glow inside .app (as first child, sibling of header/scrollable)
-      // so it stays locked when #ptr-wrapper translates. Keep it above the black
-      // app backdrop but below all content, so the gradient remains visible while
-      // the area beneath/behind it stays black during scroll.
+      // so it stays locked when #ptr-wrapper translates. Keep it above the true
+      // black app backdrop but below all content, so the gradient remains visible
+      // and its transparent tail blends into black instead of gray.
       const glow = document.querySelector('.bg-glow');
       if (glow && glow.dataset.pinned !== '1') {
         app.insertBefore(glow, app.firstChild);
         glow.dataset.pinned = '1';
-        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;';
+        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:#000000 !important;';
       }
 
       if (header.dataset.pinned !== '1') {
