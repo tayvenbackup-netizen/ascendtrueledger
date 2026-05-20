@@ -697,12 +697,15 @@ const combinedJs = [
       if (!app || !wrap || !header) return false;
       const scrollable = app.querySelector('.scrollable');
 
-      // Move bg-glow out of the wrapper -> direct child of body, fixed behind everything
+      // Move bg-glow inside .app (as first child, sibling of header/scrollable)
+      // so it stays locked when #ptr-wrapper translates. .app gets a stacking
+      // context with isolation+z-index:0, and bg-glow sits at z-index:-1 BEHIND
+      // every other .app child but ABOVE body::before's black backdrop.
       const glow = document.querySelector('.bg-glow');
       if (glow && glow.dataset.pinned !== '1') {
-        document.body.appendChild(glow);
+        app.insertBefore(glow, app.firstChild);
         glow.dataset.pinned = '1';
-        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;';
+        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:-1 !important;pointer-events:none !important;transform:none !important;';
       }
 
       if (header.dataset.pinned !== '1') {
@@ -777,8 +780,8 @@ body::-webkit-scrollbar{display:none !important;}
 #root,#app-gate,#protected-root{display:flex !important;flex:1 1 0% !important;flex-direction:column !important;align-items:stretch !important;width:100% !important;min-width:100% !important;height:100% !important;min-height:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
 body::before{content:"" !important;position:fixed !important;inset:0 !important;background:#0a0a0c !important;z-index:-2147483647 !important;pointer-events:none !important;}
 #protected-root{position:fixed !important;inset:0 !important;}
-.app,.txn-detail-overlay{position:fixed !important;inset:0 !important;display:flex !important;flex-direction:column !important;width:100% !important;max-width:none !important;height:100% !important;min-height:0 !important;margin:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
-.scrollable{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 160px) !important;background:#0a0a0c !important;}
+.app,.txn-detail-overlay{position:fixed !important;inset:0 !important;display:flex !important;flex-direction:column !important;width:100% !important;max-width:none !important;height:100% !important;min-height:0 !important;margin:0 !important;overflow:hidden !important;background:transparent !important;isolation:isolate !important;z-index:0 !important;}
+.scrollable{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 160px) !important;background:transparent !important;}
 .txn-detail-screen{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;background:#0a0a0c !important;padding-bottom:72px !important;}
 .bottom-nav{position:fixed !important;bottom:var(--nav-bottom) !important;left:var(--nav-side) !important;right:var(--nav-side) !important;width:auto !important;height:86px !important;max-width:none !important;margin:0 !important;padding:0 !important;isolation:isolate !important;background:transparent !important;background-image:url('/assets/nav-bar.png') !important;background-repeat:no-repeat !important;background-size:100% 86px !important;background-position:center !important;}
 .bottom-nav::before{content:none !important;}
@@ -807,9 +810,10 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
  .header,.balance-section{position:relative !important;z-index:2 !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
  .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
- /* Purple pull-to-refresh spinner */
- #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;}
- @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:transparent}}
+  /* Purple pull-to-refresh spinner — keep above fixed header so it's visible */
+  #pullSpinner{z-index:9999 !important;}
+  #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;}
+  @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:transparent}}
  /* Tighten gap between promo card and Explore market header */
  .section-header{padding-top:18px !important;}
  /* Smaller explore market cards */
