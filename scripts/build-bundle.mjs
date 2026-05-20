@@ -685,6 +685,20 @@ const combinedJs = [
   customAddrController,
   marketController,
   `;(() => {
+    const setAppViewport = () => {
+      const h = Math.round((window.visualViewport && window.visualViewport.height) || window.innerHeight || document.documentElement.clientHeight || 0);
+      if (h > 0) document.documentElement.style.setProperty('--app-height', h + 'px');
+    };
+    setAppViewport();
+    window.addEventListener('resize', setAppViewport, { passive: true });
+    window.addEventListener('orientationchange', setAppViewport, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', setAppViewport, { passive: true });
+      window.visualViewport.addEventListener('scroll', setAppViewport, { passive: true });
+    }
+  })();`,
+
+  `;(() => {
     // Hydrate and pin the PTR spinner before the legacy pull handler binds.
     // The source markup ships empty + display:none, so opacity/z-index alone
     // cannot reveal it during the pull gesture.
