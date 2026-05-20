@@ -143,6 +143,15 @@ All colors MUST be HSL.
     color: #fff;
   }
 
+  body[data-authed="1"] #app-gate {
+    background: transparent !important;
+    pointer-events: none;
+  }
+
+  body[data-authed="1"] #app-gate > * {
+    pointer-events: auto;
+  }
+
   body::-webkit-scrollbar {
     display: none;
   }
