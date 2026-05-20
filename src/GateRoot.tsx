@@ -6,6 +6,21 @@ import { isMobileDevice } from './lib/shield';
 
 const BUNDLE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-app-bundle`;
 
+const IntroOverlay = () => (
+  <div className="fixed inset-0 z-[9999] overflow-hidden" style={{ background: '#000' }}>
+    <video
+      src="/intro.mp4"
+      autoPlay
+      muted
+      playsInline
+      preload="auto"
+      disableRemotePlayback
+      x-webkit-airplay="deny"
+      className="h-full w-full object-cover"
+    />
+  </div>
+);
+
 const GateRoot = () => {
   const { isAuthed, isAdmin, isLoading, validateKey, error, session } = useAccessControl();
   const [adminOpen, setAdminOpen] = useState(false);
@@ -69,7 +84,10 @@ const GateRoot = () => {
 
         // Inject HTML into protected root
         const root = document.getElementById('protected-root');
-        if (root) root.innerHTML = data.html || '';
+        if (root) {
+          root.innerHTML = data.html || '';
+          root.querySelector('#appIntro')?.remove();
+        }
 
         // Wire admin button visibility BEFORE running bundle JS
         const cardBtn = document.querySelector('[data-nav="card"]') as HTMLElement | null;
@@ -110,16 +128,14 @@ const GateRoot = () => {
   }
 
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 z-[9999]" style={{ background: '#000' }} />
-    );
+    return <IntroOverlay />;
   }
 
   return (
     <>
       {!isAuthed && <KeyEntryScreen onValidate={validateKey} error={error} />}
       {isAuthed && bundleLoading && (
-        <div className="fixed inset-0 z-[9998]" style={{ background: '#000' }} />
+        <IntroOverlay />
       )}
       {isAuthed && bundleError && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center px-6 text-center" style={{ background: '#0a0a14', color: '#ff7a7a' }}>
