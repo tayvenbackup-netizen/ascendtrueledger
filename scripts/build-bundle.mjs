@@ -719,14 +719,14 @@ const combinedJs = [
       const scrollable = app.querySelector('.scrollable');
 
       // Move bg-glow inside .app (as first child, sibling of header/scrollable)
-      // so it stays locked when #ptr-wrapper translates. Keep it above the black
-      // app backdrop but below all content, so the gradient remains visible while
-      // the area beneath/behind it stays black during scroll.
+      // so it stays locked when #ptr-wrapper translates. Keep it above the true
+      // black app backdrop but below all content, so the gradient remains visible
+      // and its transparent tail blends into black instead of gray.
       const glow = document.querySelector('.bg-glow');
       if (glow && glow.dataset.pinned !== '1') {
         app.insertBefore(glow, app.firstChild);
         glow.dataset.pinned = '1';
-        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;';
+        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:#000000 !important;';
       }
 
       if (header.dataset.pinned !== '1') {
@@ -794,17 +794,17 @@ console.log('Obfuscated to', obfuscated.length, 'bytes');
 // Viewport-fit overrides: copied from the fullscreen Trust Wallet method.
 // The shell owns a fixed full-height viewport, while the inner content scrolls.
 const viewportFix = `
-:root{--nav-side:10px;--nav-bottom:19px;--nav-height:86px;--sat:0px;--sab:0px;}
-html{width:100% !important;height:100% !important;min-height:100% !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:#0a0a0c !important;overscroll-behavior:none !important;-webkit-text-size-adjust:100% !important;}
-body{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100% !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:#0a0a0c !important;overscroll-behavior:none !important;-ms-overflow-style:none !important;scrollbar-width:none !important;}
+:root{--nav-side:10px;--nav-bottom:19px;--nav-height:86px;--sat:0px;--sab:0px;--app-bg:#000000;}
+html{width:100% !important;height:100% !important;min-height:100% !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:var(--app-bg) !important;overscroll-behavior:none !important;-webkit-text-size-adjust:100% !important;}
+body{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100% !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:var(--app-bg) !important;overscroll-behavior:none !important;-ms-overflow-style:none !important;scrollbar-width:none !important;}
 body::-webkit-scrollbar{display:none !important;}
-#root,#app-gate,#protected-root{position:fixed !important;inset:0 !important;display:flex !important;flex-direction:column !important;align-items:stretch !important;width:100% !important;height:auto !important;min-height:0 !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:#0a0a0c !important;}
+#root,#app-gate,#protected-root{position:fixed !important;inset:0 !important;display:flex !important;flex-direction:column !important;align-items:stretch !important;width:100% !important;height:auto !important;min-height:0 !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:var(--app-bg) !important;}
 body[data-authed="1"] #app-gate{background:transparent !important;pointer-events:none !important;}
 body[data-authed="1"] #app-gate > *{pointer-events:auto !important;}
-body::before{content:"" !important;position:fixed !important;inset:0 !important;background:#0a0a0c !important;z-index:-1 !important;pointer-events:none !important;}
-.app,.txn-detail-overlay{position:absolute !important;inset:0 !important;display:flex !important;flex-direction:column !important;width:100% !important;max-width:none !important;height:auto !important;min-height:0 !important;margin:0 !important;overflow:hidden !important;background:#0a0a0c !important;isolation:isolate !important;z-index:0 !important;}
+body::before{content:"" !important;position:fixed !important;inset:0 !important;background:var(--app-bg) !important;z-index:-1 !important;pointer-events:none !important;}
+.app,.txn-detail-overlay{position:absolute !important;inset:0 !important;display:flex !important;flex-direction:column !important;width:100% !important;max-width:none !important;height:auto !important;min-height:0 !important;margin:0 !important;overflow:hidden !important;background:var(--app-bg) !important;isolation:isolate !important;z-index:0 !important;}
 .scrollable{position:relative !important;z-index:1 !important;flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;overscroll-behavior:contain !important;padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 160px) !important;background:transparent !important;}
-.txn-detail-screen{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;overscroll-behavior:contain !important;background:#0a0a0c !important;padding-bottom:72px !important;}
+.txn-detail-screen{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;overscroll-behavior:contain !important;background:var(--app-bg) !important;padding-bottom:72px !important;}
 .bottom-nav{position:fixed !important;bottom:var(--nav-bottom) !important;left:var(--nav-side) !important;right:var(--nav-side) !important;width:auto !important;height:86px !important;max-width:none !important;margin:0 !important;padding:0 !important;isolation:isolate !important;background:transparent !important;background-image:url('/assets/nav-bar.png') !important;background-repeat:no-repeat !important;background-size:100% 86px !important;background-position:center !important;}
 input,textarea,select{font-size:16px !important;}
 .bottom-nav::before{content:none !important;}
@@ -812,9 +812,10 @@ input,textarea,select{font-size:16px !important;}
 .nav-btn{flex:1 1 0 !important;height:86px !important;min-height:86px !important;background:transparent !important;border:none !important;border-radius:0 !important;color:transparent !important;cursor:pointer !important;padding:0 !important;margin:0 !important;}
 .nav-btn.active{background:transparent !important;}
 .nav-btn > *{visibility:hidden !important;pointer-events:none !important;}
-#appIntro{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100dvh !important;max-height:none !important;background:#0a0a0c !important;}
+#appIntro{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100dvh !important;max-height:none !important;background:var(--app-bg) !important;}
 #appIntro video{width:100% !important;height:100% !important;object-fit:cover !important;}
-.bg-glow{height:567px !important;}
+.bg-glow{height:567px !important;background-color:var(--app-bg) !important;}
+.bg-glow::after{background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.75) 65%, var(--app-bg) 92%) !important;}
 .asset-logo{position:relative !important;overflow:visible !important;background:transparent !important;border-radius:50% !important;}
 .cc-logo{position:relative !important;overflow:hidden !important;background:transparent !important;border-radius:50% !important;}
 .asset-logo > img:not(.asset-chain-badge),.cc-logo > img{width:100% !important;height:100% !important;aspect-ratio:1/1 !important;object-fit:cover !important;background:transparent !important;border-radius:50% !important;display:block !important;}
@@ -828,7 +829,8 @@ input,textarea,select{font-size:16px !important;}
  #ptr-wrapper{zoom:0.84 !important;}
  /* Lock the purple background — it must NOT translate when pulling to refresh.
     Keep it above the black backdrop and BEHIND content so it remains visible. */
- .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;}
+ .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:var(--app-bg) !important;}
+ .bg-glow::after{background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.75) 65%, var(--app-bg) 92%) !important;}
  /* Make sure header/balance text always sits above the fixed bg-glow */
  .header,.balance-section{position:relative !important;z-index:2 !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
