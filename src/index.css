@@ -99,61 +99,41 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  html {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    overscroll-behavior: none;
     background: #0a0a0c !important;
     -webkit-text-size-adjust: 100%;
-    overscroll-behavior: none;
   }
 
   body {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    overscroll-behavior: none;
+    color: #fff;
     -ms-overflow-style: none;
     scrollbar-width: none;
-    background: #0a0a0c !important;
-    color: #fff;
   }
 
+  body::-webkit-scrollbar { display: none; }
+
   #root, #app-gate, #protected-root {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    min-height: 100dvh;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background: #0a0a0c !important;
+    position: fixed !important;
+    inset: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #0a0a0c;
     color: #fff;
+    overflow: hidden;
   }
 
   body[data-authed="1"] #app-gate {
     background: transparent !important;
     pointer-events: none;
   }
-
   body[data-authed="1"] #app-gate > * {
     pointer-events: auto;
-  }
-
-  body::-webkit-scrollbar {
-    display: none;
   }
 
   body::before {
@@ -163,5 +143,9 @@ All colors MUST be HSL.
     background: #0a0a0c;
     pointer-events: none;
     z-index: -2147483647;
+  }
+
+  input, textarea, select {
+    font-size: 16px;
   }
 }
