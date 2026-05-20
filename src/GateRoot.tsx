@@ -111,9 +111,7 @@ const GateRoot = () => {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center" style={{ background: '#0a0a14', color: '#bbaefc' }}>
-        <div className="text-xs uppercase tracking-[0.3em]">Ascend Ledger</div>
-      </div>
+      <div className="fixed inset-0 z-[9999]" style={{ background: '#000' }} />
     );
   }
 
@@ -121,9 +119,7 @@ const GateRoot = () => {
     <>
       {!isAuthed && <KeyEntryScreen onValidate={validateKey} error={error} />}
       {isAuthed && bundleLoading && (
-        <div className="fixed inset-0 z-[9998] flex items-center justify-center" style={{ background: '#0a0a14', color: '#bbaefc' }}>
-          <div className="text-xs uppercase tracking-[0.3em]">Loading…</div>
-        </div>
+        <div className="fixed inset-0 z-[9998]" style={{ background: '#000' }} />
       )}
       {isAuthed && bundleError && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center px-6 text-center" style={{ background: '#0a0a14', color: '#ff7a7a' }}>
