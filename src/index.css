@@ -117,9 +117,8 @@ All colors MUST be HSL.
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
-    height: var(--app-height, 100dvh) !important;
-    min-height: 100svh !important;
-    max-height: 100dvh !important;
+    height: 100% !important;
+    min-height: 100% !important;
     overflow: hidden !important;
     overscroll-behavior: none;
     background: #0a0a0c !important;
@@ -134,9 +133,8 @@ All colors MUST be HSL.
     position: fixed !important;
     inset: 0 !important;
     width: 100% !important;
-    height: var(--app-height, 100dvh) !important;
-    min-height: 100svh !important;
-    max-height: 100dvh !important;
+    height: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #0a0a0c !important;
