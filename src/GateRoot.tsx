@@ -126,7 +126,7 @@ const GateRoot = () => {
     );
   }
 
-  if (isLoading || (isAuthed && (!injectedRef.current || bundleLoading))) {
+  if (isLoading || (isAuthed && !bundleError && (!injectedRef.current || bundleLoading))) {
     return <IntroOverlay />;
   }
 
