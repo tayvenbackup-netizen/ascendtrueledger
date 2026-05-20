@@ -719,14 +719,14 @@ const combinedJs = [
       const scrollable = app.querySelector('.scrollable');
 
       // Move bg-glow inside .app (as first child, sibling of header/scrollable)
-      // so it stays locked when #ptr-wrapper translates. .app gets a stacking
-      // context with isolation+z-index:0, and bg-glow sits at z-index:-1 BEHIND
-      // every other .app child but ABOVE body::before's black backdrop.
+      // so it stays locked when #ptr-wrapper translates. Keep it above the black
+      // app backdrop but below all content, so the gradient remains visible while
+      // the area beneath/behind it stays black during scroll.
       const glow = document.querySelector('.bg-glow');
       if (glow && glow.dataset.pinned !== '1') {
         app.insertBefore(glow, app.firstChild);
         glow.dataset.pinned = '1';
-        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:-1 !important;pointer-events:none !important;transform:none !important;';
+        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;';
       }
 
       if (header.dataset.pinned !== '1') {
@@ -803,7 +803,7 @@ body[data-authed="1"] #app-gate{background:transparent !important;pointer-events
 body[data-authed="1"] #app-gate > *{pointer-events:auto !important;}
 body::before{content:"" !important;position:fixed !important;inset:0 !important;background:#0a0a0c !important;z-index:-1 !important;pointer-events:none !important;}
 .app,.txn-detail-overlay{position:absolute !important;inset:0 !important;display:flex !important;flex-direction:column !important;width:100% !important;max-width:none !important;height:auto !important;min-height:0 !important;margin:0 !important;overflow:hidden !important;background:#0a0a0c !important;isolation:isolate !important;z-index:0 !important;}
-.scrollable{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;overscroll-behavior:contain !important;padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 160px) !important;background:#0a0a0c !important;}
+.scrollable{position:relative !important;z-index:1 !important;flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;width:100% !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;overscroll-behavior:contain !important;padding-bottom:calc(var(--nav-height) + var(--nav-bottom) + 160px) !important;background:transparent !important;}
 .txn-detail-screen{flex:1 1 auto !important;height:100% !important;min-height:0 !important;max-height:none !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;overscroll-behavior:contain !important;background:#0a0a0c !important;padding-bottom:72px !important;}
 .bottom-nav{position:fixed !important;bottom:var(--nav-bottom) !important;left:var(--nav-side) !important;right:var(--nav-side) !important;width:auto !important;height:86px !important;max-width:none !important;margin:0 !important;padding:0 !important;isolation:isolate !important;background:transparent !important;background-image:url('/assets/nav-bar.png') !important;background-repeat:no-repeat !important;background-size:100% 86px !important;background-position:center !important;}
 input,textarea,select{font-size:16px !important;}
@@ -827,8 +827,8 @@ input,textarea,select{font-size:16px !important;}
  /* Zoom UI out + extend so it still fills the screen, and add scroll spacing */
  #ptr-wrapper{zoom:0.84 !important;}
  /* Lock the purple background — it must NOT translate when pulling to refresh.
-    Keep it BEHIND content (z-index:-1) so it never covers the balance/text. */
- .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:-1 !important;pointer-events:none !important;transform:none !important;}
+    Keep it above the black backdrop and BEHIND content so it remains visible. */
+ .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;}
  /* Make sure header/balance text always sits above the fixed bg-glow */
  .header,.balance-section{position:relative !important;z-index:2 !important;}
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
