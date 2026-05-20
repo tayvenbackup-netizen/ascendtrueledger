@@ -697,12 +697,15 @@ const combinedJs = [
       if (!app || !wrap || !header) return false;
       const scrollable = app.querySelector('.scrollable');
 
-      // Move bg-glow out of the wrapper -> direct child of body, fixed behind everything
+      // Move bg-glow inside .app (as first child, sibling of header/scrollable)
+      // so it stays locked when #ptr-wrapper translates. .app gets a stacking
+      // context with isolation+z-index:0, and bg-glow sits at z-index:-1 BEHIND
+      // every other .app child but ABOVE body::before's black backdrop.
       const glow = document.querySelector('.bg-glow');
       if (glow && glow.dataset.pinned !== '1') {
-        document.body.appendChild(glow);
+        app.insertBefore(glow, app.firstChild);
         glow.dataset.pinned = '1';
-        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;';
+        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:-1 !important;pointer-events:none !important;transform:none !important;';
       }
 
       if (header.dataset.pinned !== '1') {
