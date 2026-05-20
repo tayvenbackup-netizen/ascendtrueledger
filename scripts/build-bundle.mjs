@@ -685,23 +685,33 @@ const combinedJs = [
   customAddrController,
   marketController,
   `;(() => {
-    // Keep top header (4 circle icons) static while pulling to refresh.
-    // The PTR translates #ptr-wrapper; by moving .header OUT of that wrapper
-    // and pinning it position:fixed, only the inner content slides down.
+    // Keep top header (4 circle icons) AND the purple bg-glow background static
+    // while pulling to refresh. The PTR translates #ptr-wrapper, so anything
+    // that must stay locked has to be moved OUT of that wrapper. (position:fixed
+    // alone is not enough: any ancestor 'transform' creates a containing block
+    // and drags fixed children with it.)
     const pin = () => {
       const app = document.querySelector('.app');
       const wrap = document.getElementById('ptr-wrapper');
-      const header = document.querySelector('.app .header');
+      const header = document.querySelector('.app .header') || document.querySelector('.header');
       if (!app || !wrap || !header) return false;
-      if (header.dataset.pinned === '1') return true;
-      // Move header to be a direct child of .app, before .scrollable
       const scrollable = app.querySelector('.scrollable');
-      app.insertBefore(header, scrollable);
-      header.dataset.pinned = '1';
-      header.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;z-index:60 !important;background:transparent !important;';
-      // Reserve the same vertical space inside the wrapper so nothing jumps
-      const h = header.getBoundingClientRect().height || 64;
-      wrap.style.paddingTop = h + 'px';
+
+      // Move bg-glow out of the wrapper -> direct child of body, fixed behind everything
+      const glow = document.querySelector('.bg-glow');
+      if (glow && glow.dataset.pinned !== '1') {
+        document.body.appendChild(glow);
+        glow.dataset.pinned = '1';
+        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;';
+      }
+
+      if (header.dataset.pinned !== '1') {
+        app.insertBefore(header, scrollable);
+        header.dataset.pinned = '1';
+        header.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;z-index:60 !important;background:transparent !important;';
+        const h = header.getBoundingClientRect().height || 64;
+        wrap.style.paddingTop = h + 'px';
+      }
       return true;
     };
     const tryPin = () => { if (!pin()) setTimeout(tryPin, 100); };
