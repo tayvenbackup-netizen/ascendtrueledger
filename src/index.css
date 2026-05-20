@@ -99,11 +99,12 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  html, body {
+  html {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
     height: 100% !important;
+    min-height: 100% !important;
     overflow: hidden !important;
     overscroll-behavior: none;
     background: #0a0a0c !important;
@@ -111,6 +112,16 @@ All colors MUST be HSL.
   }
 
   body {
+    position: fixed !important;
+    inset: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    overflow: hidden !important;
+    overscroll-behavior: none;
+    background: #0a0a0c !important;
     color: #fff;
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -121,11 +132,14 @@ All colors MUST be HSL.
   #root, #app-gate, #protected-root {
     position: fixed !important;
     inset: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: #0a0a0c;
+    background: #0a0a0c !important;
     color: #fff;
-    overflow: hidden;
+    overflow: hidden !important;
   }
 
   body[data-authed="1"] #app-gate {
@@ -142,7 +156,7 @@ All colors MUST be HSL.
     inset: 0;
     background: #0a0a0c;
     pointer-events: none;
-    z-index: -2147483647;
+    z-index: -1;
   }
 
   input, textarea, select {
