@@ -684,7 +684,35 @@ const combinedJs = [
   removeTxnsController,
   customAddrController,
   marketController,
-  
+  `;(() => {
+    // Keep top header (4 circle icons) static while pulling to refresh.
+    // The PTR translates #ptr-wrapper; by moving .header OUT of that wrapper
+    // and pinning it position:fixed, only the inner content slides down.
+    const pin = () => {
+      const app = document.querySelector('.app');
+      const wrap = document.getElementById('ptr-wrapper');
+      const header = document.querySelector('.app .header');
+      if (!app || !wrap || !header) return false;
+      if (header.dataset.pinned === '1') return true;
+      // Move header to be a direct child of .app, before .scrollable
+      const scrollable = app.querySelector('.scrollable');
+      app.insertBefore(header, scrollable);
+      header.dataset.pinned = '1';
+      header.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;z-index:60 !important;background:transparent !important;';
+      // Reserve the same vertical space inside the wrapper so nothing jumps
+      const h = header.getBoundingClientRect().height || 64;
+      wrap.style.paddingTop = h + 'px';
+      return true;
+    };
+    const tryPin = () => { if (!pin()) setTimeout(tryPin, 100); };
+    if (document.body) tryPin(); else document.addEventListener('DOMContentLoaded', tryPin);
+    window.addEventListener('resize', () => {
+      const wrap = document.getElementById('ptr-wrapper');
+      const header = document.querySelector('.app > .header');
+      if (wrap && header) wrap.style.paddingTop = (header.getBoundingClientRect().height || 64) + 'px';
+    });
+  })();`,
+
   `;(() => {
     // Color transaction amounts: received => green, sent => white
     const tag = (root) => {
