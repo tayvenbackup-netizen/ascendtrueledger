@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { KeyRound, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff, Wallet } from 'lucide-react';
+import { KeyRound, AlertCircle, Eye, EyeOff, Wallet } from 'lucide-react';
 
 interface Props { onValidate: (key: string) => Promise<boolean>; error: string; }
 
@@ -25,8 +25,19 @@ const KeyEntryScreen = ({ onValidate, error }: Props) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) e.preventDefault();
   };
 
-  if (success) {
-    return <div className="fixed inset-0 z-[9999]" style={{ background: '#000' }} />;
+  if (loading || success) {
+    return (
+      <div className="fixed inset-0 z-[9999] overflow-hidden" style={{ background: '#000' }}>
+        <video
+          src="/intro.mp4"
+          autoPlay
+          muted
+          playsInline
+          preload="auto"
+          className="h-full w-full object-cover"
+        />
+      </div>
+    );
   }
 
   return (
@@ -92,9 +103,7 @@ const KeyEntryScreen = ({ onValidate, error }: Props) => {
           <motion.button type="submit" disabled={!key.trim() || loading || success} whileTap={{ scale: 0.97 }}
             className="w-full h-12 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 text-white disabled:opacity-40"
             style={{ background: success ? '#16a34a' : 'linear-gradient(135deg, #6c5ce7, #8b6cf3)' }}>
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" />
-              : success ? (<><CheckCircle2 className="w-4 h-4" /> Access Granted</>)
-              : (<><KeyRound className="w-4 h-4" /> Unlock</>)}
+            <KeyRound className="w-4 h-4" /> Unlock
           </motion.button>
         </form>
 
