@@ -691,12 +691,12 @@ const combinedJs = [
     const ensurePullSpinner = () => {
       const spinner = document.getElementById('pullSpinner');
       if (!spinner) return false;
-      if (!spinner.querySelector('.spinner-blade')) {
-        spinner.innerHTML = Array.from({ length: 8 }, () => '<div class="spinner-blade"></div>').join('');
+      if (spinner.children.length !== 12 || !spinner.querySelector('.spinner-blade')) {
+        spinner.innerHTML = Array.from({ length: 12 }, () => '<div class="spinner-blade"></div>').join('');
       }
       spinner.style.display = 'block';
       spinner.style.position = 'fixed';
-      spinner.style.top = '14px';
+      spinner.style.top = '78px';
       spinner.style.left = '50%';
       spinner.style.zIndex = '2147483646';
       spinner.style.pointerEvents = 'none';
@@ -832,9 +832,10 @@ body::before{content:"" !important;position:fixed !important;inset:0 !important;
  /* Kill the backdrop blur on the bottom nav so the PNG renders crisply */
  .bottom-nav,.nav-pill{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
   /* Purple pull-to-refresh spinner — must sit ABOVE the fixed header (z:60) */
-   #pullSpinner{display:block !important;position:fixed !important;top:14px !important;left:50% !important;margin-left:0 !important;z-index:2147483646 !important;pointer-events:none !important;}
-   #pullSpinner .spinner-blade{animation-name:ptr-fade-purple !important;background-color:#BBAEFC !important;box-shadow:0 0 7px rgba(187,174,252,.35) !important;}
-  @keyframes ptr-fade-purple{0%{background-color:#BBAEFC}100%{background-color:rgba(187,174,252,0.1)}}
+   #pullSpinner{display:block !important;position:fixed !important;top:78px !important;left:50% !important;width:30px !important;height:30px !important;font-size:30px !important;margin-left:0 !important;z-index:2147483646 !important;pointer-events:none !important;}
+   #pullSpinner .spinner-blade{left:13.6px !important;bottom:0 !important;width:3px !important;height:8.5px !important;border-radius:999px !important;transform-origin:center -6.5px !important;animation:ptr-fade-purple .9s infinite linear !important;background-color:#7967ff !important;box-shadow:none !important;}
+   #pullSpinner .spinner-blade:nth-child(1){transform:rotate(0deg) !important;animation-delay:0s !important;}#pullSpinner .spinner-blade:nth-child(2){transform:rotate(30deg) !important;animation-delay:.075s !important;}#pullSpinner .spinner-blade:nth-child(3){transform:rotate(60deg) !important;animation-delay:.15s !important;}#pullSpinner .spinner-blade:nth-child(4){transform:rotate(90deg) !important;animation-delay:.225s !important;}#pullSpinner .spinner-blade:nth-child(5){transform:rotate(120deg) !important;animation-delay:.3s !important;}#pullSpinner .spinner-blade:nth-child(6){transform:rotate(150deg) !important;animation-delay:.375s !important;}#pullSpinner .spinner-blade:nth-child(7){transform:rotate(180deg) !important;animation-delay:.45s !important;}#pullSpinner .spinner-blade:nth-child(8){transform:rotate(210deg) !important;animation-delay:.525s !important;}#pullSpinner .spinner-blade:nth-child(9){transform:rotate(240deg) !important;animation-delay:.6s !important;}#pullSpinner .spinner-blade:nth-child(10){transform:rotate(270deg) !important;animation-delay:.675s !important;}#pullSpinner .spinner-blade:nth-child(11){transform:rotate(300deg) !important;animation-delay:.75s !important;}#pullSpinner .spinner-blade:nth-child(12){transform:rotate(330deg) !important;animation-delay:.825s !important;}
+   @keyframes ptr-fade-purple{0%{background-color:#7f6cff;opacity:1}100%{background-color:#392f75;opacity:.22}}
  /* Tighten gap between promo card and Explore market header */
  .section-header{padding-top:18px !important;}
  /* Smaller explore market cards */
