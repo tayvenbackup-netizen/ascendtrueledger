@@ -708,6 +708,391 @@ const marketController = `;(() => {
   const iv = setInterval(() => { tryInit(); }, 250);
 })();`;
 
+// ── Coin Detail Overlay controller ────────────────────────────────────────────
+const coinDetailController = `;(() => {
+  const COIN_BY_NAME = {
+    'Bitcoin':'btc','Ethereum':'eth','XRP':'xrp','BNB Chain':'bnb','Solana':'sol','Litecoin':'ltc','Tether':'usdt_eth'
+  };
+  const CHAIN_LABELS = {
+    btc:'Bitcoin', eth:'Ethereum', xrp:'XRP Ledger', bnb:'BNB Chain', sol:'Solana', ltc:'Litecoin',
+    usdt_eth:'Ethereum', usdt_sol:'Solana', usdt_tron:'Tron', usdt_bnb:'BNB Chain'
+  };
+  const POWERED_BY = {
+    btc:'Powered by Blockstream', eth:'Powered by Ethereum Foundation', xrp:'Powered by Ripple',
+    bnb:'Powered by BNB Chain', sol:'Powered by Solana Labs', ltc:'Powered by Litecoin Foundation',
+    usdt_eth:'Powered by Ethereum Foundation', usdt_sol:'Powered by Solana Labs',
+    usdt_tron:'Powered by Tron', usdt_bnb:'Powered by BNB Chain'
+  };
+  // Tokens that live on each chain (mocked balances, deterministic by coin key)
+  const TOKENS = {
+    eth: [
+      { sym:'USDC', name:'USD Coin', icon:'coin-usdt.png', amount:104.291, price:1.000, change:-0.02, color:'#2775CA' },
+      { sym:'CRO', name:'Cronos Coin', icon:'coin-cro.png', amount:109.643, price:0.0696, change:2.28, color:'#103F68' },
+      { sym:'cbBTC', name:'Coinbase Wrapped BTC', icon:'coin-btc.png', amount:0.00006723, price:77800, change:1.55, color:'#0052FF' }
+    ],
+    sol: [
+      { sym:'USDC', name:'USD Coin', icon:'coin-usdt.png', amount:56.4887, price:1.000, change:-0.02, color:'#2775CA' },
+      { sym:'PUMP', name:'Pump', icon:'coin-pump.png', amount:26404, price:0.00179, change:6.82, color:'#1FCC8C' },
+      { sym:'RCON', name:'RECON RACCOON', icon:'coin-rcon.png', amount:10670, price:0.00113, change:17.30, color:'#C28B4A' }
+    ],
+    btc: [
+      { sym:'ORDI', name:'Ordinals', icon:'coin-btc.png', amount:3.21, price:42.5, change:1.10, color:'#F7931A' }
+    ],
+    bnb: [
+      { sym:'CAKE', name:'PancakeSwap', icon:'coin-bnb.png', amount:45.2, price:2.30, change:0.41, color:'#D1884F' },
+      { sym:'BUSD', name:'Binance USD', icon:'coin-usdt.png', amount:120.5, price:1.000, change:0.01, color:'#F0B90B' }
+    ],
+    xrp:[], ltc:[],
+    usdt_eth:[], usdt_sol:[], usdt_tron:[], usdt_bnb:[]
+  };
+
+  const fmtUSDsafe = (n) => { try { return (typeof fmtUSD==='function')?fmtUSD(n):'$'+n.toFixed(2);} catch{return '$'+n.toFixed(2);} };
+  const fmtAmtSafe = (n) => { try { return (typeof fmtAmount==='function')?fmtAmount(n):n.toString();} catch{return n.toString();} };
+
+  // ── chart helpers (mirrors legacy buildChart on a per-coin basis) ──
+  function catmull(pts){
+    if (!pts || pts.length<2) return '';
+    let d='M'+pts[0][0].toFixed(2)+' '+pts[0][1].toFixed(2);
+    for(let i=0;i<pts.length-1;i++){
+      const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+      const c1x=p1[0]+(p2[0]-p0[0])/6, c1y=p1[1]+(p2[1]-p0[1])/6;
+      const c2x=p2[0]-(p3[0]-p1[0])/6, c2y=p2[1]-(p3[1]-p1[1])/6;
+      d+=' C'+c1x.toFixed(2)+' '+c1y.toFixed(2)+','+c2x.toFixed(2)+' '+c2y.toFixed(2)+','+p2[0].toFixed(2)+' '+p2[1].toFixed(2);
+    }
+    return d;
+  }
+
+  let currentCoin = null;
+  let currentCdRange = '1D';
+  let currentChartPts = [];
+
+  async function loadCoinChart(coin, range){
+    let pts = null;
+    try { if (typeof fetchCoinChart === 'function') pts = await fetchCoinChart(coin, range); } catch{}
+    return pts;
+  }
+
+  function drawChart(values){
+    const svg = document.getElementById('cdChartSvg');
+    if (!svg) return;
+    const W = svg.clientWidth || svg.getBoundingClientRect().width;
+    const H = svg.clientHeight || svg.getBoundingClientRect().height;
+    if (!W || !H || !values || values.length<2) return;
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    const PAD_TOP=20, PAD_BOT=4;
+    const drawH = H - PAD_TOP - PAD_BOT;
+    const minV = Math.min(...values), maxV = Math.max(...values);
+    const range = (maxV-minV)||1;
+    const yMin = minV - range*0.08, yMax = maxV + range*0.04;
+    const yRange = yMax-yMin||1;
+    const pts = values.map((v,i)=>[ i/(values.length-1)*W, PAD_TOP + (1-(v-yMin)/yRange)*drawH ]);
+    const linePath = catmull(pts);
+    const last = pts[pts.length-1], first = pts[0];
+    const fillPath = linePath + ' L '+last[0].toFixed(2)+' '+H+' L '+first[0].toFixed(2)+' '+H+' Z';
+    document.getElementById('cdChartLine').setAttribute('d', linePath);
+    document.getElementById('cdChartFill').setAttribute('d', fillPath);
+    currentChartPts = pts;
+  }
+
+  async function refreshChart(){
+    if (!currentCoin) return;
+    const line = document.getElementById('cdChartLine');
+    const wrap = document.querySelector('.cd-chart-wrap');
+    const color = (typeof COIN_COLORS!=='undefined' && COIN_COLORS[currentCoin]) || '#bbaefc';
+    if (line) line.setAttribute('stroke', color);
+    if (wrap) wrap.style.color = color;
+    const pts = await loadCoinChart(currentCoin, currentCdRange);
+    if (!pts || !pts.length) {
+      // fallback: flat line
+      drawChart([1,1,1,1]);
+      return;
+    }
+    const values = pts.map(p => typeof p==='number'?p:(p.price||p.value||0));
+    if (currentCoin === currentCoin /* guard for race */) drawChart(values);
+  }
+
+  function shortAddrLocal(a){ if(!a) return ''; if (a.length<=14) return a; return (a.slice(0,8)+'…'+a.slice(-8)).toUpperCase(); }
+
+  function getAddressFor(coin){
+    try {
+      if (typeof ensureAccountMeta === 'function') return ensureAccountMeta(coin).address || '';
+    } catch{}
+    try {
+      const m = JSON.parse(localStorage.getItem('ledgerAccounts')||'{}');
+      return (m[coin] && m[coin].address) || '';
+    } catch { return ''; }
+  }
+  function getAccountNameFor(coin){
+    try {
+      if (typeof ensureAccountMeta === 'function') return ensureAccountMeta(coin).name || ((typeof COIN_NAMES!=='undefined'?COIN_NAMES[coin]:coin)+' 1');
+    } catch{}
+    const base = (typeof COIN_NAMES!=='undefined'?COIN_NAMES[coin]:coin);
+    return base + ' 1';
+  }
+
+  function renderQuickActions(coin){
+    const grid = document.getElementById('cdQuickActions');
+    if (!grid) return;
+    const middleTop = (coin==='eth'||coin==='sol'||coin==='btc') ? 'Stake' : 'Earn';
+    const acts = [
+      ['Receive','M12 5v14M5 12l7 7 7-7'],
+      ['Send','M12 19V5M5 12l7-7 7 7'],
+      [middleTop,'M3 7h18M3 12h18M3 17h18'],
+      ['Sell','M5 12h14'],
+      ['Buy','M12 5v14M5 12h14'],
+      ['Swap','M7 7h13l-3-3M17 17H4l3 3']
+    ];
+    grid.innerHTML = acts.map(([label,d]) =>
+      '<button class="cd-qa-btn" data-action="'+label.toLowerCase()+'">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>'+
+        '<span>'+label+'</span>'+
+      '</button>'
+    ).join('');
+  }
+
+  function renderTokens(coin){
+    const section = document.getElementById('cdTokensSection');
+    const list = document.getElementById('cdTokensList');
+    const cnt = document.getElementById('cdTokensCount');
+    const more = document.getElementById('cdTokensMore');
+    if (!section || !list) return;
+    const tokens = TOKENS[coin] || [];
+    if (!tokens.length) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    cnt.textContent = tokens.length;
+    list.innerHTML = tokens.map(t => {
+      const fiat = t.amount * t.price;
+      const isDown = (t.change||0) < 0;
+      const sign = (t.change||0) >= 0 ? '+' : '';
+      return '<div class="cd-token-row">'+
+        '<div class="cd-token-left">'+
+          '<div class="cd-token-logo" style="background:'+(t.color||'#1f1f24')+'"><span>'+(t.sym.charAt(0))+'</span></div>'+
+          '<div class="cd-token-info"><div class="cd-token-name">'+t.name+'</div><div class="cd-token-sub">'+fmtAmtSafe(t.amount)+' '+t.sym+'</div></div>'+
+        '</div>'+
+        '<div class="cd-token-right">'+
+          '<div class="cd-token-val">'+fmtUSDsafe(fiat)+'</div>'+
+          '<div class="cd-token-pct '+(isDown?'down':'')+'">'+sign+(t.change||0).toFixed(2)+'%</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    if (more) more.style.display = tokens.length > 3 ? '' : 'none';
+  }
+
+  function fmtTxnDate(ts){
+    const d = new Date(ts);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dd = new Date(d); dd.setHours(0,0,0,0);
+    const diff = Math.round((today-dd)/86400000);
+    const mdy = (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+    if (diff===0) return mdy + ' - TODAY';
+    if (diff===1) return mdy + ' - YESTERDAY';
+    return mdy;
+  }
+  function fmtTxnTimeSafe(ts){
+    try { return (typeof fmtTxnTime==='function')?fmtTxnTime(ts):new Date(ts).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); }
+    catch { return new Date(ts).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); }
+  }
+
+  function renderTxns(coin){
+    const list = document.getElementById('cdTxnList');
+    if (!list) return;
+    let txns = [];
+    try { txns = (typeof loadTxns==='function')?loadTxns():(JSON.parse(localStorage.getItem('ledgerTxns'))||[]); } catch{}
+    txns = txns.filter(t => t.coin === coin).sort((a,b)=>b.ts-a.ts);
+    list.innerHTML = '';
+    if (!txns.length) { list.innerHTML = '<div class="cd-txn-empty">No transactions yet</div>'; return; }
+    let s = {}; try { s = (typeof loadSettings==='function')?loadSettings():{}; } catch{}
+    const currency = (s && s.currency) || 'usd';
+    const ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/></svg>';
+    const ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="18 13 12 19 6 13"/></svg>';
+    let lastDate = '';
+    const name = (typeof COIN_NAMES!=='undefined' && COIN_NAMES[coin]) || coin;
+    const sym = (typeof COIN_SYMBOLS!=='undefined' && COIN_SYMBOLS[coin]) || '';
+    for (const t of txns) {
+      const ds = fmtTxnDate(t.ts);
+      if (ds !== lastDate){
+        const pill = document.createElement('div');
+        pill.className = 'cd-txn-date'; pill.textContent = ds;
+        list.appendChild(pill); lastDate = ds;
+      }
+      let price=0;
+      try { const c = (typeof getCachedPrice==='function')?getCachedPrice(t.coin,currency):null;
+        price = c?c.price:((typeof FALLBACK_PRICES!=='undefined'&&FALLBACK_PRICES[t.coin])||0); } catch{}
+      const fiat = Math.abs(t.amount)*price;
+      const isSent = t.type==='sent';
+      const sign = isSent?'-':'+';
+      const row = document.createElement('div');
+      row.className = 'cd-txn-row';
+      row.innerHTML =
+        '<div class="cd-txn-ic">'+(isSent?ARROW_UP:ARROW_DOWN)+'</div>'+
+        '<div class="cd-txn-mid"><div class="cd-txn-name">'+name+' 1</div><div class="cd-txn-sub">'+(isSent?'Sent':'Received')+' '+fmtTxnTimeSafe(t.ts)+'</div></div>'+
+        '<div class="cd-txn-right"><div class="cd-txn-amt '+(isSent?'is-sent':'is-received')+'">'+sign+fmtAmtSafe(Math.abs(t.amount))+' '+sym+'</div><div class="cd-txn-fiat '+(isSent?'is-sent':'is-received')+'">'+sign+fmtUSDsafe(fiat)+'</div></div>';
+      row.addEventListener('click', () => { if (typeof openTxnDetail==='function') openTxnDetail(t); });
+      list.appendChild(row);
+    }
+  }
+
+  function populate(coin){
+    currentCoin = coin;
+    const overlay = document.getElementById('coinDetailOverlay');
+    if (!overlay) return;
+    const name = getAccountNameFor(coin);
+    const sym = (typeof COIN_SYMBOLS!=='undefined' && COIN_SYMBOLS[coin]) || '';
+    let amount = 0;
+    try {
+      const s = (typeof loadSettings==='function')?loadSettings():{};
+      amount = parseFloat((s.coins||{})[coin]) || 0;
+    } catch{}
+    let price=0, change=0;
+    try {
+      const s = (typeof loadSettings==='function')?loadSettings():{};
+      const cur = (s && s.currency) || 'usd';
+      const c = (typeof getCachedPrice==='function')?getCachedPrice(coin,cur):null;
+      price = c?c.price:((typeof FALLBACK_PRICES!=='undefined'&&FALLBACK_PRICES[coin])||0);
+      change = c?(c.change24h||0):0;
+    } catch{}
+    const fiat = amount*price;
+    document.getElementById('cdAccountName').textContent = name;
+    document.getElementById('cdNativeBalance').textContent = fmtAmtSafe(amount)+' '+sym;
+    document.getElementById('cdFiatBalance').textContent = fmtUSDsafe(fiat);
+    document.getElementById('cdHeaderTitle').innerHTML = '<div class="cdh-name">'+name+'</div><div class="cdh-fiat">'+fmtUSDsafe(fiat)+'</div>';
+    const changeAmt = fiat * (change/100);
+    const isDown = change < 0;
+    const sign = change>=0?'+':'';
+    const arrow = isDown
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7v10H7"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M7 7h10v10"/></svg>';
+    document.getElementById('cdChange').innerHTML = arrow+' <span>'+sign+(change||0).toFixed(2)+'% ('+sign+fmtUSDsafe(Math.abs(changeAmt))+')</span>';
+    document.getElementById('cdChange').className = 'cd-change ' + (isDown?'down':'up');
+    const addr = getAddressFor(coin);
+    document.getElementById('cdAddressText').textContent = shortAddrLocal(addr);
+    document.getElementById('cdPoweredText').textContent = POWERED_BY[coin] || 'Powered by '+(CHAIN_LABELS[coin]||'Network');
+    renderQuickActions(coin);
+    renderTokens(coin);
+    renderTxns(coin);
+    // reset range to 1D
+    currentCdRange = '1D';
+    document.querySelectorAll('#coinDetailOverlay .cd-range').forEach(b => b.classList.toggle('active', b.dataset.range==='1D'));
+    setTimeout(refreshChart, 30);
+  }
+
+  function open(coin){
+    const overlay = document.getElementById('coinDetailOverlay');
+    if (!overlay) return;
+    populate(coin);
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden','false');
+    const body = document.getElementById('coinDetailBody');
+    if (body) body.scrollTop = 0;
+  }
+  function close(){
+    const overlay = document.getElementById('coinDetailOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden','true');
+  }
+  window.openCoinDetail = open;
+  window.closeCoinDetail = close;
+
+  // Resolve a coin key from an asset row by reading its visible name
+  function resolveCoinFromRow(row){
+    const nameEl = row.querySelector('.asset-name');
+    const subEl = row.querySelector('.asset-sub-text');
+    const name = nameEl ? nameEl.textContent.trim() : '';
+    const sub = subEl ? subEl.textContent.trim() : '';
+    // USDT case — look at chain in the badge
+    if (name === 'Tether' || /USDT$/.test(sub)) {
+      const badge = row.querySelector('.asset-chain-badge');
+      const src = badge ? (badge.getAttribute('src')||'') : '';
+      if (src.includes('coin-sol')) return 'usdt_sol';
+      if (src.includes('coin-tron')) return 'usdt_tron';
+      if (src.includes('coin-bnb')) return 'usdt_bnb';
+      return 'usdt_eth';
+    }
+    return COIN_BY_NAME[name] || null;
+  }
+
+  // Bind clicks on asset rows
+  function bindAssetRows(){
+    document.querySelectorAll('#assetList .asset-item').forEach(row => {
+      if (row.dataset.cdBound === '1') return;
+      row.dataset.cdBound = '1';
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const coin = resolveCoinFromRow(row);
+        if (coin) open(coin);
+      });
+    });
+    // Also bind account rows (Accounts tab)
+    document.querySelectorAll('#accountsList .account-item').forEach(row => {
+      if (row.dataset.cdBound === '1') return;
+      row.dataset.cdBound = '1';
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('.acc-name')) return; // don't trigger when editing name
+        const ic = row.querySelector('.acc-coin-ic');
+        const src = ic ? (ic.getAttribute('src')||'') : '';
+        const m = src.match(/coin-([a-z]+)\\.png/);
+        if (m && m[1]) {
+          const k = m[1];
+          // Map icon name back to coin key
+          const map = { btc:'btc', eth:'eth', xrp:'xrp', bnb:'bnb', sol:'sol', ltc:'ltc', usdt:'usdt_eth', tron:'usdt_tron' };
+          const coin = map[k];
+          if (coin) open(coin);
+        }
+      });
+    });
+  }
+
+  const init = () => {
+    const back = document.getElementById('coinDetailBack');
+    const settingsBtn = document.getElementById('coinDetailSettings');
+    if (!back) return false;
+    if (back.dataset.bound === '1') return true;
+    back.dataset.bound = '1';
+    back.addEventListener('click', close);
+    if (settingsBtn) settingsBtn.addEventListener('click', () => {
+      const so = document.getElementById('settingsOverlay');
+      if (so) so.classList.add('open');
+    });
+    document.querySelectorAll('#coinDetailOverlay .cd-range').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('#coinDetailOverlay .cd-range').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        currentCdRange = b.dataset.range || '1D';
+        refreshChart();
+      });
+    });
+    const addrBtn = document.getElementById('cdAddress');
+    if (addrBtn) addrBtn.addEventListener('click', () => {
+      try { navigator.clipboard.writeText(getAddressFor(currentCoin)||''); } catch{}
+    });
+    const tokenMore = document.getElementById('cdTokensMore');
+    if (tokenMore) tokenMore.addEventListener('click', () => { tokenMore.style.display = 'none'; });
+    // Sticky header on scroll
+    const body = document.getElementById('coinDetailBody');
+    const overlay = document.getElementById('coinDetailOverlay');
+    if (body && overlay) {
+      body.addEventListener('scroll', () => {
+        overlay.classList.toggle('scrolled', body.scrollTop > 80);
+      });
+    }
+    // MutationObserver to keep rebinding on re-renders
+    const al = document.getElementById('assetList');
+    const acc = document.getElementById('accountsList');
+    if (al) new MutationObserver(bindAssetRows).observe(al, {childList:true, subtree:true});
+    if (acc) new MutationObserver(bindAssetRows).observe(acc, {childList:true, subtree:true});
+    bindAssetRows();
+    window.addEventListener('resize', () => { if (currentCoin) refreshChart(); });
+    return true;
+  };
+  const iv = setInterval(() => { if (init()) clearInterval(iv); }, 200);
+})();`;
+
+
+
+
 
 // Capture scripts in their original order so wallet bootstrapping remains intact.
 // Drop legacy auth-blur scripts; the React shell now owns auth state.
