@@ -308,6 +308,63 @@ body = body.replace(/<\/body>\s*$/i, `
       <div class="market-body" id="marketBody"><div class="market-loading">Loading market…</div></div>
     </div>
   </div>
+  <div id="coinDetailOverlay" class="coin-detail-overlay" aria-hidden="true">
+    <div class="coin-detail-screen">
+      <div class="coin-detail-bg" id="coinDetailBg"></div>
+      <div class="coin-detail-header">
+        <button class="coin-detail-back" id="coinDetailBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="coin-detail-header-title" id="cdHeaderTitle"></div>
+        <button class="coin-detail-settings" id="coinDetailSettings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+      <div class="coin-detail-body" id="coinDetailBody">
+        <div class="cd-account-name" id="cdAccountName"></div>
+        <div class="cd-native-balance" id="cdNativeBalance"></div>
+        <div class="cd-fiat-balance" id="cdFiatBalance"></div>
+        <div class="cd-change" id="cdChange"></div>
+        <button class="cd-address" id="cdAddress">
+          <svg class="cd-qr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/><rect x="11" y="11" width="2" height="2"/></svg>
+          <span id="cdAddressText"></span>
+        </button>
+        <div class="cd-chart-wrap">
+          <svg id="cdChartSvg" class="cd-chart-svg" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="cdChartFillGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="currentColor" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="currentColor" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path id="cdChartFill" fill="url(#cdChartFillGrad)" stroke="none"/>
+            <path id="cdChartLine" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="cd-range-tabs">
+          <button class="cd-range active" data-range="1D">1D</button>
+          <button class="cd-range" data-range="1W">1W</button>
+          <button class="cd-range" data-range="1M">1M</button>
+          <button class="cd-range" data-range="1Y">1Y</button>
+          <button class="cd-range" data-range="ALL">ALL</button>
+        </div>
+        <div class="cd-powered-by" id="cdPoweredBy">
+          <span id="cdPoweredText">Powered by Labs</span>
+          <span class="cd-more-info">More info <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor" stroke="none"/></svg></span>
+        </div>
+        <div class="cd-section-label">QUICK ACTIONS</div>
+        <div class="cd-quick-actions" id="cdQuickActions"></div>
+        <div class="cd-tokens-section" id="cdTokensSection">
+          <div class="cd-section-label cd-tokens-label">TOKENS (<span id="cdTokensCount">0</span>)</div>
+          <div class="cd-tokens-list" id="cdTokensList"></div>
+          <button class="cd-tokens-more" id="cdTokensMore">Display more Tokens <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+        </div>
+        <div class="cd-divider"></div>
+        <div class="cd-section-label cd-txn-label">TRANSACTION HISTORY</div>
+        <div class="cd-txn-list" id="cdTxnList"></div>
+      </div>
+    </div>
+  </div>
 </body>`);
 
 // See-all overlay controller — slide in from right, render every txn, click row → existing detail
