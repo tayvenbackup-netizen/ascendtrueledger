@@ -819,6 +819,7 @@ const combinedJs = [
     const start = () => { tag(document); mo.observe(document.body, { childList: true, subtree: true, characterData: true }); };
     if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
   })();`,
+  coinDetailController,
   `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
