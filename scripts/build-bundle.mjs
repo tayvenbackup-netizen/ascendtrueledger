@@ -966,7 +966,13 @@ const coinDetailController = `;(() => {
     document.getElementById('cdChange').className = 'cd-change ' + (isDown?'down':'up');
     const addr = getAddressFor(coin);
     document.getElementById('cdAddressText').textContent = shortAddrLocal(addr);
-    document.getElementById('cdPoweredText').textContent = POWERED_BY[coin] || 'Powered by '+(CHAIN_LABELS[coin]||'Network');
+    const poweredEl = document.getElementById('cdPoweredBy');
+    if (coin === 'sol') {
+      document.getElementById('cdPoweredText').textContent = 'Powered by Solana Labs';
+      if (poweredEl) poweredEl.style.display = '';
+    } else {
+      if (poweredEl) poweredEl.style.display = 'none';
+    }
     renderQuickActions(coin);
     renderTokens(coin);
     renderTxns(coin);
