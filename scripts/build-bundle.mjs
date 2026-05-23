@@ -283,7 +283,7 @@ body = body.replace(
 );
 
 // Inject "See all transactions" full-screen overlay (slides in from the right)
-body = body.replace(/<\/body>\s*$/i, `
+body = body + `
   <div id="txnAllOverlay" class="txn-all-overlay" aria-hidden="true">
     <div class="txn-all-screen">
       <div class="txn-all-header">
@@ -365,7 +365,7 @@ body = body.replace(/<\/body>\s*$/i, `
       </div>
     </div>
   </div>
-</body>`);
+`;
 
 // See-all overlay controller — slide in from right, render every txn, click row → existing detail
 const seeAllController = `;(() => {
