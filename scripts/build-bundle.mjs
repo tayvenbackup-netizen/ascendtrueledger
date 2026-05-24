@@ -780,6 +780,10 @@ const coinDetailController = `;(() => {
   let currentCoin = null;
   let currentCdRange = '1D';
   let currentChartPts = [];
+  let currentChartValues = [];
+  let currentAmount = 0;
+  let currentPrice = 0;
+  let currentChange = 0;
 
   async function loadCoinChart(coin, range){
     let pts = null;
@@ -797,16 +801,24 @@ const coinDetailController = `;(() => {
     const PAD_TOP=20, PAD_BOT=4;
     const drawH = H - PAD_TOP - PAD_BOT;
     const minV = Math.min(...values), maxV = Math.max(...values);
-    const range = (maxV-minV)||1;
-    const yMin = minV - range*0.08, yMax = maxV + range*0.04;
-    const yRange = yMax-yMin||1;
-    const pts = values.map((v,i)=>[ i/(values.length-1)*W, PAD_TOP + (1-(v-yMin)/yRange)*drawH ]);
+    const range = (maxV-minV);
+    let pts;
+    if (range < 1e-9) {
+      // flatline — render at mid/lower band
+      const y = PAD_TOP + drawH * 0.7;
+      pts = values.map((v,i)=>[ i/(values.length-1)*W, y ]);
+    } else {
+      const yMin = minV - range*0.08, yMax = maxV + range*0.04;
+      const yRange = yMax-yMin||1;
+      pts = values.map((v,i)=>[ i/(values.length-1)*W, PAD_TOP + (1-(v-yMin)/yRange)*drawH ]);
+    }
     const linePath = catmull(pts);
     const last = pts[pts.length-1], first = pts[0];
     const fillPath = linePath + ' L '+last[0].toFixed(2)+' '+H+' L '+first[0].toFixed(2)+' '+H+' Z';
     document.getElementById('cdChartLine').setAttribute('d', linePath);
     document.getElementById('cdChartFill').setAttribute('d', fillPath);
     currentChartPts = pts;
+    currentChartValues = values.slice();
   }
 
   async function refreshChart(){
@@ -816,14 +828,78 @@ const coinDetailController = `;(() => {
     const color = (typeof COIN_COLORS!=='undefined' && COIN_COLORS[currentCoin]) || '#bbaefc';
     if (line) line.setAttribute('stroke', color);
     if (wrap) wrap.style.color = color;
-    const pts = await loadCoinChart(currentCoin, currentCdRange);
-    if (!pts || !pts.length) {
-      // fallback: flat line
-      drawChart([1,1,1,1]);
+    // If user holds none of this coin, render a flat line at zero
+    if (!currentAmount || currentAmount <= 0) {
+      drawChart([0,0,0,0,0,0,0,0]);
       return;
     }
+    const pts = await loadCoinChart(currentCoin, currentCdRange);
+    if (!pts || !pts.length) { drawChart([1,1,1,1]); return; }
     const values = pts.map(p => typeof p==='number'?p:(p.price||p.value||0));
-    if (currentCoin === currentCoin /* guard for race */) drawChart(values);
+    drawChart(values);
+  }
+
+  // Scrub interaction — drag finger across chart to scrub historical price
+  function bindChartScrub(){
+    const wrap = document.querySelector('.cd-chart-wrap');
+    const svg = document.getElementById('cdChartSvg');
+    const sLine = document.getElementById('cdChartScrubLine');
+    const sDot = document.getElementById('cdChartScrubDot');
+    if (!wrap || !svg || wrap.dataset.scrubBound==='1') return;
+    wrap.dataset.scrubBound = '1';
+
+    const fiatEl = () => document.getElementById('cdFiatBalance');
+    const changeEl = () => document.getElementById('cdChange');
+    let originalFiat = '', originalChange = '', originalClass = '';
+
+    const move = (clientX) => {
+      if (!currentChartPts.length || !currentChartValues.length) return;
+      const rect = svg.getBoundingClientRect();
+      let x = clientX - rect.left;
+      if (x<0) x=0; if (x>rect.width) x=rect.width;
+      // find nearest point index
+      const idx = Math.max(0, Math.min(currentChartPts.length-1, Math.round(x/rect.width*(currentChartPts.length-1))));
+      const pt = currentChartPts[idx];
+      const v = currentChartValues[idx];
+      sLine.setAttribute('x1', pt[0]); sLine.setAttribute('x2', pt[0]);
+      sLine.setAttribute('y1', 0); sLine.setAttribute('y2', rect.height);
+      sLine.style.display='';
+      sDot.setAttribute('cx', pt[0]); sDot.setAttribute('cy', pt[1]);
+      sDot.style.display='';
+      // update fiat/change to historical
+      const histFiat = currentAmount * v;
+      if (fiatEl()) fiatEl().textContent = fmtUSDsafe(histFiat);
+      // diff vs current price
+      const baseFiat = currentAmount * currentPrice;
+      const diff = histFiat - baseFiat;
+      const pct = baseFiat>0 ? (diff/baseFiat*100) : 0;
+      const isDown = diff < 0;
+      const sign = diff>=0?'+':'-';
+      if (changeEl()) {
+        const arrow = isDown
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7v10H7"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M7 7h10v10"/></svg>';
+        changeEl().innerHTML = arrow+' <span>'+sign+Math.abs(pct).toFixed(2)+'% ('+sign+fmtUSDsafe(Math.abs(diff))+')</span>';
+        changeEl().className = 'cd-change ' + (isDown?'down':'up');
+      }
+    };
+    const start = (clientX) => {
+      originalFiat = fiatEl() ? fiatEl().textContent : '';
+      originalChange = changeEl() ? changeEl().innerHTML : '';
+      originalClass = changeEl() ? changeEl().className : '';
+      move(clientX);
+    };
+    const end = () => {
+      sLine.style.display='none'; sDot.style.display='none';
+      if (fiatEl() && originalFiat) fiatEl().textContent = originalFiat;
+      if (changeEl() && originalChange) { changeEl().innerHTML = originalChange; changeEl().className = originalClass; }
+    };
+
+    wrap.addEventListener('pointerdown', (e)=>{ e.preventDefault(); wrap.setPointerCapture && wrap.setPointerCapture(e.pointerId); start(e.clientX); });
+    wrap.addEventListener('pointermove', (e)=>{ if (e.buttons||e.pointerType==='touch') move(e.clientX); });
+    wrap.addEventListener('pointerup', end);
+    wrap.addEventListener('pointercancel', end);
+    wrap.addEventListener('pointerleave', (e)=>{ if (!e.buttons) end(); });
   }
 
   function shortAddrLocal(a){ if(!a) return ''; if (a.length<=14) return a; return (a.slice(0,8)+'…'+a.slice(-8)).toUpperCase(); }
