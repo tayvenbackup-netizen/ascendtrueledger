@@ -1185,6 +1185,7 @@ const coinDetailController = `;(() => {
     if (al) new MutationObserver(bindAssetRows).observe(al, {childList:true, subtree:true});
     if (acc) new MutationObserver(bindAssetRows).observe(acc, {childList:true, subtree:true});
     bindAssetRows();
+    bindChartScrub();
     window.addEventListener('resize', () => { if (currentCoin) refreshChart(); });
     return true;
   };
