@@ -725,6 +725,19 @@ const coinDetailController = `;(() => {
     usdt_eth:'Powered by Ethereum Foundation', usdt_sol:'Powered by Solana Labs',
     usdt_tron:'Powered by Tron', usdt_bnb:'Powered by BNB Chain'
   };
+  // Coin-specific background gradients for the detail header
+  const BG_GRADIENTS = {
+    btc:  'linear-gradient(180deg,#4a2f10 0%,#2a1a08 35%,#0d0805 72%,#000 100%)',
+    eth:  'linear-gradient(180deg,#1a3a3d 0%,#0e2123 38%,#050a0b 75%,#000 100%)',
+    xrp:  'linear-gradient(180deg,#1a2233 0%,#0d111c 38%,#04060a 75%,#000 100%)',
+    bnb:  'linear-gradient(180deg,#3d3210 0%,#1f1a08 38%,#0a0803 75%,#000 100%)',
+    sol:  'linear-gradient(180deg,#2c2c30 0%,#17171b 38%,#08080a 75%,#000 100%)',
+    ltc:  'linear-gradient(180deg,#2a2e36 0%,#16181d 38%,#08090b 75%,#000 100%)',
+    usdt_eth:'linear-gradient(180deg,#0f3a2a 0%,#082016 38%,#03090a 75%,#000 100%)',
+    usdt_sol:'linear-gradient(180deg,#0f3a2a 0%,#082016 38%,#03090a 75%,#000 100%)',
+    usdt_tron:'linear-gradient(180deg,#3a0f12 0%,#20080a 38%,#0a0303 75%,#000 100%)',
+    usdt_bnb:'linear-gradient(180deg,#3d3210 0%,#1f1a08 38%,#0a0803 75%,#000 100%)'
+  };
   // Tokens that live on each chain (mocked balances, deterministic by coin key)
   const TOKENS = {
     eth: [
