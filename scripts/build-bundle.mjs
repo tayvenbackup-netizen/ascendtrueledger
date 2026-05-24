@@ -1043,6 +1043,10 @@ const coinDetailController = `;(() => {
       change = c?(c.change24h||0):0;
     } catch{}
     const fiat = amount*price;
+    currentAmount = amount; currentPrice = price; currentChange = change;
+    // Coin-specific background gradient
+    const bgEl = document.getElementById('coinDetailBg');
+    if (bgEl) bgEl.style.background = BG_GRADIENTS[coin] || 'linear-gradient(180deg,#202024 0%,#101013 38%,#06060a 75%,#000 100%)';
     document.getElementById('cdAccountName').textContent = name;
     document.getElementById('cdNativeBalance').textContent = fmtAmtSafe(amount)+' '+sym;
     document.getElementById('cdFiatBalance').textContent = fmtUSDsafe(fiat);
