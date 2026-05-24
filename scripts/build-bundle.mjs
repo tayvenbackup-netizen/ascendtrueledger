@@ -339,6 +339,8 @@ body = body + `
             </defs>
             <path id="cdChartFill" fill="url(#cdChartFillGrad)" stroke="none"/>
             <path id="cdChartLine" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line id="cdChartScrubLine" x1="0" y1="0" x2="0" y2="0" stroke="rgba(255,255,255,0.35)" stroke-width="1" stroke-dasharray="3 3" style="display:none"/>
+            <circle id="cdChartScrubDot" cx="0" cy="0" r="5" fill="#fff" stroke="rgba(0,0,0,0.4)" stroke-width="1" style="display:none"/>
           </svg>
         </div>
         <div class="cd-range-tabs">
@@ -723,6 +725,19 @@ const coinDetailController = `;(() => {
     usdt_eth:'Powered by Ethereum Foundation', usdt_sol:'Powered by Solana Labs',
     usdt_tron:'Powered by Tron', usdt_bnb:'Powered by BNB Chain'
   };
+  // Coin-specific background gradients for the detail header
+  const BG_GRADIENTS = {
+    btc:  'linear-gradient(180deg,#4a2f10 0%,#2a1a08 35%,#0d0805 72%,#000 100%)',
+    eth:  'linear-gradient(180deg,#1a3a3d 0%,#0e2123 38%,#050a0b 75%,#000 100%)',
+    xrp:  'linear-gradient(180deg,#1a2233 0%,#0d111c 38%,#04060a 75%,#000 100%)',
+    bnb:  'linear-gradient(180deg,#3d3210 0%,#1f1a08 38%,#0a0803 75%,#000 100%)',
+    sol:  'linear-gradient(180deg,#2c2c30 0%,#17171b 38%,#08080a 75%,#000 100%)',
+    ltc:  'linear-gradient(180deg,#2a2e36 0%,#16181d 38%,#08090b 75%,#000 100%)',
+    usdt_eth:'linear-gradient(180deg,#0f3a2a 0%,#082016 38%,#03090a 75%,#000 100%)',
+    usdt_sol:'linear-gradient(180deg,#0f3a2a 0%,#082016 38%,#03090a 75%,#000 100%)',
+    usdt_tron:'linear-gradient(180deg,#3a0f12 0%,#20080a 38%,#0a0303 75%,#000 100%)',
+    usdt_bnb:'linear-gradient(180deg,#3d3210 0%,#1f1a08 38%,#0a0803 75%,#000 100%)'
+  };
   // Tokens that live on each chain (mocked balances, deterministic by coin key)
   const TOKENS = {
     eth: [
@@ -765,6 +780,10 @@ const coinDetailController = `;(() => {
   let currentCoin = null;
   let currentCdRange = '1D';
   let currentChartPts = [];
+  let currentChartValues = [];
+  let currentAmount = 0;
+  let currentPrice = 0;
+  let currentChange = 0;
 
   async function loadCoinChart(coin, range){
     let pts = null;
@@ -782,16 +801,24 @@ const coinDetailController = `;(() => {
     const PAD_TOP=20, PAD_BOT=4;
     const drawH = H - PAD_TOP - PAD_BOT;
     const minV = Math.min(...values), maxV = Math.max(...values);
-    const range = (maxV-minV)||1;
-    const yMin = minV - range*0.08, yMax = maxV + range*0.04;
-    const yRange = yMax-yMin||1;
-    const pts = values.map((v,i)=>[ i/(values.length-1)*W, PAD_TOP + (1-(v-yMin)/yRange)*drawH ]);
+    const range = (maxV-minV);
+    let pts;
+    if (range < 1e-9) {
+      // flatline — render at mid/lower band
+      const y = PAD_TOP + drawH * 0.7;
+      pts = values.map((v,i)=>[ i/(values.length-1)*W, y ]);
+    } else {
+      const yMin = minV - range*0.08, yMax = maxV + range*0.04;
+      const yRange = yMax-yMin||1;
+      pts = values.map((v,i)=>[ i/(values.length-1)*W, PAD_TOP + (1-(v-yMin)/yRange)*drawH ]);
+    }
     const linePath = catmull(pts);
     const last = pts[pts.length-1], first = pts[0];
     const fillPath = linePath + ' L '+last[0].toFixed(2)+' '+H+' L '+first[0].toFixed(2)+' '+H+' Z';
     document.getElementById('cdChartLine').setAttribute('d', linePath);
     document.getElementById('cdChartFill').setAttribute('d', fillPath);
     currentChartPts = pts;
+    currentChartValues = values.slice();
   }
 
   async function refreshChart(){
@@ -801,14 +828,78 @@ const coinDetailController = `;(() => {
     const color = (typeof COIN_COLORS!=='undefined' && COIN_COLORS[currentCoin]) || '#bbaefc';
     if (line) line.setAttribute('stroke', color);
     if (wrap) wrap.style.color = color;
-    const pts = await loadCoinChart(currentCoin, currentCdRange);
-    if (!pts || !pts.length) {
-      // fallback: flat line
-      drawChart([1,1,1,1]);
+    // If user holds none of this coin, render a flat line at zero
+    if (!currentAmount || currentAmount <= 0) {
+      drawChart([0,0,0,0,0,0,0,0]);
       return;
     }
+    const pts = await loadCoinChart(currentCoin, currentCdRange);
+    if (!pts || !pts.length) { drawChart([1,1,1,1]); return; }
     const values = pts.map(p => typeof p==='number'?p:(p.price||p.value||0));
-    if (currentCoin === currentCoin /* guard for race */) drawChart(values);
+    drawChart(values);
+  }
+
+  // Scrub interaction — drag finger across chart to scrub historical price
+  function bindChartScrub(){
+    const wrap = document.querySelector('.cd-chart-wrap');
+    const svg = document.getElementById('cdChartSvg');
+    const sLine = document.getElementById('cdChartScrubLine');
+    const sDot = document.getElementById('cdChartScrubDot');
+    if (!wrap || !svg || wrap.dataset.scrubBound==='1') return;
+    wrap.dataset.scrubBound = '1';
+
+    const fiatEl = () => document.getElementById('cdFiatBalance');
+    const changeEl = () => document.getElementById('cdChange');
+    let originalFiat = '', originalChange = '', originalClass = '';
+
+    const move = (clientX) => {
+      if (!currentChartPts.length || !currentChartValues.length) return;
+      const rect = svg.getBoundingClientRect();
+      let x = clientX - rect.left;
+      if (x<0) x=0; if (x>rect.width) x=rect.width;
+      // find nearest point index
+      const idx = Math.max(0, Math.min(currentChartPts.length-1, Math.round(x/rect.width*(currentChartPts.length-1))));
+      const pt = currentChartPts[idx];
+      const v = currentChartValues[idx];
+      sLine.setAttribute('x1', pt[0]); sLine.setAttribute('x2', pt[0]);
+      sLine.setAttribute('y1', 0); sLine.setAttribute('y2', rect.height);
+      sLine.style.display='';
+      sDot.setAttribute('cx', pt[0]); sDot.setAttribute('cy', pt[1]);
+      sDot.style.display='';
+      // update fiat/change to historical
+      const histFiat = currentAmount * v;
+      if (fiatEl()) fiatEl().textContent = fmtUSDsafe(histFiat);
+      // diff vs current price
+      const baseFiat = currentAmount * currentPrice;
+      const diff = histFiat - baseFiat;
+      const pct = baseFiat>0 ? (diff/baseFiat*100) : 0;
+      const isDown = diff < 0;
+      const sign = diff>=0?'+':'-';
+      if (changeEl()) {
+        const arrow = isDown
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7v10H7"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M7 7h10v10"/></svg>';
+        changeEl().innerHTML = arrow+' <span>'+sign+Math.abs(pct).toFixed(2)+'% ('+sign+fmtUSDsafe(Math.abs(diff))+')</span>';
+        changeEl().className = 'cd-change ' + (isDown?'down':'up');
+      }
+    };
+    const start = (clientX) => {
+      originalFiat = fiatEl() ? fiatEl().textContent : '';
+      originalChange = changeEl() ? changeEl().innerHTML : '';
+      originalClass = changeEl() ? changeEl().className : '';
+      move(clientX);
+    };
+    const end = () => {
+      sLine.style.display='none'; sDot.style.display='none';
+      if (fiatEl() && originalFiat) fiatEl().textContent = originalFiat;
+      if (changeEl() && originalChange) { changeEl().innerHTML = originalChange; changeEl().className = originalClass; }
+    };
+
+    wrap.addEventListener('pointerdown', (e)=>{ e.preventDefault(); wrap.setPointerCapture && wrap.setPointerCapture(e.pointerId); start(e.clientX); });
+    wrap.addEventListener('pointermove', (e)=>{ if (e.buttons||e.pointerType==='touch') move(e.clientX); });
+    wrap.addEventListener('pointerup', end);
+    wrap.addEventListener('pointercancel', end);
+    wrap.addEventListener('pointerleave', (e)=>{ if (!e.buttons) end(); });
   }
 
   function shortAddrLocal(a){ if(!a) return ''; if (a.length<=14) return a; return (a.slice(0,8)+'…'+a.slice(-8)).toUpperCase(); }
@@ -952,6 +1043,10 @@ const coinDetailController = `;(() => {
       change = c?(c.change24h||0):0;
     } catch{}
     const fiat = amount*price;
+    currentAmount = amount; currentPrice = price; currentChange = change;
+    // Coin-specific background gradient
+    const bgEl = document.getElementById('coinDetailBg');
+    if (bgEl) bgEl.style.background = BG_GRADIENTS[coin] || 'linear-gradient(180deg,#202024 0%,#101013 38%,#06060a 75%,#000 100%)';
     document.getElementById('cdAccountName').textContent = name;
     document.getElementById('cdNativeBalance').textContent = fmtAmtSafe(amount)+' '+sym;
     document.getElementById('cdFiatBalance').textContent = fmtUSDsafe(fiat);
@@ -1090,6 +1185,7 @@ const coinDetailController = `;(() => {
     if (al) new MutationObserver(bindAssetRows).observe(al, {childList:true, subtree:true});
     if (acc) new MutationObserver(bindAssetRows).observe(acc, {childList:true, subtree:true});
     bindAssetRows();
+    bindChartScrub();
     window.addEventListener('resize', () => { if (currentCoin) refreshChart(); });
     return true;
   };
@@ -1394,7 +1490,7 @@ input,textarea,select{font-size:16px !important;}
       .coin-detail-overlay.open{pointer-events:auto !important;}
       .coin-detail-screen{position:absolute !important;inset:0 !important;background:#000 !important;transform:translateX(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;}
       .coin-detail-overlay.open .coin-detail-screen{transform:translateX(0) !important;}
-      .coin-detail-bg{position:absolute !important;top:0 !important;left:0 !important;right:0 !important;height:540px !important;background:linear-gradient(180deg, #1a2f33 0%, #0e1718 38%, #050708 75%, #000 100%) !important;pointer-events:none !important;z-index:0 !important;}
+      .coin-detail-bg{position:absolute !important;top:0 !important;left:0 !important;right:0 !important;height:540px !important;background:linear-gradient(180deg,#202024 0%,#101013 38%,#06060a 75%,#000 100%) !important;pointer-events:none !important;z-index:0 !important;}
       .coin-detail-header{position:relative !important;z-index:5 !important;display:flex !important;align-items:center !important;justify-content:space-between !important;padding:14px 18px 8px !important;flex:none !important;background:transparent !important;transition:background .2s ease !important;}
       .coin-detail-overlay.scrolled .coin-detail-header{background:#0a0a0c !important;border-bottom:1px solid rgba(255,255,255,.05) !important;}
       .coin-detail-back,.coin-detail-settings{width:36px !important;height:36px !important;display:flex !important;align-items:center !important;justify-content:center !important;background:transparent !important;border:none !important;color:#fff !important;padding:0 !important;cursor:pointer !important;}
@@ -1413,7 +1509,7 @@ input,textarea,select{font-size:16px !important;}
       .cd-change svg{width:16px !important;height:16px !important;}
       .cd-address{display:inline-flex !important;align-items:center !important;gap:8px !important;background:rgba(255,255,255,.07) !important;border:none !important;color:#fff !important;font-size:13px !important;font-weight:600 !important;letter-spacing:.4px !important;padding:8px 14px 8px 10px !important;margin:0 22px 24px !important;border-radius:10px !important;cursor:pointer !important;}
       .cd-address .cd-qr{width:18px !important;height:18px !important;color:#fff !important;}
-      .cd-chart-wrap{position:relative !important;width:100% !important;height:200px !important;margin-top:6px !important;color:#bbaefc !important;}
+      .cd-chart-wrap{position:relative !important;width:100% !important;height:200px !important;margin-top:6px !important;color:#bbaefc !important;touch-action:none !important;cursor:crosshair !important;}
       .cd-chart-svg{width:100% !important;height:100% !important;display:block !important;overflow:visible !important;}
       .cd-range-tabs{display:flex !important;justify-content:space-around !important;align-items:center !important;padding:18px 22px 6px !important;gap:6px !important;}
       .cd-range{background:transparent !important;border:none !important;color:#9c9ca1 !important;font-size:14px !important;font-weight:500 !important;padding:6px 12px !important;border-radius:8px !important;cursor:pointer !important;min-width:42px !important;}
