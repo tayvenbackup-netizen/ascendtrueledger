@@ -339,6 +339,8 @@ body = body + `
             </defs>
             <path id="cdChartFill" fill="url(#cdChartFillGrad)" stroke="none"/>
             <path id="cdChartLine" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line id="cdChartScrubLine" x1="0" y1="0" x2="0" y2="0" stroke="rgba(255,255,255,0.35)" stroke-width="1" stroke-dasharray="3 3" style="display:none"/>
+            <circle id="cdChartScrubDot" cx="0" cy="0" r="5" fill="#fff" stroke="rgba(0,0,0,0.4)" stroke-width="1" style="display:none"/>
           </svg>
         </div>
         <div class="cd-range-tabs">
