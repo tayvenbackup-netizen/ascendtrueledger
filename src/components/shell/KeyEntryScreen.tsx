@@ -46,7 +46,7 @@ const KeyEntryScreen = ({ onValidate, error }: Props) => {
       onContextMenu={(e) => e.preventDefault()}
       className="fixed left-0 right-0 top-0 z-[9999] flex items-center justify-center px-4 overflow-hidden select-none"
       data-fullscreen-gate="true"
-      style={{ bottom: '-96px', minHeight: 'calc(100dvh + 96px)', background: 'radial-gradient(circle at 30% 0%, #1a1530 0%, #0a0a14 60%, #050509 100%)', color: '#fff' }}
+      style={{ minHeight: '100svh', background: 'radial-gradient(circle at 30% 0%, #1a1530 0%, #0a0a14 60%, #050509 100%)', color: '#fff' }}
     >
 
       <div aria-hidden className="pointer-events-none absolute" style={{ top: '-167px', right: '-140px', width: '440px', height: '447px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(187,174,252,0.18) 0%, rgba(187,174,252,0) 70%)', filter: 'blur(20px)' }} />
