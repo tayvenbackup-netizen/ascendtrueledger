@@ -99,30 +99,33 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  :root {
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+  }
+
   html {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 100% !important;
-    overflow: hidden !important;
-    overscroll-behavior: none;
-    background: #000000 !important;
+    height: -webkit-fill-available;
+    background: #000000;
     -webkit-text-size-adjust: 100%;
+    overscroll-behavior: none;
   }
 
   body {
-    position: fixed !important;
-    inset: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 100% !important;
-    overflow: hidden !important;
-    overscroll-behavior: none;
-    background: #000000 !important;
+    margin: 0;
+    padding: 0;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
+    background: #000000;
     color: #fff;
+    overscroll-behavior: none;
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
@@ -130,16 +133,10 @@ All colors MUST be HSL.
   body::-webkit-scrollbar { display: none; }
 
   #root, #app-gate, #protected-root {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #000000 !important;
+    width: 100%;
+    min-height: 100dvh;
+    background: #000000;
     color: #fff;
-    overflow: hidden !important;
   }
 
   body[data-authed="1"] #app-gate {
