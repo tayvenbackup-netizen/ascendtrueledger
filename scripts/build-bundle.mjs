@@ -405,6 +405,51 @@ body = body + `
     </div>
   </div>
 
+  <!-- ── RECEIVE FLOW ─────────────────────────────────────────────── -->
+  <div id="receiveFlow" class="rf-overlay" aria-hidden="true">
+    <div class="rf-backdrop" data-rf-close="1"></div>
+    <div class="rf-panel">
+      <div class="rf-handle"></div>
+      <div class="rf-track" id="rfTrack">
+        <div class="rf-pane" data-step="1">
+          <button class="rf-x" data-rf-close="1" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          <div class="rf-title">Select asset</div>
+          <div class="rf-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="rfCoinSearch" type="text" placeholder="Search by name or address"/></div>
+          <div class="rf-coin-list" id="rfCoinList"></div>
+        </div>
+        <div class="rf-pane" data-step="2">
+          <button class="rf-back" id="rfBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <button class="rf-x" data-rf-close="1" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          <div class="rf-title">Select account</div>
+          <div class="rf-acc-list" id="rfAccList"></div>
+        </div>
+        <div class="rf-pane rf-pane-qr" data-step="3">
+          <div class="rf-qr-head">
+            <div class="rf-qr-title-wrap"><div class="rf-qr-title">Receive <span id="rfQrSym">SOL</span></div><div class="rf-qr-sub">On <span id="rfQrNet">Solana</span></div></div>
+            <button class="rf-x rf-x-qr" data-rf-close="1" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+          <div class="rf-qr-card">
+            <div class="rf-qr-acc" id="rfQrAcc">—</div>
+            <div class="rf-qr-img-wrap"><img class="rf-qr-img" id="rfQrImg" alt=""/><div class="rf-qr-logo"><img id="rfQrLogo" src="" alt=""/></div></div>
+            <div class="rf-qr-addr" id="rfQrAddr">—</div>
+          </div>
+          <div class="rf-qr-actions">
+            <button class="rf-qr-share" id="rfShare" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 8 12 3 17 8"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+            <button class="rf-qr-copy" id="rfCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span>Copy address</span></button>
+          </div>
+          <div class="rf-qr-memo">Need a Tag/Memo?</div>
+          <div class="rf-qr-warn">Send only tokens from <span id="rfQrNet2">Solana</span> network. Sending from another network may result in loss of funds.</div>
+          <div class="rf-qr-help">
+            <div class="rf-qr-help-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10l9-6 9 6v2H3z"/><path d="M5 12v6M9 12v6M15 12v6M19 12v6M3 20h18"/></svg></div>
+            <div class="rf-qr-help-txt">Learn how to withdraw from exchanges?</div>
+            <button class="rf-qr-help-x" data-rf-close="1" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+          <button class="rf-verify-cta" id="rfVerify">Verify your address</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="sendFlow" class="sf-overlay" aria-hidden="true">
     <div class="sf-screen">
       <div class="sf-header">
