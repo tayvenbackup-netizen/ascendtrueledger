@@ -405,6 +405,51 @@ body = body + `
     </div>
   </div>
 
+  <!-- ── RECEIVE FLOW ─────────────────────────────────────────────── -->
+  <div id="receiveFlow" class="rf-overlay" aria-hidden="true">
+    <div class="rf-backdrop" data-rf-close="1"></div>
+    <div class="rf-panel">
+      <div class="rf-handle"></div>
+      <div class="rf-track" id="rfTrack">
+        <div class="rf-pane" data-step="1">
+          <button class="rf-x" data-rf-close="1" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          <div class="rf-title">Select asset</div>
+          <div class="rf-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="rfCoinSearch" type="text" placeholder="Search by name or address"/></div>
+          <div class="rf-coin-list" id="rfCoinList"></div>
+        </div>
+        <div class="rf-pane" data-step="2">
+          <button class="rf-back" id="rfBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <button class="rf-x" data-rf-close="1" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          <div class="rf-title">Select account</div>
+          <div class="rf-acc-list" id="rfAccList"></div>
+        </div>
+        <div class="rf-pane rf-pane-qr" data-step="3">
+          <div class="rf-qr-head">
+            <div class="rf-qr-title-wrap"><div class="rf-qr-title">Receive <span id="rfQrSym">SOL</span></div><div class="rf-qr-sub">On <span id="rfQrNet">Solana</span></div></div>
+            <button class="rf-x rf-x-qr" data-rf-close="1" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+          <div class="rf-qr-card">
+            <div class="rf-qr-acc" id="rfQrAcc">—</div>
+            <div class="rf-qr-img-wrap"><img class="rf-qr-img" id="rfQrImg" alt=""/><div class="rf-qr-logo"><img id="rfQrLogo" src="" alt=""/></div></div>
+            <div class="rf-qr-addr" id="rfQrAddr">—</div>
+          </div>
+          <div class="rf-qr-actions">
+            <button class="rf-qr-share" id="rfShare" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 8 12 3 17 8"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+            <button class="rf-qr-copy" id="rfCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span>Copy address</span></button>
+          </div>
+          <div class="rf-qr-memo">Need a Tag/Memo?</div>
+          <div class="rf-qr-warn">Send only tokens from <span id="rfQrNet2">Solana</span> network. Sending from another network may result in loss of funds.</div>
+          <div class="rf-qr-help">
+            <div class="rf-qr-help-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10l9-6 9 6v2H3z"/><path d="M5 12v6M9 12v6M15 12v6M19 12v6M3 20h18"/></svg></div>
+            <div class="rf-qr-help-txt">Learn how to withdraw from exchanges?</div>
+            <button class="rf-qr-help-x" data-rf-close="1" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+          <button class="rf-verify-cta" id="rfVerify">Verify your address</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="sendFlow" class="sf-overlay" aria-hidden="true">
     <div class="sf-screen">
       <div class="sf-header">
@@ -1580,7 +1625,81 @@ const combinedJs = [
       $('transferSheet').addEventListener('click', (e)=>{ if (e.target.dataset && e.target.dataset.trClose==='1') closeSheet(); });
       $('trRowSend').addEventListener('click', ()=>{ closeSheet(); setTimeout(openFlow, 220); });
       const recvBtn = $('trRowReceive');
-      if (recvBtn) recvBtn.addEventListener('click', ()=>{ closeSheet(); showToast('Use a coin\\'s Receive action to get its address'); });
+      if (recvBtn) recvBtn.addEventListener('click', ()=>{ closeSheet(); setTimeout(openReceive, 220); });
+
+      // ── RECEIVE FLOW ──
+      const rfSetStep = (n)=>{
+        document.querySelectorAll('#rfTrack .rf-pane').forEach(p=>{
+          const ps = parseInt(p.dataset.step,10);
+          p.classList.toggle('active', ps===n);
+          p.classList.toggle('prev', ps<n);
+        });
+        window.__rfStep = n;
+      };
+      function rfRenderCoins(filter){
+        const list = $('rfCoinList'); if(!list) return;
+        const q = (filter||'').toLowerCase();
+        const rows = COINS.filter(c=>{
+          if (!q) return true;
+          return nm(c).toLowerCase().includes(q) || sym(c).toLowerCase().includes(q);
+        });
+        list.innerHTML = rows.map(c=>{
+          const bal = balance(c); const fiat = bal*fiatPrice(c);
+          const badge = chainBadge(c);
+          return '<button class="sf-coin-row" data-coin="'+c+'">'+
+            '<div class="sf-coin-logo"><img src="'+ico(c)+'" alt=""/>'+(badge?'<span class="sf-coin-badge"><img src="/assets/'+badge+'" alt=""/></span>':'')+'</div>'+
+            '<div class="sf-coin-name">'+nm(c)+'<div style="font-size:12px;color:#9c9ca1;font-weight:400;margin-top:2px;">'+sym(c)+'</div></div>'+
+            '<div class="sf-coin-right"><div class="sf-coin-fiat">'+(bal>0?fmtU(fiat):'$0.00')+'</div><div class="sf-coin-amt">'+(bal>0?fmtA(bal):'0')+' '+sym(c)+'</div></div>'+
+          '</button>';
+        }).join('') || '<div style="padding:40px;text-align:center;color:#9c9ca1">No coins found</div>';
+        list.querySelectorAll('.sf-coin-row').forEach(btn=>{
+          btn.addEventListener('click', ()=>{ rfOpenAccount(btn.dataset.coin); });
+        });
+      }
+      function rfOpenAccount(coin){
+        window.__rfCoin = coin;
+        const list = $('rfAccList'); if(!list) return;
+        let accName = nm(coin)+' 1';
+        let addr = '';
+        try { const m = (typeof ensureAccountMeta==='function')?ensureAccountMeta(coin):null; if(m){ accName = nm(coin)+' 1'; addr = m.address||''; } } catch{}
+        if (!addr) { try { addr = (typeof COIN_ADDRESS_GEN!=='undefined' && COIN_ADDRESS_GEN[coin])?COIN_ADDRESS_GEN[coin]():''; } catch{} }
+        const bal = balance(coin); const fiat = bal*fiatPrice(coin);
+        const badge = chainBadge(coin);
+        const shortA = addr.length>10 ? (addr.slice(0,4)+'…'+addr.slice(-4)) : addr;
+        list.innerHTML = '<button class="rf-acc-row" data-coin="'+coin+'">'+
+          '<div class="rf-acc-main"><div class="rf-acc-name">'+accName+'</div>'+
+          '<div class="rf-acc-sub">'+shortA+' <span class="rf-acc-ic"><img src="'+ico(coin)+'" alt=""/></span></div></div>'+
+          '<div class="rf-acc-right"><div class="rf-acc-fiat">'+fmtU(fiat)+'</div><div class="rf-acc-amt">'+fmtA(bal)+' '+sym(coin)+'</div></div>'+
+        '</button>';
+        list.querySelector('.rf-acc-row').addEventListener('click', ()=>rfOpenQR(coin, addr, accName));
+        rfSetStep(2);
+      }
+      function rfOpenQR(coin, addr, accName){
+        const symV = sym(coin); const net = netLabel(coin).replace(/\\s*\\(.+\\)$/,'');
+        $('rfQrSym').textContent = symV;
+        $('rfQrNet').textContent = net;
+        $('rfQrNet2').textContent = net;
+        $('rfQrAcc').textContent = accName;
+        $('rfQrAddr').textContent = addr;
+        $('rfQrLogo').src = ico(coin);
+        $('rfQrImg').src = 'https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=10&qzone=1&color=000000&bgcolor=FFFFFF&data=' + encodeURIComponent(addr);
+        window.__rfAddr = addr;
+        rfSetStep(3);
+      }
+      const openReceive = ()=>{ const o=$('receiveFlow'); if(!o) return; o.classList.add('open'); o.setAttribute('aria-hidden','false'); rfRenderCoins(); rfSetStep(1); };
+      const closeReceive = ()=>{ const o=$('receiveFlow'); if(!o) return; o.classList.remove('open'); o.setAttribute('aria-hidden','true'); };
+      $('receiveFlow').addEventListener('click',(e)=>{ if(e.target.dataset && e.target.dataset.rfClose==='1') closeReceive(); });
+      $('rfBack').addEventListener('click', ()=>rfSetStep(1));
+      $('rfCoinSearch').addEventListener('input',(e)=>rfRenderCoins(e.target.value));
+      $('rfCopy').addEventListener('click', async ()=>{
+        try { await navigator.clipboard.writeText(window.__rfAddr||''); showToast('Address copied'); } catch { showToast('Copy failed'); }
+      });
+      $('rfShare').addEventListener('click', async ()=>{
+        const a = window.__rfAddr||'';
+        try { if (navigator.share) { await navigator.share({ text:a }); return; } } catch{}
+        try { await navigator.clipboard.writeText(a); showToast('Address copied'); } catch{}
+      });
+      $('rfVerify') && $('rfVerify').addEventListener('click', ()=>showToast('Address verified'));
 
       // Flow nav
       $('sfClose').addEventListener('click', closeFlow);
@@ -2032,6 +2151,69 @@ input,textarea,select{font-size:16px !important;}
       .sf-toast-ic svg{width:18px;height:18px;}
       .sf-toast-h{font-size:14px;font-weight:700;line-height:1.2;}
       .sf-toast-sub{font-size:12px;color:#9c9ca1;line-height:1.2;margin-top:2px;}
+
+      /* ── Receive flow (bottom sheet + horizontal panes) ── */
+      .rf-overlay{position:fixed !important;inset:0 !important;z-index:345 !important;pointer-events:none !important;}
+      .rf-overlay.open{pointer-events:auto !important;}
+      .rf-backdrop{position:absolute !important;inset:0 !important;background:rgba(0,0,0,.55) !important;opacity:0 !important;transition:opacity .25s ease !important;}
+      .rf-overlay.open .rf-backdrop{opacity:1 !important;}
+      .rf-panel{position:absolute !important;left:0 !important;right:0 !important;bottom:0 !important;top:120px !important;background:#0f0f12 !important;border-radius:22px 22px 0 0 !important;transform:translateY(100%) !important;transition:transform .35s cubic-bezier(.25,1,.5,1) !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;}
+      .rf-overlay.open .rf-panel{transform:translateY(0) !important;}
+      .rf-handle{width:38px;height:4px;background:#3a3a42;border-radius:3px;margin:8px auto 4px;flex:none;}
+      .rf-track{flex:1 1 auto !important;position:relative !important;overflow:hidden !important;}
+      .rf-pane{position:absolute !important;inset:0 !important;padding:8px 18px calc(28px + env(safe-area-inset-bottom,0px)) !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;display:flex !important;flex-direction:column !important;transform:translateX(100%) !important;opacity:0 !important;pointer-events:none !important;transition:transform .32s cubic-bezier(.25,1,.5,1), opacity .25s ease !important;}
+      .rf-pane.active{transform:translateX(0) !important;opacity:1 !important;pointer-events:auto !important;}
+      .rf-pane.prev{transform:translateX(-22%) !important;opacity:0 !important;}
+      .rf-pane[data-step="1"]{transform:translateX(0) !important;opacity:1 !important;pointer-events:auto !important;}
+      .rf-pane[data-step="1"].prev{transform:translateX(-22%) !important;opacity:0 !important;pointer-events:none !important;}
+      .rf-x{position:absolute !important;top:10px !important;right:14px !important;width:34px !important;height:34px !important;border:none !important;background:rgba(255,255,255,.08) !important;color:#fff !important;border-radius:50% !important;display:flex !important;align-items:center !important;justify-content:center !important;cursor:pointer !important;padding:0 !important;}
+      .rf-x svg{width:16px;height:16px;}
+      .rf-back{position:absolute !important;top:10px !important;left:14px !important;width:34px !important;height:34px !important;border:none !important;background:rgba(255,255,255,.08) !important;color:#fff !important;border-radius:50% !important;display:flex !important;align-items:center !important;justify-content:center !important;cursor:pointer !important;padding:0 !important;}
+      .rf-back svg{width:18px;height:18px;}
+      .rf-title{color:#fff;font-size:26px;font-weight:700;letter-spacing:-.4px;margin:50px 0 16px;}
+      .rf-search{display:flex;align-items:center;gap:10px;background:#1c1c20;border-radius:14px;padding:14px 16px;color:#9c9ca1;}
+      .rf-search svg{width:18px;height:18px;flex-shrink:0;}
+      .rf-search input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:15px;}
+      .rf-coin-list{margin-top:14px;display:flex;flex-direction:column;}
+      .rf-acc-list{margin-top:6px;display:flex;flex-direction:column;}
+      .rf-acc-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 4px;background:transparent;border:none;color:#fff;width:100%;text-align:left;cursor:pointer;}
+      .rf-acc-main{min-width:0;flex:1;}
+      .rf-acc-name{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.3px;}
+      .rf-acc-sub{display:flex;align-items:center;gap:8px;color:#9c9ca1;font-size:14px;margin-top:4px;}
+      .rf-acc-ic{display:inline-flex;width:18px;height:18px;border-radius:50%;overflow:hidden;background:rgba(255,255,255,.06);}
+      .rf-acc-ic img{width:100%;height:100%;object-fit:cover;display:block;}
+      .rf-acc-right{text-align:right;}
+      .rf-acc-fiat{color:#fff;font-size:18px;font-weight:700;}
+      .rf-acc-amt{color:#9c9ca1;font-size:13px;margin-top:2px;}
+      /* QR pane */
+      .rf-pane-qr{padding-top:18px !important;}
+      .rf-qr-head{position:relative;text-align:center;padding:6px 40px 12px;}
+      .rf-qr-title-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+      .rf-qr-title{color:#fff;font-size:20px;font-weight:700;letter-spacing:-.2px;}
+      .rf-qr-sub{color:#9c9ca1;font-size:14px;}
+      .rf-x-qr{top:6px !important;right:0 !important;background:transparent !important;}
+      .rf-x-qr svg{width:22px;height:22px;}
+      .rf-qr-card{background:#141418;border-radius:18px;padding:18px 18px 22px;margin:18px 0 18px;display:flex;flex-direction:column;align-items:center;gap:14px;}
+      .rf-qr-acc{color:#fff;font-size:17px;font-weight:700;}
+      .rf-qr-img-wrap{position:relative;width:230px;height:230px;background:#fff;border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:center;}
+      .rf-qr-img{width:100%;height:100%;display:block;border-radius:6px;}
+      .rf-qr-logo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:48px;height:48px;border-radius:50%;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid #fff;}
+      .rf-qr-logo img{width:100%;height:100%;object-fit:cover;display:block;}
+      .rf-qr-addr{color:#fff;font-size:15px;text-align:center;word-break:break-all;line-height:1.35;font-weight:500;letter-spacing:.2px;max-width:280px;}
+      .rf-qr-actions{display:flex;gap:10px;}
+      .rf-qr-share{flex:0 0 64px;height:54px;background:#1c1c20;border:none;border-radius:14px;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+      .rf-qr-share svg{width:20px;height:20px;}
+      .rf-qr-copy{flex:1;background:#1c1c20;border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;padding:14px;}
+      .rf-qr-copy svg{width:18px;height:18px;}
+      .rf-qr-memo{text-align:center;color:#bbaefc;font-size:15px;font-weight:600;margin:18px 0 14px;cursor:pointer;}
+      .rf-qr-warn{color:#9c9ca1;font-size:13px;line-height:1.4;text-align:center;margin-bottom:14px;}
+      .rf-qr-help{display:flex;align-items:center;gap:12px;background:#141418;border-radius:14px;padding:12px 14px;margin-bottom:14px;}
+      .rf-qr-help-ic{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+      .rf-qr-help-ic svg{width:18px;height:18px;}
+      .rf-qr-help-txt{flex:1;color:#fff;font-size:14px;font-weight:600;line-height:1.3;}
+      .rf-qr-help-x{background:rgba(255,255,255,.08);border:none;color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;}
+      .rf-qr-help-x svg{width:13px;height:13px;}
+      .rf-verify-cta{margin-top:auto;background:#fff;color:#000;border:none;border-radius:100px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;width:100%;}
 
 `;
 
