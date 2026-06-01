@@ -2268,10 +2268,10 @@ input,textarea,select{font-size:16px !important;}
       .sf-info svg{width:20px;height:20px;color:#7f6cff;flex-shrink:0;margin-top:1px;}
       /* step 3 */
       .sf-amt-row{display:flex;align-items:baseline;justify-content:space-between;padding:24px 0 14px;}
-      .sf-amt-row input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:36px;font-weight:300;letter-spacing:-.5px;width:100%;padding:0;}
-      .sf-amt-sym{color:#fff;font-size:32px;font-weight:300;opacity:.85;margin-left:10px;}
+      .sf-amt-row input{flex:1 !important;background:transparent !important;border:none !important;outline:none !important;color:#fff !important;font-size:36px !important;font-weight:300 !important;letter-spacing:-.5px !important;width:100% !important;padding:0 !important;line-height:1.1 !important;min-width:0 !important;}
+      .sf-amt-sym{color:#fff !important;font-size:32px !important;font-weight:300 !important;opacity:.85 !important;margin-left:10px !important;}
       .sf-fiat-row{padding:14px 0 12px;}
-      .sf-fiat-row span:first-child{flex:1;color:#fff;font-size:36px;font-weight:300;letter-spacing:-.5px;}
+      .sf-fiat-row span:first-child{flex:1 !important;color:#fff !important;font-size:36px !important;font-weight:300 !important;letter-spacing:-.5px !important;line-height:1.1 !important;}
       .sf-amt-div{height:1px;background:rgba(255,255,255,.12);margin:4px 0;}
       .sf-amt-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding:24px 0 18px;}
       .sf-avail-l{color:#9c9ca1;font-size:13px;}
