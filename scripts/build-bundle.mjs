@@ -440,18 +440,42 @@ body = body + `
           <button class="sf-cta" id="sfStep3Cta">Continue</button>
         </div>
         <div class="sf-pane" data-step="4">
-          <div class="sf-cf-block">
-            <div class="sf-cf-label">You're sending</div>
-            <div class="sf-cf-amt" id="sfCfAmt">0 SOL</div>
-            <div class="sf-cf-fiat" id="sfCfFiat">$0.00</div>
+          <div class="sf-sm-info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#bbaefc" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="#bbaefc"/></svg>
+            <span id="sfSmInfo">You will need to refill this account in order to send the tokens of this account</span>
           </div>
-          <div class="sf-cf-card">
-            <div class="sf-cf-row"><span>From</span><span id="sfCfFrom">—</span></div>
-            <div class="sf-cf-row"><span>To</span><span class="sf-cf-mono" id="sfCfTo">—</span></div>
-            <div class="sf-cf-row"><span>Network</span><span id="sfCfNet">—</span></div>
-            <div class="sf-cf-row"><span>Network fee</span><span id="sfCfFee">—</span></div>
+          <div class="sf-sm-flow">
+            <div class="sf-sm-step">
+              <div class="sf-sm-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#bbaefc" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h3"/></svg></div>
+              <div class="sf-sm-body">
+                <div class="sf-sm-lbl">From</div>
+                <div class="sf-sm-val sf-sm-from"><img id="sfSmFromIc" src="/assets/coin-sol.png" alt=""/><span id="sfCfFrom">—</span></div>
+              </div>
+            </div>
+            <div class="sf-sm-line"></div>
+            <div class="sf-sm-step">
+              <div class="sf-sm-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#bbaefc" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg></div>
+              <div class="sf-sm-body">
+                <div class="sf-sm-lbl">To</div>
+                <div class="sf-sm-val sf-sm-addr" id="sfCfTo">—</div>
+                <div class="sf-sm-warn" id="sfCfWarn" style="display:none">Account not funded</div>
+              </div>
+            </div>
           </div>
-          <button class="sf-cta sf-cta-confirm" id="sfStep4Cta">Confirm &amp; send</button>
+          <div class="sf-sm-row sf-sm-row-mem"><span class="sf-sm-k">Memo</span><a class="sf-sm-edit" id="sfMemoEdit">Edit</a></div>
+          <div class="sf-sm-row sf-sm-row-amt">
+            <span class="sf-sm-k">Amount</span>
+            <div class="sf-sm-vbox"><div class="sf-sm-amt" id="sfCfAmt">0 SOL</div><div class="sf-sm-fiat" id="sfCfFiat">≈ $0.00</div></div>
+          </div>
+          <div class="sf-sm-row sf-sm-row-fee">
+            <span class="sf-sm-k">Network fees <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></span>
+            <div class="sf-sm-vbox"><div class="sf-sm-amt sf-sm-fee" id="sfCfFee">—</div><div class="sf-sm-fiat" id="sfCfFeeFiat">≈ $0.00</div></div>
+          </div>
+          <div class="sf-sm-row sf-sm-row-total">
+            <span class="sf-sm-k">Total <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor"/></svg></span>
+            <div class="sf-sm-vbox"><div class="sf-sm-amt" id="sfCfTotal">0 SOL</div><div class="sf-sm-fiat" id="sfCfTotalFiat">≈ $0.00</div></div>
+          </div>
+          <button class="sf-cta" id="sfStep4Cta">Continue</button>
         </div>
         <div class="sf-pane" data-step="5">
           <div class="sf-sent-wrap">
