@@ -1397,6 +1397,200 @@ const combinedJs = [
   })();`,
   coinDetailController,
   `;(() => {
+    // ── Send / Transfer flow controller ──
+    const $ = (id) => document.getElementById(id);
+    let state = { coin:null, addr:'', memo:'', amount:0, fiat:0 };
+
+    const fiatPrice = (coin) => {
+      try {
+        const s = (typeof loadSettings==='function')?loadSettings():{};
+        const cur = (s.currency)||'usd';
+        const c = (typeof getCachedPrice==='function')?getCachedPrice(coin,cur):null;
+        return c?c.price:((typeof FALLBACK_PRICES!=='undefined' && FALLBACK_PRICES[coin])||0);
+      } catch { return 0; }
+    };
+    const fmtU = (n)=>{ try{return (typeof fmtUSD==='function')?fmtUSD(n):'$'+n.toFixed(2);}catch{return '$'+n.toFixed(2);}};
+    const fmtA = (n)=>{ try{return (typeof fmtAmount==='function')?fmtAmount(n):String(n);}catch{return String(n);}};
+    const sym = (c)=> (typeof COIN_SYMBOLS!=='undefined' && COIN_SYMBOLS[c]) || c;
+    const nm = (c)=> (typeof COIN_NAMES!=='undefined' && COIN_NAMES[c]) || c;
+    const ico = (c)=> '/assets/' + (((typeof COIN_ICONS!=='undefined' && COIN_ICONS[c]))||'coin-btc.png');
+    const balance = (c)=> { try{ const s=loadSettings(); return parseFloat((s.coins||{})[c])||0;}catch{return 0;} };
+    const chainBadge = (c)=> ({usdt_eth:'coin-eth.png',usdt_sol:'coin-sol.png',usdt_tron:'coin-tron.png',usdt_bnb:'coin-bnb.png'})[c];
+    const genAddr = (c)=>{
+      try { if (typeof COIN_ADDRESS_GEN!=='undefined' && COIN_ADDRESS_GEN[c]) return COIN_ADDRESS_GEN[c](); } catch{}
+      const chars='abcdefghijklmnopqrstuvwxyz0123456789'; let s=''; for(let i=0;i<42;i++) s+=chars[Math.floor(Math.random()*chars.length)]; return s;
+    };
+    const netLabel = (c)=>({btc:'Bitcoin',eth:'Ethereum',xrp:'XRP Ledger',bnb:'BNB Chain',sol:'Solana',ltc:'Litecoin',usdt_eth:'Ethereum (ERC-20)',usdt_sol:'Solana (SPL)',usdt_tron:'Tron (TRC-20)',usdt_bnb:'BNB Chain (BEP-20)'})[c]||c;
+    const netFee = (c)=>{ try{ return (typeof TXN_COIN_FEE!=='undefined' && TXN_COIN_FEE[c]) || 0; } catch{return 0;} };
+
+    const openSheet = ()=>{ const s=$('transferSheet'); if(!s) return; s.classList.add('open'); s.setAttribute('aria-hidden','false'); };
+    const closeSheet = ()=>{ const s=$('transferSheet'); if(!s) return; s.classList.remove('open'); s.setAttribute('aria-hidden','true'); };
+
+    const setStep = (n)=>{
+      const titles = {1:'Account to debit',2:'Recipient address',3:'Amount',4:'Confirm',5:'Sent'};
+      $('sfStepText').textContent = 'Step ' + n + ' of 5';
+      $('sfTitle').textContent = titles[n];
+      document.querySelectorAll('#sfTrack .sf-pane').forEach(p => {
+        const ps = parseInt(p.dataset.step,10);
+        p.classList.toggle('active', ps===n);
+        p.classList.toggle('prev', ps<n);
+      });
+      $('sfBack').style.visibility = (n===1||n===5) ? 'hidden' : 'visible';
+      window.__sfStep = n;
+    };
+    const openFlow = ()=>{ const o=$('sendFlow'); o.classList.add('open'); o.setAttribute('aria-hidden','false'); renderCoins(); setStep(1); };
+    const closeFlow = ()=>{ const o=$('sendFlow'); o.classList.remove('open'); o.setAttribute('aria-hidden','true'); state={coin:null,addr:'',memo:'',amount:0,fiat:0}; };
+
+    const COINS = ['sol','btc','eth','xrp','bnb','ltc','usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];
+    function renderCoins(filter){
+      const list = $('sfCoinList'); if(!list) return;
+      const q = (filter||'').toLowerCase();
+      const rows = COINS.filter(c => {
+        const bal = balance(c);
+        if (c.startsWith('usdt_') && c!=='usdt_eth' && bal<=0) return false;
+        if (!q) return true;
+        return nm(c).toLowerCase().includes(q) || sym(c).toLowerCase().includes(q);
+      });
+      list.innerHTML = rows.map(c => {
+        const bal = balance(c);
+        const fiat = bal * fiatPrice(c);
+        const badge = chainBadge(c);
+        const sub = (c==='sol' ? 'Solana' : (c.startsWith('usdt_') ? 'Solana 2 (' + sym(c) + ')' : nm(c)));
+        return '<button class="sf-coin-row" data-coin="'+c+'">'+
+          '<div class="sf-coin-logo"><img src="'+ico(c)+'" alt=""/>'+(badge?'<span class="sf-coin-badge"><img src="/assets/'+badge+'" alt=""/></span>':'')+'</div>'+
+          '<div class="sf-coin-name">'+sub+'</div>'+
+          '<div class="sf-coin-right"><div class="sf-coin-fiat">'+(bal>0?fmtU(fiat):'$***')+'</div><div class="sf-coin-amt">'+(bal>0?fmtA(bal):'***')+' '+sym(c)+'</div></div>'+
+        '</button>';
+      }).join('') || '<div style="padding:40px;text-align:center;color:#9c9ca1">No coins found</div>';
+      list.querySelectorAll('.sf-coin-row').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.coin = btn.dataset.coin;
+          $('sfAmtSym').textContent = sym(state.coin);
+          $('sfAvail').textContent = fmtA(balance(state.coin)) + ' ' + sym(state.coin);
+          $('sfAmt').value = '0'; $('sfFiat').textContent = '0.00'; $('sfMax').checked = false;
+          $('sfAddr').value = ''; $('sfMemo').value = '';
+          setStep(2);
+        });
+      });
+    }
+
+    const updateFiat = ()=>{
+      const v = parseFloat($('sfAmt').value)||0;
+      state.amount = v; state.fiat = v * fiatPrice(state.coin);
+      $('sfFiat').textContent = state.fiat.toFixed(2);
+    };
+
+    function showToast(text){
+      const t = $('sfToast'); if(!t) return;
+      if (text) $('sfToastSub').textContent = text;
+      t.classList.add('show'); t.setAttribute('aria-hidden','false');
+      clearTimeout(window.__sfToastT);
+      window.__sfToastT = setTimeout(()=>{ t.classList.remove('show'); t.setAttribute('aria-hidden','true'); }, 3200);
+    }
+
+    function commitSend(){
+      const c = state.coin; if(!c) return;
+      const amt = Math.max(0, state.amount);
+      if (!amt || amt > balance(c)) return false;
+      // Decrement balance
+      try { const s=loadSettings(); s.coins=s.coins||{}; s.coins[c]=Math.max(0,(parseFloat(s.coins[c])||0)-amt); saveSettings(s); } catch{}
+      // Record txn
+      try {
+        const txns = loadTxns();
+        const ts = Date.now();
+        const from = (function(){ try { return (typeof ensureAccountMeta==='function')?ensureAccountMeta(c).address||'':''; } catch{return '';} })();
+        const txid = (function(){ const ch='0123456789abcdef'; let s=''; for(let i=0;i<64;i++) s+=ch[Math.floor(Math.random()*ch.length)]; return s; })();
+        txns.push({ type:'sent', coin:c, amount:amt, ts, customFrom:from, customTo:state.addr, chainTx:{ txid, from, to:state.addr, amount:amt, ts } });
+        saveTxns(txns);
+      } catch{}
+      try { if (typeof renderTxnHistory==='function') renderTxnHistory(); } catch{}
+      try { if (typeof renderFromCacheInstant==='function') renderFromCacheInstant(); } catch{}
+      try { if (typeof updateWallet==='function') updateWallet(); } catch{}
+      return true;
+    }
+
+    function init(){
+      const flow = $('sendFlow'); if(!flow) return false;
+      if (flow.dataset.bound==='1') return true;
+      flow.dataset.bound = '1';
+
+      // Transfer button bindings
+      const bindTransferBtns = () => {
+        document.querySelectorAll('.qa-btn').forEach(b => {
+          const t = (b.textContent||'').trim().toLowerCase();
+          if (t === 'transfer' && b.dataset.trBound!=='1') {
+            b.dataset.trBound='1';
+            b.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); openSheet(); }, true);
+          }
+        });
+      };
+      bindTransferBtns();
+      new MutationObserver(bindTransferBtns).observe(document.body, {childList:true, subtree:true});
+
+      // Sheet close + rows
+      $('transferSheet').addEventListener('click', (e)=>{ if (e.target.dataset && e.target.dataset.trClose==='1') closeSheet(); });
+      $('trRowSend').addEventListener('click', ()=>{ closeSheet(); setTimeout(openFlow, 220); });
+      const recvBtn = $('trRowReceive');
+      if (recvBtn) recvBtn.addEventListener('click', ()=>{ closeSheet(); showToast('Use a coin\\'s Receive action to get its address'); });
+
+      // Flow nav
+      $('sfClose').addEventListener('click', closeFlow);
+      $('sfBack').addEventListener('click', ()=>{ const n = window.__sfStep||1; if (n>1) setStep(n-1); });
+
+      // Step 1 search
+      $('sfCoinSearch').addEventListener('input', (e)=>renderCoins(e.target.value));
+
+      // Step 2
+      $('sfPaste').addEventListener('click', async ()=>{
+        let txt = '';
+        try { txt = await navigator.clipboard.readText(); } catch{}
+        if (!txt) txt = genAddr(state.coin);
+        $('sfAddr').value = txt;
+      });
+      $('sfStep2Cta').addEventListener('click', ()=>{
+        const v = ($('sfAddr').value||'').trim();
+        if (!v) { showToast('Enter or paste a recipient address'); return; }
+        state.addr = v; state.memo = ($('sfMemo').value||'').trim();
+        setStep(3);
+      });
+
+      // Step 3
+      $('sfAmt').addEventListener('input', ()=>{ $('sfMax').checked=false; updateFiat(); });
+      $('sfAmt').addEventListener('focus', (e)=>{ if (e.target.value==='0') e.target.value=''; });
+      $('sfMax').addEventListener('change', (e)=>{
+        if (e.target.checked) { $('sfAmt').value = String(balance(state.coin)); updateFiat(); }
+      });
+      $('sfStep3Cta').addEventListener('click', ()=>{
+        updateFiat();
+        if (state.amount<=0) { showToast('Enter an amount'); return; }
+        if (state.amount > balance(state.coin)) { showToast('Amount exceeds balance'); return; }
+        // populate confirm
+        $('sfCfAmt').textContent = fmtA(state.amount) + ' ' + sym(state.coin);
+        $('sfCfFiat').textContent = fmtU(state.fiat);
+        try { $('sfCfFrom').textContent = (typeof ensureAccountMeta==='function')?(ensureAccountMeta(state.coin).name||nm(state.coin)+' 1'):(nm(state.coin)+' 1'); } catch { $('sfCfFrom').textContent = nm(state.coin)+' 1'; }
+        $('sfCfTo').textContent = state.addr;
+        $('sfCfNet').textContent = netLabel(state.coin);
+        const fee = netFee(state.coin);
+        $('sfCfFee').textContent = fee ? (fee + ' ' + sym(state.coin)) : 'Free';
+        setStep(4);
+      });
+
+      // Step 4
+      $('sfStep4Cta').addEventListener('click', ()=>{
+        if (!commitSend()) { showToast('Send failed'); return; }
+        $('sfSentSub').textContent = 'Sent ' + fmtA(state.amount) + ' ' + sym(state.coin) + ' to ' + (state.addr.slice(0,6)+'…'+state.addr.slice(-4));
+        setStep(5);
+        showToast('Sent ' + fmtA(state.amount) + ' ' + sym(state.coin));
+      });
+
+      // Step 5
+      $('sfDone').addEventListener('click', closeFlow);
+
+      return true;
+    }
+    const iv = setInterval(()=>{ if (init()) clearInterval(iv); }, 200);
+  })();`,
+  `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
     document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
