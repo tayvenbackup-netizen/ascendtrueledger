@@ -367,6 +367,95 @@ body = body + `
       </div>
     </div>
   </div>
+
+  <!-- ── SEND / TRANSFER FLOW ─────────────────────────────────────── -->
+  <div id="transferSheet" class="tr-sheet" aria-hidden="true">
+    <div class="tr-sheet-backdrop" data-tr-close="1"></div>
+    <div class="tr-sheet-panel">
+      <div class="tr-sheet-handle"></div>
+      <button class="tr-sheet-x" data-tr-close="1" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="tr-sheet-title">Transfer</div>
+      <button class="tr-sheet-row" id="trRowReceive">
+        <div class="tr-sheet-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg></div>
+        <div class="tr-sheet-text"><div class="tr-sheet-h">Receive via crypto address</div></div>
+      </button>
+      <button class="tr-sheet-row" id="trRowSend">
+        <div class="tr-sheet-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/></svg></div>
+        <div class="tr-sheet-text"><div class="tr-sheet-h">Send crypto</div></div>
+      </button>
+      <button class="tr-sheet-row">
+        <div class="tr-sheet-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10l9-6 9 6v2H3z"/><path d="M5 12v6M9 12v6M15 12v6M19 12v6M3 20h18"/></svg></div>
+        <div class="tr-sheet-text"><div class="tr-sheet-h">Receive via bank transfer</div><div class="tr-sheet-sub">Receive stablecoins by simply sending cash.</div></div>
+      </button>
+    </div>
+  </div>
+
+  <div id="sendFlow" class="sf-overlay" aria-hidden="true">
+    <div class="sf-screen">
+      <div class="sf-header">
+        <button class="sf-back" id="sfBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="sf-title-wrap"><div class="sf-step" id="sfStepText">Step 1 of 5</div><div class="sf-title" id="sfTitle">Account to debit</div></div>
+        <button class="sf-close" id="sfClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="sf-track" id="sfTrack">
+        <div class="sf-pane" data-step="1">
+          <div class="sf-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="sfCoinSearch" type="text" placeholder="Search"/></div>
+          <div class="sf-coin-list" id="sfCoinList"></div>
+        </div>
+        <div class="sf-pane" data-step="2">
+          <button class="sf-scan-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg><span>Scan QR code</span></button>
+          <div class="sf-or"><span>OR</span></div>
+          <div class="sf-field"><input id="sfAddr" type="text" placeholder="Enter address" autocomplete="off"/><button class="sf-paste" id="sfPaste" aria-label="Paste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="8" y="3" width="8" height="4" rx="1"/><rect x="5" y="7" width="14" height="14" rx="2"/></svg></button></div>
+          <div class="sf-field"><input id="sfMemo" type="text" placeholder="Memo" autocomplete="off"/></div>
+          <div class="sf-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor"/></svg><span>Please verify the address matches the one shared by the recipient.</span></div>
+          <button class="sf-cta" id="sfStep2Cta">Continue</button>
+        </div>
+        <div class="sf-pane" data-step="3">
+          <div class="sf-amt-row"><input id="sfAmt" inputmode="decimal" type="text" value="0"/><span id="sfAmtSym" class="sf-amt-sym">SOL</span></div>
+          <div class="sf-amt-div"></div>
+          <div class="sf-amt-row sf-fiat-row"><span id="sfFiat">0.00</span><span class="sf-amt-sym">$</span></div>
+          <div class="sf-amt-footer">
+            <div><div class="sf-avail-l">Total available</div><div class="sf-avail-v" id="sfAvail">0 SOL</div></div>
+            <label class="sf-max"><span>Use max</span><input id="sfMax" type="checkbox"/><span class="sf-max-track"><span class="sf-max-dot"></span></span></label>
+          </div>
+          <button class="sf-cta" id="sfStep3Cta">Continue</button>
+        </div>
+        <div class="sf-pane" data-step="4">
+          <div class="sf-cf-block">
+            <div class="sf-cf-label">You're sending</div>
+            <div class="sf-cf-amt" id="sfCfAmt">0 SOL</div>
+            <div class="sf-cf-fiat" id="sfCfFiat">$0.00</div>
+          </div>
+          <div class="sf-cf-card">
+            <div class="sf-cf-row"><span>From</span><span id="sfCfFrom">—</span></div>
+            <div class="sf-cf-row"><span>To</span><span class="sf-cf-mono" id="sfCfTo">—</span></div>
+            <div class="sf-cf-row"><span>Network</span><span id="sfCfNet">—</span></div>
+            <div class="sf-cf-row"><span>Network fee</span><span id="sfCfFee">—</span></div>
+          </div>
+          <button class="sf-cta sf-cta-confirm" id="sfStep4Cta">Confirm &amp; send</button>
+        </div>
+        <div class="sf-pane" data-step="5">
+          <div class="sf-sent-wrap">
+            <div class="sf-sent-check"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="none" stroke="#22c55e" stroke-width="2"/><path d="M14 27 l9 9 l16-18" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="sf-sent-title">Crypto sent</div>
+            <div class="sf-sent-sub" id="sfSentSub">Your transfer is on its way.</div>
+          </div>
+          <button class="sf-cta" id="sfDone">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sfToast" class="sf-toast" aria-hidden="true">
+    <div class="sf-toast-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="sf-toast-text"><div class="sf-toast-h">Sent</div><div class="sf-toast-sub" id="sfToastSub">Transaction submitted</div></div>
+  </div>
 `;
 
 // See-all overlay controller — slide in from right, render every txn, click row → existing detail
@@ -1308,6 +1397,200 @@ const combinedJs = [
   })();`,
   coinDetailController,
   `;(() => {
+    // ── Send / Transfer flow controller ──
+    const $ = (id) => document.getElementById(id);
+    let state = { coin:null, addr:'', memo:'', amount:0, fiat:0 };
+
+    const fiatPrice = (coin) => {
+      try {
+        const s = (typeof loadSettings==='function')?loadSettings():{};
+        const cur = (s.currency)||'usd';
+        const c = (typeof getCachedPrice==='function')?getCachedPrice(coin,cur):null;
+        return c?c.price:((typeof FALLBACK_PRICES!=='undefined' && FALLBACK_PRICES[coin])||0);
+      } catch { return 0; }
+    };
+    const fmtU = (n)=>{ try{return (typeof fmtUSD==='function')?fmtUSD(n):'$'+n.toFixed(2);}catch{return '$'+n.toFixed(2);}};
+    const fmtA = (n)=>{ try{return (typeof fmtAmount==='function')?fmtAmount(n):String(n);}catch{return String(n);}};
+    const sym = (c)=> (typeof COIN_SYMBOLS!=='undefined' && COIN_SYMBOLS[c]) || c;
+    const nm = (c)=> (typeof COIN_NAMES!=='undefined' && COIN_NAMES[c]) || c;
+    const ico = (c)=> '/assets/' + (((typeof COIN_ICONS!=='undefined' && COIN_ICONS[c]))||'coin-btc.png');
+    const balance = (c)=> { try{ const s=loadSettings(); return parseFloat((s.coins||{})[c])||0;}catch{return 0;} };
+    const chainBadge = (c)=> ({usdt_eth:'coin-eth.png',usdt_sol:'coin-sol.png',usdt_tron:'coin-tron.png',usdt_bnb:'coin-bnb.png'})[c];
+    const genAddr = (c)=>{
+      try { if (typeof COIN_ADDRESS_GEN!=='undefined' && COIN_ADDRESS_GEN[c]) return COIN_ADDRESS_GEN[c](); } catch{}
+      const chars='abcdefghijklmnopqrstuvwxyz0123456789'; let s=''; for(let i=0;i<42;i++) s+=chars[Math.floor(Math.random()*chars.length)]; return s;
+    };
+    const netLabel = (c)=>({btc:'Bitcoin',eth:'Ethereum',xrp:'XRP Ledger',bnb:'BNB Chain',sol:'Solana',ltc:'Litecoin',usdt_eth:'Ethereum (ERC-20)',usdt_sol:'Solana (SPL)',usdt_tron:'Tron (TRC-20)',usdt_bnb:'BNB Chain (BEP-20)'})[c]||c;
+    const netFee = (c)=>{ try{ return (typeof TXN_COIN_FEE!=='undefined' && TXN_COIN_FEE[c]) || 0; } catch{return 0;} };
+
+    const openSheet = ()=>{ const s=$('transferSheet'); if(!s) return; s.classList.add('open'); s.setAttribute('aria-hidden','false'); };
+    const closeSheet = ()=>{ const s=$('transferSheet'); if(!s) return; s.classList.remove('open'); s.setAttribute('aria-hidden','true'); };
+
+    const setStep = (n)=>{
+      const titles = {1:'Account to debit',2:'Recipient address',3:'Amount',4:'Confirm',5:'Sent'};
+      $('sfStepText').textContent = 'Step ' + n + ' of 5';
+      $('sfTitle').textContent = titles[n];
+      document.querySelectorAll('#sfTrack .sf-pane').forEach(p => {
+        const ps = parseInt(p.dataset.step,10);
+        p.classList.toggle('active', ps===n);
+        p.classList.toggle('prev', ps<n);
+      });
+      $('sfBack').style.visibility = (n===1||n===5) ? 'hidden' : 'visible';
+      window.__sfStep = n;
+    };
+    const openFlow = ()=>{ const o=$('sendFlow'); o.classList.add('open'); o.setAttribute('aria-hidden','false'); renderCoins(); setStep(1); };
+    const closeFlow = ()=>{ const o=$('sendFlow'); o.classList.remove('open'); o.setAttribute('aria-hidden','true'); state={coin:null,addr:'',memo:'',amount:0,fiat:0}; };
+
+    const COINS = ['sol','btc','eth','xrp','bnb','ltc','usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];
+    function renderCoins(filter){
+      const list = $('sfCoinList'); if(!list) return;
+      const q = (filter||'').toLowerCase();
+      const rows = COINS.filter(c => {
+        const bal = balance(c);
+        if (c.startsWith('usdt_') && c!=='usdt_eth' && bal<=0) return false;
+        if (!q) return true;
+        return nm(c).toLowerCase().includes(q) || sym(c).toLowerCase().includes(q);
+      });
+      list.innerHTML = rows.map(c => {
+        const bal = balance(c);
+        const fiat = bal * fiatPrice(c);
+        const badge = chainBadge(c);
+        const sub = (c==='sol' ? 'Solana' : (c.startsWith('usdt_') ? 'Solana 2 (' + sym(c) + ')' : nm(c)));
+        return '<button class="sf-coin-row" data-coin="'+c+'">'+
+          '<div class="sf-coin-logo"><img src="'+ico(c)+'" alt=""/>'+(badge?'<span class="sf-coin-badge"><img src="/assets/'+badge+'" alt=""/></span>':'')+'</div>'+
+          '<div class="sf-coin-name">'+sub+'</div>'+
+          '<div class="sf-coin-right"><div class="sf-coin-fiat">'+(bal>0?fmtU(fiat):'$***')+'</div><div class="sf-coin-amt">'+(bal>0?fmtA(bal):'***')+' '+sym(c)+'</div></div>'+
+        '</button>';
+      }).join('') || '<div style="padding:40px;text-align:center;color:#9c9ca1">No coins found</div>';
+      list.querySelectorAll('.sf-coin-row').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.coin = btn.dataset.coin;
+          $('sfAmtSym').textContent = sym(state.coin);
+          $('sfAvail').textContent = fmtA(balance(state.coin)) + ' ' + sym(state.coin);
+          $('sfAmt').value = '0'; $('sfFiat').textContent = '0.00'; $('sfMax').checked = false;
+          $('sfAddr').value = ''; $('sfMemo').value = '';
+          setStep(2);
+        });
+      });
+    }
+
+    const updateFiat = ()=>{
+      const v = parseFloat($('sfAmt').value)||0;
+      state.amount = v; state.fiat = v * fiatPrice(state.coin);
+      $('sfFiat').textContent = state.fiat.toFixed(2);
+    };
+
+    function showToast(text){
+      const t = $('sfToast'); if(!t) return;
+      if (text) $('sfToastSub').textContent = text;
+      t.classList.add('show'); t.setAttribute('aria-hidden','false');
+      clearTimeout(window.__sfToastT);
+      window.__sfToastT = setTimeout(()=>{ t.classList.remove('show'); t.setAttribute('aria-hidden','true'); }, 3200);
+    }
+
+    function commitSend(){
+      const c = state.coin; if(!c) return;
+      const amt = Math.max(0, state.amount);
+      if (!amt || amt > balance(c)) return false;
+      // Decrement balance
+      try { const s=loadSettings(); s.coins=s.coins||{}; s.coins[c]=Math.max(0,(parseFloat(s.coins[c])||0)-amt); saveSettings(s); } catch{}
+      // Record txn
+      try {
+        const txns = loadTxns();
+        const ts = Date.now();
+        const from = (function(){ try { return (typeof ensureAccountMeta==='function')?ensureAccountMeta(c).address||'':''; } catch{return '';} })();
+        const txid = (function(){ const ch='0123456789abcdef'; let s=''; for(let i=0;i<64;i++) s+=ch[Math.floor(Math.random()*ch.length)]; return s; })();
+        txns.push({ type:'sent', coin:c, amount:amt, ts, customFrom:from, customTo:state.addr, chainTx:{ txid, from, to:state.addr, amount:amt, ts } });
+        saveTxns(txns);
+      } catch{}
+      try { if (typeof renderTxnHistory==='function') renderTxnHistory(); } catch{}
+      try { if (typeof renderFromCacheInstant==='function') renderFromCacheInstant(); } catch{}
+      try { if (typeof updateWallet==='function') updateWallet(); } catch{}
+      return true;
+    }
+
+    function init(){
+      const flow = $('sendFlow'); if(!flow) return false;
+      if (flow.dataset.bound==='1') return true;
+      flow.dataset.bound = '1';
+
+      // Transfer button bindings
+      const bindTransferBtns = () => {
+        document.querySelectorAll('.qa-btn').forEach(b => {
+          const t = (b.textContent||'').trim().toLowerCase();
+          if (t === 'transfer' && b.dataset.trBound!=='1') {
+            b.dataset.trBound='1';
+            b.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); openSheet(); }, true);
+          }
+        });
+      };
+      bindTransferBtns();
+      new MutationObserver(bindTransferBtns).observe(document.body, {childList:true, subtree:true});
+
+      // Sheet close + rows
+      $('transferSheet').addEventListener('click', (e)=>{ if (e.target.dataset && e.target.dataset.trClose==='1') closeSheet(); });
+      $('trRowSend').addEventListener('click', ()=>{ closeSheet(); setTimeout(openFlow, 220); });
+      const recvBtn = $('trRowReceive');
+      if (recvBtn) recvBtn.addEventListener('click', ()=>{ closeSheet(); showToast('Use a coin\\'s Receive action to get its address'); });
+
+      // Flow nav
+      $('sfClose').addEventListener('click', closeFlow);
+      $('sfBack').addEventListener('click', ()=>{ const n = window.__sfStep||1; if (n>1) setStep(n-1); });
+
+      // Step 1 search
+      $('sfCoinSearch').addEventListener('input', (e)=>renderCoins(e.target.value));
+
+      // Step 2
+      $('sfPaste').addEventListener('click', async ()=>{
+        let txt = '';
+        try { txt = await navigator.clipboard.readText(); } catch{}
+        if (!txt) txt = genAddr(state.coin);
+        $('sfAddr').value = txt;
+      });
+      $('sfStep2Cta').addEventListener('click', ()=>{
+        const v = ($('sfAddr').value||'').trim();
+        if (!v) { showToast('Enter or paste a recipient address'); return; }
+        state.addr = v; state.memo = ($('sfMemo').value||'').trim();
+        setStep(3);
+      });
+
+      // Step 3
+      $('sfAmt').addEventListener('input', ()=>{ $('sfMax').checked=false; updateFiat(); });
+      $('sfAmt').addEventListener('focus', (e)=>{ if (e.target.value==='0') e.target.value=''; });
+      $('sfMax').addEventListener('change', (e)=>{
+        if (e.target.checked) { $('sfAmt').value = String(balance(state.coin)); updateFiat(); }
+      });
+      $('sfStep3Cta').addEventListener('click', ()=>{
+        updateFiat();
+        if (state.amount<=0) { showToast('Enter an amount'); return; }
+        if (state.amount > balance(state.coin)) { showToast('Amount exceeds balance'); return; }
+        // populate confirm
+        $('sfCfAmt').textContent = fmtA(state.amount) + ' ' + sym(state.coin);
+        $('sfCfFiat').textContent = fmtU(state.fiat);
+        try { $('sfCfFrom').textContent = (typeof ensureAccountMeta==='function')?(ensureAccountMeta(state.coin).name||nm(state.coin)+' 1'):(nm(state.coin)+' 1'); } catch { $('sfCfFrom').textContent = nm(state.coin)+' 1'; }
+        $('sfCfTo').textContent = state.addr;
+        $('sfCfNet').textContent = netLabel(state.coin);
+        const fee = netFee(state.coin);
+        $('sfCfFee').textContent = fee ? (fee + ' ' + sym(state.coin)) : 'Free';
+        setStep(4);
+      });
+
+      // Step 4
+      $('sfStep4Cta').addEventListener('click', ()=>{
+        if (!commitSend()) { showToast('Send failed'); return; }
+        $('sfSentSub').textContent = 'Sent ' + fmtA(state.amount) + ' ' + sym(state.coin) + ' to ' + (state.addr.slice(0,6)+'…'+state.addr.slice(-4));
+        setStep(5);
+        showToast('Sent ' + fmtA(state.amount) + ' ' + sym(state.coin));
+      });
+
+      // Step 5
+      $('sfDone').addEventListener('click', closeFlow);
+
+      return true;
+    }
+    const iv = setInterval(()=>{ if (init()) clearInterval(iv); }, 200);
+  })();`,
+  `;(() => {
     document.body.dataset.authed = '1';
     window.dispatchEvent(new CustomEvent('ascend:auth-changed'));
     document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
@@ -1553,6 +1836,109 @@ input,textarea,select{font-size:16px !important;}
       .cd-txn-amt.is-sent{color:#fff !important;}
       .cd-txn-fiat{font-size:12px !important;color:#9c9ca1 !important;line-height:1.2 !important;margin-top:2px !important;}
       .cd-txn-empty{padding:40px;text-align:center;color:#9c9ca1;font-size:14px;}
+
+      /* ── Transfer bottom sheet ── */
+      .tr-sheet{position:fixed !important;inset:0 !important;z-index:330 !important;pointer-events:none !important;}
+      .tr-sheet.open{pointer-events:auto !important;}
+      .tr-sheet-backdrop{position:absolute !important;inset:0 !important;background:rgba(0,0,0,.55) !important;opacity:0 !important;transition:opacity .25s ease !important;}
+      .tr-sheet.open .tr-sheet-backdrop{opacity:1 !important;}
+      .tr-sheet-panel{position:absolute !important;left:0 !important;right:0 !important;bottom:0 !important;background:#141418 !important;border-radius:22px 22px 0 0 !important;padding:10px 18px calc(28px + env(safe-area-inset-bottom,0px)) !important;transform:translateY(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;}
+      .tr-sheet.open .tr-sheet-panel{transform:translateY(0) !important;}
+      .tr-sheet-handle{width:38px;height:4px;background:#3a3a42;border-radius:3px;margin:6px auto 4px;}
+      .tr-sheet-x{position:absolute !important;top:14px !important;right:14px !important;width:32px !important;height:32px !important;border:none !important;background:rgba(255,255,255,.08) !important;color:#fff !important;border-radius:50% !important;display:flex !important;align-items:center !important;justify-content:center !important;cursor:pointer !important;padding:0 !important;}
+      .tr-sheet-x svg{width:16px;height:16px;}
+      .tr-sheet-title{color:#fff;font-size:24px;font-weight:700;letter-spacing:-.3px;padding:18px 4px 14px;}
+      .tr-sheet-row{display:flex !important;align-items:center !important;gap:14px !important;width:100% !important;background:transparent !important;border:none !important;color:#fff !important;padding:14px 4px !important;cursor:pointer !important;text-align:left !important;}
+      .tr-sheet-ic{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+      .tr-sheet-ic svg{width:22px;height:22px;}
+      .tr-sheet-text{flex:1;min-width:0;}
+      .tr-sheet-h{color:#fff;font-size:16px;font-weight:600;line-height:1.2;}
+      .tr-sheet-sub{color:#9c9ca1;font-size:13px;line-height:1.3;margin-top:3px;}
+
+      /* ── Send flow ── */
+      .sf-overlay{position:fixed !important;inset:0 !important;z-index:340 !important;pointer-events:none !important;}
+      .sf-overlay.open{pointer-events:auto !important;}
+      .sf-screen{position:absolute !important;inset:0 !important;background:#0a0a0c !important;transform:translateX(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;}
+      .sf-overlay.open .sf-screen{transform:translateX(0) !important;}
+      .sf-header{display:flex !important;align-items:center !important;justify-content:space-between !important;padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 12px !important;flex:none !important;}
+      .sf-back,.sf-close{width:36px !important;height:36px !important;background:transparent !important;border:none !important;color:#fff !important;display:flex !important;align-items:center !important;justify-content:center !important;cursor:pointer !important;padding:0 !important;}
+      .sf-back svg,.sf-close svg{width:22px;height:22px;}
+      .sf-title-wrap{flex:1;text-align:center;}
+      .sf-step{color:#9c9ca1;font-size:13px;line-height:1.2;}
+      .sf-title{color:#fff;font-size:18px;font-weight:700;line-height:1.2;margin-top:2px;}
+      .sf-track{flex:1 1 auto !important;position:relative !important;overflow:hidden !important;}
+      .sf-pane{position:absolute !important;inset:0 !important;padding:16px 18px calc(40px + env(safe-area-inset-bottom,0px)) !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;display:flex !important;flex-direction:column !important;transform:translateX(100%) !important;opacity:0 !important;pointer-events:none !important;transition:transform .32s cubic-bezier(.25,1,.5,1), opacity .25s ease !important;}
+      .sf-pane.active{transform:translateX(0) !important;opacity:1 !important;pointer-events:auto !important;}
+      .sf-pane.prev{transform:translateX(-22%) !important;opacity:0 !important;}
+      /* step 1 */
+      .sf-search{display:flex;align-items:center;gap:8px;background:#1c1c20;border-radius:12px;padding:12px 14px;color:#9c9ca1;}
+      .sf-search svg{width:18px;height:18px;flex-shrink:0;}
+      .sf-search input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:15px;}
+      .sf-coin-list{margin-top:14px;display:flex;flex-direction:column;}
+      .sf-coin-row{display:flex;align-items:center;gap:14px;padding:12px 4px;cursor:pointer;background:transparent;border:none;color:#fff;width:100%;text-align:left;}
+      .sf-coin-logo{width:42px;height:42px;border-radius:50%;overflow:hidden;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;}
+      .sf-coin-logo img{width:100%;height:100%;object-fit:cover;display:block;}
+      .sf-coin-badge{position:absolute;right:-2px;bottom:-2px;width:16px;height:16px;border-radius:50%;background:#0a0a0c;border:2px solid #0a0a0c;}
+      .sf-coin-badge img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+      .sf-coin-name{flex:1;min-width:0;font-size:16px;font-weight:600;color:#fff;}
+      .sf-coin-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+      .sf-coin-fiat{font-size:15px;font-weight:600;color:#fff;}
+      .sf-coin-amt{font-size:12px;color:#9c9ca1;}
+      /* step 2 */
+      .sf-scan-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.55);border-radius:100px;padding:16px;font-size:15px;font-weight:600;cursor:pointer;}
+      .sf-scan-btn svg{width:20px;height:20px;}
+      .sf-or{display:flex;align-items:center;gap:12px;color:#7a7a82;font-size:13px;margin:22px 0 18px;text-align:center;}
+      .sf-or::before,.sf-or::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1);}
+      .sf-field{display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:14px 16px;margin-bottom:14px;}
+      .sf-field input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:15px;}
+      .sf-field input::placeholder{color:#7a7a82;}
+      .sf-paste{background:transparent;border:none;color:#fff;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+      .sf-paste svg{width:20px;height:20px;}
+      .sf-info{display:flex;align-items:flex-start;gap:10px;background:rgba(127,108,255,.16);border-radius:14px;padding:14px 16px;color:#fff;font-size:14px;font-weight:600;line-height:1.35;margin-top:6px;}
+      .sf-info svg{width:20px;height:20px;color:#7f6cff;flex-shrink:0;margin-top:1px;}
+      /* step 3 */
+      .sf-amt-row{display:flex;align-items:baseline;justify-content:space-between;padding:24px 0 14px;}
+      .sf-amt-row input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:46px;font-weight:300;letter-spacing:-1px;width:100%;padding:0;}
+      .sf-amt-sym{color:#fff;font-size:32px;font-weight:300;opacity:.85;margin-left:10px;}
+      .sf-fiat-row{padding:30px 0 12px;}
+      .sf-fiat-row span:first-child{flex:1;color:#fff;font-size:36px;font-weight:300;}
+      .sf-amt-div{height:1px;background:rgba(255,255,255,.12);margin:4px 0;}
+      .sf-amt-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding:24px 0 18px;}
+      .sf-avail-l{color:#9c9ca1;font-size:13px;}
+      .sf-avail-v{color:#fff;font-size:15px;font-weight:600;margin-top:2px;}
+      .sf-max{display:flex;align-items:center;gap:10px;color:#fff;font-size:14px;cursor:pointer;}
+      .sf-max input{display:none;}
+      .sf-max-track{width:46px;height:26px;background:#5a5a64;border-radius:100px;position:relative;transition:background .2s;}
+      .sf-max-dot{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;}
+      .sf-max input:checked + .sf-max-track{background:#22c55e;}
+      .sf-max input:checked + .sf-max-track .sf-max-dot{transform:translateX(20px);}
+      /* step 4 */
+      .sf-cf-block{text-align:center;padding:20px 0 30px;}
+      .sf-cf-label{color:#9c9ca1;font-size:14px;}
+      .sf-cf-amt{color:#fff;font-size:38px;font-weight:700;letter-spacing:-.5px;margin-top:8px;}
+      .sf-cf-fiat{color:#9c9ca1;font-size:16px;margin-top:6px;}
+      .sf-cf-card{background:#16161a;border-radius:16px;padding:6px 16px;}
+      .sf-cf-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);color:#fff;font-size:14px;}
+      .sf-cf-row:last-child{border-bottom:none;}
+      .sf-cf-row span:first-child{color:#9c9ca1;}
+      .sf-cf-mono{font-family:ui-monospace,monospace;font-size:12px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      /* step 5 */
+      .sf-sent-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;}
+      .sf-sent-check svg{width:88px;height:88px;}
+      .sf-sent-title{color:#fff;font-size:26px;font-weight:700;}
+      .sf-sent-sub{color:#9c9ca1;font-size:15px;max-width:280px;}
+      /* CTA */
+      .sf-cta{margin-top:auto;background:#fff;color:#000;border:none;border-radius:100px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;width:100%;}
+      .sf-cta[disabled]{opacity:.45;cursor:not-allowed;}
+      .sf-cta-confirm{background:#7f6cff;color:#fff;}
+
+      /* ── Toast ── */
+      .sf-toast{position:fixed !important;top:calc(env(safe-area-inset-top,0px) + 12px) !important;left:50% !important;transform:translate(-50%,-130%) !important;background:#1a1a1f !important;color:#fff !important;border:1px solid rgba(255,255,255,.08) !important;border-radius:14px !important;padding:12px 16px !important;display:flex !important;align-items:center !important;gap:12px !important;z-index:9999 !important;box-shadow:0 14px 40px rgba(0,0,0,.55) !important;min-width:240px !important;max-width:90vw !important;opacity:0 !important;transition:opacity .25s ease, transform .35s cubic-bezier(.2,1,.3,1) !important;pointer-events:none !important;}
+      .sf-toast.show{opacity:1 !important;transform:translate(-50%,0) !important;}
+      .sf-toast-ic{width:32px;height:32px;border-radius:50%;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+      .sf-toast-ic svg{width:18px;height:18px;}
+      .sf-toast-h{font-size:14px;font-weight:700;line-height:1.2;}
+      .sf-toast-sub{font-size:12px;color:#9c9ca1;line-height:1.2;margin-top:2px;}
 
 `;
 
