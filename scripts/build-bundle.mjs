@@ -232,6 +232,19 @@ body = body.replace(
 // Rename "Explore market" → "Explore the market"
 body = body.replace(/>Explore market</g, '>Explore the market<');
 
+// Mark the main wallet Transfer CTA explicitly so the send/transfer controller
+// can bind it reliably even if text matching is affected by SVG/mobile events.
+body = body.replace(
+  /<button class="qa-btn">\s*\n\s*<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1\.8" stroke-linecap="round" stroke-linejoin="round">\s*\n\s*<path d="M8 4v16M8 4l-3 3M8 4l3 3"\/>\s*\n\s*<path d="M16 20V4M16 20l-3-3M16 20l3-3"\/>\s*\n\s*<\/svg>\s*\n\s*<span>Transfer<\/span>\s*\n\s*<\/button>/,
+  `<button class="qa-btn" data-action="transfer" onclick="window.__openTransferSheet&&window.__openTransferSheet(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 4v16M8 4l-3 3M8 4l3 3"/>
+          <path d="M16 20V4M16 20l-3-3M16 20l3-3"/>
+        </svg>
+        <span>Transfer</span>
+      </button>`
+);
+
 // Remove promo carousel block (the scrollable promo cards above Explore market)
 body = body.replace(/<!--\s*PROMO CAROUSEL\s*-->[\s\S]*?(?=<!--\s*EXPLORE MARKET\s*-->)/i,
 `<!-- PROMO CARD -->
@@ -1424,6 +1437,7 @@ const combinedJs = [
     const netFee = (c)=>{ try{ return (typeof TXN_COIN_FEE!=='undefined' && TXN_COIN_FEE[c]) || 0; } catch{return 0;} };
 
     const openSheet = ()=>{ const s=$('transferSheet'); if(!s) return; s.classList.add('open'); s.setAttribute('aria-hidden','false'); };
+    window.__openTransferSheet = (ev)=>{ try{ ev && ev.preventDefault && ev.preventDefault(); ev && ev.stopPropagation && ev.stopPropagation(); }catch{} openSheet(); return false; };
     const closeSheet = ()=>{ const s=$('transferSheet'); if(!s) return; s.classList.remove('open'); s.setAttribute('aria-hidden','true'); };
 
     const setStep = (n)=>{
@@ -1514,25 +1528,27 @@ const combinedJs = [
       if (flow.dataset.bound==='1') return true;
       flow.dataset.bound = '1';
 
-      // Transfer button bindings — match cd-qa-btn / qa-btn by text or data-action
+      // Transfer button bindings — match main wallet + coin-detail buttons by text or data-action
       const bindTransferBtns = () => {
-        document.querySelectorAll('.cd-qa-btn, .qa-btn, [data-action]').forEach(b => {
+        document.querySelectorAll('.quick-actions .qa-btn, .cd-qa-btn, .qa-btn, [data-action="transfer"]').forEach(b => {
           const act = (b.dataset && b.dataset.action ? b.dataset.action : '').toLowerCase();
           const t = (b.textContent||'').trim().toLowerCase();
           if ((act === 'transfer' || t === 'transfer') && b.dataset.trBound!=='1') {
             b.dataset.trBound='1';
-            b.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); openSheet(); }, true);
+            b.addEventListener('click', window.__openTransferSheet, true);
+            b.addEventListener('pointerup', window.__openTransferSheet, true);
+            b.addEventListener('touchend', window.__openTransferSheet, {capture:true, passive:false});
           }
         });
       };
       bindTransferBtns();
       // Global delegated fallback in case the button is re-rendered
       document.addEventListener('click', (e)=>{
-        const el = e.target && e.target.closest ? e.target.closest('.cd-qa-btn, .qa-btn, [data-action]') : null;
+        const el = e.target && e.target.closest ? e.target.closest('.quick-actions .qa-btn, .cd-qa-btn, .qa-btn, [data-action="transfer"]') : null;
         if (!el) return;
         const act = (el.dataset && el.dataset.action ? el.dataset.action : '').toLowerCase();
         const t = (el.textContent||'').trim().toLowerCase();
-        if (act === 'transfer' || t === 'transfer') { e.preventDefault(); e.stopPropagation(); openSheet(); }
+        if (act === 'transfer' || t === 'transfer') window.__openTransferSheet(e);
       }, true);
       new MutationObserver(bindTransferBtns).observe(document.body, {childList:true, subtree:true});
 
