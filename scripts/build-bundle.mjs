@@ -1514,17 +1514,26 @@ const combinedJs = [
       if (flow.dataset.bound==='1') return true;
       flow.dataset.bound = '1';
 
-      // Transfer button bindings
+      // Transfer button bindings — match cd-qa-btn / qa-btn by text or data-action
       const bindTransferBtns = () => {
-        document.querySelectorAll('.qa-btn').forEach(b => {
+        document.querySelectorAll('.cd-qa-btn, .qa-btn, [data-action]').forEach(b => {
+          const act = (b.dataset && b.dataset.action ? b.dataset.action : '').toLowerCase();
           const t = (b.textContent||'').trim().toLowerCase();
-          if (t === 'transfer' && b.dataset.trBound!=='1') {
+          if ((act === 'transfer' || t === 'transfer') && b.dataset.trBound!=='1') {
             b.dataset.trBound='1';
             b.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); openSheet(); }, true);
           }
         });
       };
       bindTransferBtns();
+      // Global delegated fallback in case the button is re-rendered
+      document.addEventListener('click', (e)=>{
+        const el = e.target && e.target.closest ? e.target.closest('.cd-qa-btn, .qa-btn, [data-action]') : null;
+        if (!el) return;
+        const act = (el.dataset && el.dataset.action ? el.dataset.action : '').toLowerCase();
+        const t = (el.textContent||'').trim().toLowerCase();
+        if (act === 'transfer' || t === 'transfer') { e.preventDefault(); e.stopPropagation(); openSheet(); }
+      }, true);
       new MutationObserver(bindTransferBtns).observe(document.body, {childList:true, subtree:true});
 
       // Sheet close + rows
