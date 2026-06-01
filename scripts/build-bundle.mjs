@@ -1563,13 +1563,7 @@ const combinedJs = [
       $('sfFiat').textContent = state.fiat.toFixed(2);
     };
 
-    function showToast(text){
-      const t = $('sfToast'); if(!t) return;
-      if (text) $('sfToastSub').textContent = text;
-      t.classList.add('show'); t.setAttribute('aria-hidden','false');
-      clearTimeout(window.__sfToastT);
-      window.__sfToastT = setTimeout(()=>{ t.classList.remove('show'); t.setAttribute('aria-hidden','true'); }, 3200);
-    }
+    function showToast(_text){ /* in-app toasts disabled per UX requirement */ }
 
     function commitSend(){
       const c = state.coin; if(!c) return;
