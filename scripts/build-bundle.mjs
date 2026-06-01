@@ -1751,16 +1751,13 @@ const combinedJs = [
       });
 
       // Native device notification (reuses /sw.js infrastructure)
-      async function fireSentNotif(amtStr, symV, nmV, addr){
+      async function fireNativeNotif(title, body){
         try {
           if (!('Notification' in window)) return;
           if (Notification.permission !== 'granted') {
             try { await Notification.requestPermission(); } catch{}
             if (Notification.permission !== 'granted') return;
           }
-          const short = (addr||'').length > 10 ? (addr.slice(0,6)+'…'+addr.slice(-4)) : (addr||'');
-          const title = '💸 Sent';
-          const body = amtStr + ' ' + symV + ' Transaction to ' + short + ' is successful • ' + nmV;
           const payload = { body, icon:'/assets/ledger.png', badge:'/assets/ledger.png', tag:'ledger-'+Date.now(), renotify:true };
           try {
             const reg = await navigator.serviceWorker.ready;
@@ -1769,6 +1766,17 @@ const combinedJs = [
           try { new Notification(title, payload); } catch{}
         } catch{}
       }
+      function fireSentNotif(amtStr, symV, nmV, addr){
+        const short = (addr||'').length > 10 ? (addr.slice(0,6)+'…'+addr.slice(-4)) : (addr||'');
+        const body = amtStr + ' ' + symV + ' Transaction to ' + short + ' is successful • ' + nmV;
+        fireNativeNotif('💸 Sent', body);
+      }
+      function fireReceiveNotif(amtStr, symV, nmV, fromAddr){
+        const short = (fromAddr||'').length > 10 ? (fromAddr.slice(0,6)+'…'+fromAddr.slice(-4)) : (fromAddr||'External');
+        const body = amtStr + ' ' + symV + ' received from ' + short + ' • ' + nmV;
+        fireNativeNotif('💰 Received', body);
+      }
+      window.__fireReceiveNotif = fireReceiveNotif;
 
       // Step 4
       $('sfStep4Cta').addEventListener('click', ()=>{
@@ -1776,7 +1784,9 @@ const combinedJs = [
         const symV = sym(state.coin); const nmV = nm(state.coin);
         $('sfSentSub').textContent = 'Sent ' + fmtA(state.amount) + ' ' + symV + ' to ' + (state.addr.slice(0,6)+'…'+state.addr.slice(-4));
         setStep(5);
-        fireSentNotif(fmtA(state.amount), symV, nmV, state.addr);
+        // Per spec: sent notification fires 7s after send
+        const amtStr = fmtA(state.amount);
+        setTimeout(()=>fireSentNotif(amtStr, symV, nmV, state.addr), 7000);
       });
 
       // Step 5
@@ -1785,6 +1795,109 @@ const combinedJs = [
       return true;
     }
     const iv = setInterval(()=>{ if (init()) clearInterval(iv); }, 200);
+
+    // ─── P2P (peer-to-peer) backend wiring ───
+    (function p2pSetup(){
+      const SB_URL = window.__LARP_SB_URL || '';
+      const SB_ANON = window.__LARP_SB_ANON || '';
+      const TOKEN = window.__LARP_SESSION || '';
+      if (!SB_URL || !SB_ANON) return;
+      const API = SB_URL.replace(/\\/$/, '') + '/functions/v1/p2p';
+
+      async function call(action, body){
+        try {
+          const r = await fetch(API, {
+            method:'POST',
+            headers:{ 'Content-Type':'application/json', 'apikey': SB_ANON, 'authorization':'Bearer '+SB_ANON },
+            body: JSON.stringify(Object.assign({ action }, body||{}))
+          });
+          if (!r.ok) return null;
+          return await r.json();
+        } catch { return null; }
+      }
+
+      // Deterministic per-session address generator. Override stored
+      // ledgerAccounts so every key/session has stable, unique wallet addresses.
+      async function sha256hex(s){
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+        return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+      }
+      function fmtAddr(hex, coin){
+        // Coin-specific superficial formats so addresses look right.
+        const h = hex.toLowerCase();
+        if (coin==='btc') return 'bc1q' + h.slice(0, 38);
+        if (coin==='ltc') return 'ltc1q' + h.slice(0, 38);
+        if (coin==='xrp') return 'r' + h.slice(0, 33).toUpperCase();
+        if (coin==='sol' || coin==='usdt_sol') return h.slice(0, 44).toUpperCase();
+        if (coin==='usdt_tron') return 'T' + h.slice(0, 33).toUpperCase();
+        // eth-style default
+        return '0x' + h.slice(0, 40);
+      }
+      const COIN_LIST = ['sol','btc','eth','xrp','bnb','ltc','usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];
+
+      async function ensureDeterministicAddresses(){
+        if (!TOKEN) return [];
+        const key = 'ledgerAccounts';
+        let store = {};
+        try { store = JSON.parse(localStorage.getItem(key)||'{}') || {}; } catch{}
+        const NAMES = (typeof COIN_NAMES!=='undefined') ? COIN_NAMES : {};
+        const seedHash = await sha256hex('larp:'+TOKEN);
+        const addrs = [];
+        for (const c of COIN_LIST) {
+          const h = await sha256hex(seedHash + ':' + c);
+          const addr = fmtAddr(h, c);
+          store[c] = { name: (NAMES[c]||c)+' 1', address: addr };
+          addrs.push(addr);
+        }
+        try { localStorage.setItem(key, JSON.stringify(store)); } catch{}
+        return addrs;
+      }
+
+      window.__p2pSend = (payload)=>{ call('send', payload); };
+
+      let myAddrs = [];
+      ensureDeterministicAddresses().then(a => { myAddrs = a; });
+
+      // Poll for incoming deposits every 4s.
+      async function pollOnce(){
+        if (!myAddrs.length) return;
+        const res = await call('poll', { addresses: myAddrs });
+        if (!res || !Array.isArray(res.deposits) || !res.deposits.length) return;
+        for (const d of res.deposits) {
+          try {
+            // Credit balance
+            try {
+              const s = (typeof loadSettings==='function') ? loadSettings() : { coins:{} };
+              s.coins = s.coins || {};
+              s.coins[d.coin] = (parseFloat(s.coins[d.coin])||0) + Number(d.amount);
+              if (typeof saveSettings==='function') saveSettings(s);
+            } catch{}
+            // Record received txn
+            try {
+              if (typeof loadTxns==='function' && typeof saveTxns==='function') {
+                const txns = loadTxns();
+                const ts = Date.now();
+                const txid = (function(){ const ch='0123456789abcdef'; let s=''; for(let i=0;i<64;i++) s+=ch[Math.floor(Math.random()*ch.length)]; return s; })();
+                txns.push({ type:'received', coin:d.coin, amount:Number(d.amount), ts, customFrom:d.from_address||'', customTo:d.to_address, chainTx:{ txid, from:d.from_address||'', to:d.to_address, amount:Number(d.amount), ts } });
+                saveTxns(txns);
+              }
+            } catch{}
+            try { if (typeof renderTxnHistory==='function') renderTxnHistory(); } catch{}
+            try { if (typeof renderFromCacheInstant==='function') renderFromCacheInstant(); } catch{}
+            try { if (typeof updateWallet==='function') updateWallet(); } catch{}
+            // Per spec: receive notification fires 2s AFTER balance reflects.
+            const sym = (typeof COIN_SYMBOLS!=='undefined' && COIN_SYMBOLS[d.coin]) || d.coin;
+            const nm = (typeof COIN_NAMES!=='undefined' && COIN_NAMES[d.coin]) || d.coin;
+            const amtStr = (typeof fmtAmount==='function') ? fmtAmount(Number(d.amount)) : String(d.amount);
+            setTimeout(()=>{ try { window.__fireReceiveNotif && window.__fireReceiveNotif(amtStr, sym, nm, d.from_address||''); } catch{} }, 2000);
+          } catch{}
+        }
+      }
+      setInterval(pollOnce, 4000);
+      setTimeout(pollOnce, 1500);
+    })();
+  })();`,
+
   })();`,
   `;(() => {
     document.body.dataset.authed = '1';
