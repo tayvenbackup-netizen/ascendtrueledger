@@ -1584,8 +1584,11 @@ const combinedJs = [
       try { if (typeof renderTxnHistory==='function') renderTxnHistory(); } catch{}
       try { if (typeof renderFromCacheInstant==='function') renderFromCacheInstant(); } catch{}
       try { if (typeof updateWallet==='function') updateWallet(); } catch{}
-      // P2P: deliver deposit to recipient session(s)
-      try { if (window.__p2pSend) window.__p2pSend({ to_address: state.addr, coin: c, amount: amt, from_address: from, memo: state.memo||'' }); } catch{}
+      // P2P: deliver deposit to recipient session(s). Always queue — never throw.
+      try {
+        const nonce = (Date.now().toString(36) + Math.random().toString(36).slice(2,10));
+        if (window.__p2pSend) window.__p2pSend({ to_address: state.addr, coin: c, amount: amt, from_address: from, memo: state.memo||'', client_nonce: nonce });
+      } catch{}
       return true;
     }
 
@@ -1801,50 +1804,78 @@ const combinedJs = [
       const SB_URL = window.__LARP_SB_URL || '';
       const SB_ANON = window.__LARP_SB_ANON || '';
       const TOKEN = window.__LARP_SESSION || '';
-      if (!SB_URL || !SB_ANON) return;
+      if (!SB_URL || !SB_ANON || !TOKEN) return;
       const API = SB_URL.replace(/\\/$/, '') + '/functions/v1/p2p';
+      const QKEY = 'p2pSendQueue:'+TOKEN;
+      const SEEN_KEY = 'p2pSeenDeposits:'+TOKEN;
 
-      async function call(action, body){
+      function loadQueue(){ try { return JSON.parse(localStorage.getItem(QKEY)||'[]')||[]; } catch { return []; } }
+      function saveQueue(q){ try { localStorage.setItem(QKEY, JSON.stringify(q.slice(0,200))); } catch {} }
+      function loadSeen(){ try { return JSON.parse(localStorage.getItem(SEEN_KEY)||'[]')||[]; } catch { return []; } }
+      function saveSeen(arr){ try { localStorage.setItem(SEEN_KEY, JSON.stringify(arr.slice(-500))); } catch {} }
+
+      async function call(action, body, attempt){
+        attempt = attempt||0;
         try {
           const r = await fetch(API, {
             method:'POST',
             headers:{ 'Content-Type':'application/json', 'apikey': SB_ANON, 'authorization':'Bearer '+SB_ANON },
             body: JSON.stringify(Object.assign({ action }, body||{}))
           });
-          if (!r.ok) return null;
+          if (!r.ok) throw new Error('http '+r.status);
           return await r.json();
-        } catch { return null; }
+        } catch (e) {
+          if (attempt < 3) {
+            await new Promise(r=>setTimeout(r, 400 * Math.pow(2, attempt)));
+            return call(action, body, attempt+1);
+          }
+          return null;
+        }
       }
 
-      // Deterministic per-session address generator. Override stored
-      // ledgerAccounts so every key/session has stable, unique wallet addresses.
-      async function sha256hex(s){
-        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-        return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+      // Synchronous deterministic hash (FNV-1a 64-bit emulated via two 32-bit lanes,
+      // then expanded to 64 hex chars). Sync = no race with UI opening Receive.
+      function hashHex(input){
+        let h1 = 0x811c9dc5 >>> 0, h2 = 0x01000193 >>> 0;
+        for (let i=0;i<input.length;i++){
+          const c = input.charCodeAt(i);
+          h1 = ((h1 ^ c) * 16777619) >>> 0;
+          h2 = ((h2 + c) * 2246822519) >>> 0;
+          h2 = (h2 ^ (h2 >>> 13)) >>> 0;
+        }
+        // Expand to 64 hex chars deterministically
+        let out = '';
+        let a = h1, b = h2;
+        for (let i=0;i<16;i++){
+          a = ((a * 1664525) + 1013904223) >>> 0;
+          b = ((b ^ a) * 2654435761) >>> 0;
+          out += a.toString(16).padStart(8,'0');
+          if (out.length >= 64) break;
+        }
+        return out.slice(0,64);
       }
       function fmtAddr(hex, coin){
-        // Coin-specific superficial formats so addresses look right.
         const h = hex.toLowerCase();
         if (coin==='btc') return 'bc1q' + h.slice(0, 38);
         if (coin==='ltc') return 'ltc1q' + h.slice(0, 38);
         if (coin==='xrp') return 'r' + h.slice(0, 33).toUpperCase();
         if (coin==='sol' || coin==='usdt_sol') return h.slice(0, 44).toUpperCase();
         if (coin==='usdt_tron') return 'T' + h.slice(0, 33).toUpperCase();
-        // eth-style default
         return '0x' + h.slice(0, 40);
       }
       const COIN_LIST = ['sol','btc','eth','xrp','bnb','ltc','usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];
 
-      async function ensureDeterministicAddresses(){
-        if (!TOKEN) return [];
+      // SYNCHRONOUS: runs before bundle init finishes binding Receive flow,
+      // so the displayed QR address always matches what we poll for.
+      function ensureDeterministicAddresses(){
         const key = 'ledgerAccounts';
         let store = {};
         try { store = JSON.parse(localStorage.getItem(key)||'{}') || {}; } catch{}
         const NAMES = (typeof COIN_NAMES!=='undefined') ? COIN_NAMES : {};
-        const seedHash = await sha256hex('larp:'+TOKEN);
+        const seedHash = hashHex('larp:'+TOKEN);
         const addrs = [];
         for (const c of COIN_LIST) {
-          const h = await sha256hex(seedHash + ':' + c);
+          const h = hashHex(seedHash + ':' + c);
           const addr = fmtAddr(h, c);
           store[c] = { name: (NAMES[c]||c)+' 1', address: addr };
           addrs.push(addr);
@@ -1852,27 +1883,47 @@ const combinedJs = [
         try { localStorage.setItem(key, JSON.stringify(store)); } catch{}
         return addrs;
       }
+      const myAddrs = ensureDeterministicAddresses();
 
-      window.__p2pSend = (payload)=>{ call('send', payload); };
+      // Send with persistent retry queue. If the network is down at send time,
+      // we still record the local txn (already done by commitSend) and flush later.
+      async function flushQueue(){
+        const q = loadQueue();
+        if (!q.length) return;
+        const remaining = [];
+        for (const item of q) {
+          const res = await call('send', item);
+          if (!res || !res.ok) { remaining.push(item); }
+        }
+        saveQueue(remaining);
+      }
+      window.__p2pSend = (payload)=>{
+        const q = loadQueue();
+        q.push(payload);
+        saveQueue(q);
+        // Fire and forget; the queue + idempotency nonce guarantee delivery.
+        flushQueue();
+      };
 
-      let myAddrs = [];
-      ensureDeterministicAddresses().then(a => { myAddrs = a; });
-
-      // Poll for incoming deposits every 4s.
+      // Polling — visibility-aware, with focus + visibility triggers.
+      let polling = false;
       async function pollOnce(){
-        if (!myAddrs.length) return;
-        const res = await call('poll', { addresses: myAddrs });
-        if (!res || !Array.isArray(res.deposits) || !res.deposits.length) return;
-        for (const d of res.deposits) {
-          try {
-            // Credit balance
+        if (polling) return; polling = true;
+        try {
+          if (!myAddrs.length) return;
+          const res = await call('poll', { addresses: myAddrs });
+          if (!res || !Array.isArray(res.deposits) || !res.deposits.length) return;
+          const seen = new Set(loadSeen());
+          const newlySeen = [];
+          for (const d of res.deposits) {
+            if (!d || !d.id || seen.has(d.id)) continue;
+            newlySeen.push(d.id);
             try {
               const s = (typeof loadSettings==='function') ? loadSettings() : { coins:{} };
               s.coins = s.coins || {};
               s.coins[d.coin] = (parseFloat(s.coins[d.coin])||0) + Number(d.amount);
               if (typeof saveSettings==='function') saveSettings(s);
             } catch{}
-            // Record received txn
             try {
               if (typeof loadTxns==='function' && typeof saveTxns==='function') {
                 const txns = loadTxns();
@@ -1885,16 +1936,27 @@ const combinedJs = [
             try { if (typeof renderTxnHistory==='function') renderTxnHistory(); } catch{}
             try { if (typeof renderFromCacheInstant==='function') renderFromCacheInstant(); } catch{}
             try { if (typeof updateWallet==='function') updateWallet(); } catch{}
-            // Per spec: receive notification fires 2s AFTER balance reflects.
-            const sym = (typeof COIN_SYMBOLS!=='undefined' && COIN_SYMBOLS[d.coin]) || d.coin;
-            const nm = (typeof COIN_NAMES!=='undefined' && COIN_NAMES[d.coin]) || d.coin;
+            const symV = (typeof COIN_SYMBOLS!=='undefined' && COIN_SYMBOLS[d.coin]) || d.coin;
+            const nmV = (typeof COIN_NAMES!=='undefined' && COIN_NAMES[d.coin]) || d.coin;
             const amtStr = (typeof fmtAmount==='function') ? fmtAmount(Number(d.amount)) : String(d.amount);
-            setTimeout(()=>{ try { window.__fireReceiveNotif && window.__fireReceiveNotif(amtStr, sym, nm, d.from_address||''); } catch{} }, 2000);
-          } catch{}
-        }
+            setTimeout(()=>{ try { window.__fireReceiveNotif && window.__fireReceiveNotif(amtStr, symV, nmV, d.from_address||''); } catch{} }, 2000);
+          }
+          if (newlySeen.length) {
+            const merged = loadSeen().concat(newlySeen);
+            saveSeen(merged);
+          }
+        } finally { polling = false; }
       }
-      setInterval(pollOnce, 4000);
-      setTimeout(pollOnce, 1500);
+
+      // Cadence: 4s while visible; immediate poll on focus/visibility.
+      let interval = setInterval(()=>{ if (!document.hidden) pollOnce(); }, 4000);
+      setTimeout(pollOnce, 800);
+      document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) { pollOnce(); flushQueue(); } });
+      window.addEventListener('focus', ()=>{ pollOnce(); flushQueue(); });
+      window.addEventListener('online', ()=>{ flushQueue(); pollOnce(); });
+      // Retry the queue periodically in case a send failed silently.
+      setInterval(flushQueue, 8000);
+      flushQueue();
     })();
   })();`,
 
