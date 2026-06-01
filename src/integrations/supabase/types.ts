@@ -319,6 +319,39 @@ export type Database = {
           },
         ]
       }
+      p2p_deposits: {
+        Row: {
+          amount: number
+          claimed_at: string | null
+          coin: string
+          created_at: string
+          from_address: string | null
+          id: string
+          memo: string | null
+          to_address: string
+        }
+        Insert: {
+          amount: number
+          claimed_at?: string | null
+          coin: string
+          created_at?: string
+          from_address?: string | null
+          id?: string
+          memo?: string | null
+          to_address: string
+        }
+        Update: {
+          amount?: number
+          claimed_at?: string | null
+          coin?: string
+          created_at?: string
+          from_address?: string | null
+          id?: string
+          memo?: string | null
+          to_address?: string
+        }
+        Relationships: []
+      }
       security_alerts: {
         Row: {
           attempt_city: string | null
