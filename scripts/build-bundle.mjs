@@ -1991,16 +1991,30 @@ input,textarea,select{font-size:16px !important;}
       .sf-max-dot{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;}
       .sf-max input:checked + .sf-max-track{background:#22c55e;}
       .sf-max input:checked + .sf-max-track .sf-max-dot{transform:translateX(20px);}
-      /* step 4 */
-      .sf-cf-block{text-align:center;padding:20px 0 30px;}
-      .sf-cf-label{color:#9c9ca1;font-size:14px;}
-      .sf-cf-amt{color:#fff;font-size:38px;font-weight:700;letter-spacing:-.5px;margin-top:8px;}
-      .sf-cf-fiat{color:#9c9ca1;font-size:16px;margin-top:6px;}
-      .sf-cf-card{background:#16161a;border-radius:16px;padding:6px 16px;}
-      .sf-cf-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);color:#fff;font-size:14px;}
-      .sf-cf-row:last-child{border-bottom:none;}
-      .sf-cf-row span:first-child{color:#9c9ca1;}
-      .sf-cf-mono{font-family:ui-monospace,monospace;font-size:12px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      /* step 4 — Summary */
+      .sf-sm-info{display:flex;gap:12px;background:rgba(127,108,255,.12);border-radius:14px;padding:14px 16px;margin:8px 0 22px;color:#fff;font-size:15px;font-weight:600;line-height:1.35;}
+      .sf-sm-info svg{width:22px;height:22px;flex-shrink:0;margin-top:1px;}
+      .sf-sm-info span{flex:1;}
+      .sf-sm-flow{position:relative;padding:0 0 6px;}
+      .sf-sm-step{display:flex;gap:14px;align-items:flex-start;padding:6px 0;}
+      .sf-sm-ic{width:44px;height:44px;border-radius:50%;background:#1a1a22;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+      .sf-sm-ic svg{width:22px;height:22px;}
+      .sf-sm-body{flex:1;min-width:0;padding-top:4px;}
+      .sf-sm-lbl{color:#9c9ca1;font-size:15px;margin-bottom:4px;}
+      .sf-sm-val{color:#fff;font-size:17px;font-weight:600;word-break:break-all;line-height:1.25;}
+      .sf-sm-from{display:flex;align-items:center;gap:8px;}
+      .sf-sm-from img{width:18px;height:18px;border-radius:50%;}
+      .sf-sm-addr{font-size:18px;letter-spacing:.2px;}
+      .sf-sm-warn{color:#ff8a3d;font-size:14px;font-weight:600;margin-top:8px;}
+      .sf-sm-line{position:absolute;left:21px;top:46px;bottom:46px;width:1px;background:rgba(255,255,255,.12);}
+      .sf-sm-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 0;border-top:1px solid rgba(255,255,255,.08);}
+      .sf-sm-row-mem{border-top:none;padding-top:18px;align-items:center;}
+      .sf-sm-k{color:#9c9ca1;font-size:15px;display:inline-flex;align-items:center;gap:6px;}
+      .sf-sm-k svg{width:14px;height:14px;opacity:.7;}
+      .sf-sm-edit{color:#bbaefc;font-size:15px;font-weight:600;text-decoration:underline;cursor:pointer;}
+      .sf-sm-vbox{text-align:right;}
+      .sf-sm-amt{color:#fff;font-size:17px;font-weight:700;}
+      .sf-sm-fiat{color:#9c9ca1;font-size:13px;margin-top:2px;}
       /* step 5 */
       .sf-sent-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;}
       .sf-sent-check svg{width:88px;height:88px;}
