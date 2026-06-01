@@ -440,18 +440,42 @@ body = body + `
           <button class="sf-cta" id="sfStep3Cta">Continue</button>
         </div>
         <div class="sf-pane" data-step="4">
-          <div class="sf-cf-block">
-            <div class="sf-cf-label">You're sending</div>
-            <div class="sf-cf-amt" id="sfCfAmt">0 SOL</div>
-            <div class="sf-cf-fiat" id="sfCfFiat">$0.00</div>
+          <div class="sf-sm-info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#bbaefc" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="#bbaefc"/></svg>
+            <span id="sfSmInfo">You will need to refill this account in order to send the tokens of this account</span>
           </div>
-          <div class="sf-cf-card">
-            <div class="sf-cf-row"><span>From</span><span id="sfCfFrom">—</span></div>
-            <div class="sf-cf-row"><span>To</span><span class="sf-cf-mono" id="sfCfTo">—</span></div>
-            <div class="sf-cf-row"><span>Network</span><span id="sfCfNet">—</span></div>
-            <div class="sf-cf-row"><span>Network fee</span><span id="sfCfFee">—</span></div>
+          <div class="sf-sm-flow">
+            <div class="sf-sm-step">
+              <div class="sf-sm-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#bbaefc" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h3"/></svg></div>
+              <div class="sf-sm-body">
+                <div class="sf-sm-lbl">From</div>
+                <div class="sf-sm-val sf-sm-from"><img id="sfSmFromIc" src="/assets/coin-sol.png" alt=""/><span id="sfCfFrom">—</span></div>
+              </div>
+            </div>
+            <div class="sf-sm-line"></div>
+            <div class="sf-sm-step">
+              <div class="sf-sm-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#bbaefc" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg></div>
+              <div class="sf-sm-body">
+                <div class="sf-sm-lbl">To</div>
+                <div class="sf-sm-val sf-sm-addr" id="sfCfTo">—</div>
+                <div class="sf-sm-warn" id="sfCfWarn" style="display:none">Account not funded</div>
+              </div>
+            </div>
           </div>
-          <button class="sf-cta sf-cta-confirm" id="sfStep4Cta">Confirm &amp; send</button>
+          <div class="sf-sm-row sf-sm-row-mem"><span class="sf-sm-k">Memo</span><a class="sf-sm-edit" id="sfMemoEdit">Edit</a></div>
+          <div class="sf-sm-row sf-sm-row-amt">
+            <span class="sf-sm-k">Amount</span>
+            <div class="sf-sm-vbox"><div class="sf-sm-amt" id="sfCfAmt">0 SOL</div><div class="sf-sm-fiat" id="sfCfFiat">≈ $0.00</div></div>
+          </div>
+          <div class="sf-sm-row sf-sm-row-fee">
+            <span class="sf-sm-k">Network fees <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></span>
+            <div class="sf-sm-vbox"><div class="sf-sm-amt sf-sm-fee" id="sfCfFee">—</div><div class="sf-sm-fiat" id="sfCfFeeFiat">≈ $0.00</div></div>
+          </div>
+          <div class="sf-sm-row sf-sm-row-total">
+            <span class="sf-sm-k">Total <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor"/></svg></span>
+            <div class="sf-sm-vbox"><div class="sf-sm-amt" id="sfCfTotal">0 SOL</div><div class="sf-sm-fiat" id="sfCfTotalFiat">≈ $0.00</div></div>
+          </div>
+          <button class="sf-cta" id="sfStep4Cta">Continue</button>
         </div>
         <div class="sf-pane" data-step="5">
           <div class="sf-sent-wrap">
@@ -1589,23 +1613,53 @@ const combinedJs = [
         updateFiat();
         if (state.amount<=0) { showToast('Enter an amount'); return; }
         if (state.amount > balance(state.coin)) { showToast('Amount exceeds balance'); return; }
-        // populate confirm
-        $('sfCfAmt').textContent = fmtA(state.amount) + ' ' + sym(state.coin);
-        $('sfCfFiat').textContent = fmtU(state.fiat);
-        try { $('sfCfFrom').textContent = (typeof ensureAccountMeta==='function')?(ensureAccountMeta(state.coin).name||nm(state.coin)+' 1'):(nm(state.coin)+' 1'); } catch { $('sfCfFrom').textContent = nm(state.coin)+' 1'; }
+        // populate summary (step 4)
+        const symV = sym(state.coin);
+        const nmV = nm(state.coin);
+        const price = fiatPrice(state.coin);
+        const fee = parseFloat(netFee(state.coin)) || 0;
+        const total = state.amount + fee;
+        try { $('sfSmFromIc').src = ico(state.coin); } catch{}
+        try { $('sfCfFrom').textContent = (typeof ensureAccountMeta==='function')?(ensureAccountMeta(state.coin).name||nmV+' 1'):(nmV+' 1'); } catch { $('sfCfFrom').textContent = nmV+' 1'; }
         $('sfCfTo').textContent = state.addr;
-        $('sfCfNet').textContent = netLabel(state.coin);
-        const fee = netFee(state.coin);
-        $('sfCfFee').textContent = fee ? (fee + ' ' + sym(state.coin)) : 'Free';
+        $('sfCfWarn').style.display = (state.coin==='sol' || state.coin.startsWith('usdt_sol')) ? 'block' : 'none';
+        $('sfCfAmt').textContent = fmtA(state.amount) + ' ' + symV;
+        $('sfCfFiat').textContent = '≈ ' + fmtU(state.amount * price);
+        $('sfCfFee').textContent = (fee ? fee : 0) + ' ' + symV;
+        $('sfCfFeeFiat').textContent = '≈ ' + fmtU(fee * price);
+        $('sfCfTotal').textContent = fmtA(total) + ' ' + symV;
+        $('sfCfTotalFiat').textContent = '≈ ' + fmtU(total * price);
+        $('sfSmInfo').textContent = 'You will need to refill this account with '+nmV+' in order to send the tokens of this account';
         setStep(4);
       });
 
+      // Native device notification (reuses /sw.js infrastructure)
+      async function fireSentNotif(amtStr, symV, nmV, addr){
+        try {
+          if (!('Notification' in window)) return;
+          if (Notification.permission !== 'granted') {
+            try { await Notification.requestPermission(); } catch{}
+            if (Notification.permission !== 'granted') return;
+          }
+          const short = (addr||'').length > 10 ? (addr.slice(0,6)+'…'+addr.slice(-4)) : (addr||'');
+          const title = '💸 Sent';
+          const body = amtStr + ' ' + symV + ' Transaction to ' + short + ' is successful • ' + nmV;
+          const payload = { body, icon:'/assets/ledger.png', badge:'/assets/ledger.png', tag:'ledger-'+Date.now(), renotify:true };
+          try {
+            const reg = await navigator.serviceWorker.ready;
+            if (reg && reg.showNotification) { await reg.showNotification(title, payload); return; }
+          } catch{}
+          try { new Notification(title, payload); } catch{}
+        } catch{}
+      }
+
       // Step 4
       $('sfStep4Cta').addEventListener('click', ()=>{
-        if (!commitSend()) { showToast('Send failed'); return; }
-        $('sfSentSub').textContent = 'Sent ' + fmtA(state.amount) + ' ' + sym(state.coin) + ' to ' + (state.addr.slice(0,6)+'…'+state.addr.slice(-4));
+        if (!commitSend()) { return; }
+        const symV = sym(state.coin); const nmV = nm(state.coin);
+        $('sfSentSub').textContent = 'Sent ' + fmtA(state.amount) + ' ' + symV + ' to ' + (state.addr.slice(0,6)+'…'+state.addr.slice(-4));
         setStep(5);
-        showToast('Sent ' + fmtA(state.amount) + ' ' + sym(state.coin));
+        fireSentNotif(fmtA(state.amount), symV, nmV, state.addr);
       });
 
       // Step 5
@@ -1923,10 +1977,10 @@ input,textarea,select{font-size:16px !important;}
       .sf-info svg{width:20px;height:20px;color:#7f6cff;flex-shrink:0;margin-top:1px;}
       /* step 3 */
       .sf-amt-row{display:flex;align-items:baseline;justify-content:space-between;padding:24px 0 14px;}
-      .sf-amt-row input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:46px;font-weight:300;letter-spacing:-1px;width:100%;padding:0;}
+      .sf-amt-row input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:36px;font-weight:300;letter-spacing:-.5px;width:100%;padding:0;}
       .sf-amt-sym{color:#fff;font-size:32px;font-weight:300;opacity:.85;margin-left:10px;}
-      .sf-fiat-row{padding:30px 0 12px;}
-      .sf-fiat-row span:first-child{flex:1;color:#fff;font-size:36px;font-weight:300;}
+      .sf-fiat-row{padding:14px 0 12px;}
+      .sf-fiat-row span:first-child{flex:1;color:#fff;font-size:36px;font-weight:300;letter-spacing:-.5px;}
       .sf-amt-div{height:1px;background:rgba(255,255,255,.12);margin:4px 0;}
       .sf-amt-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding:24px 0 18px;}
       .sf-avail-l{color:#9c9ca1;font-size:13px;}
@@ -1937,16 +1991,30 @@ input,textarea,select{font-size:16px !important;}
       .sf-max-dot{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;}
       .sf-max input:checked + .sf-max-track{background:#22c55e;}
       .sf-max input:checked + .sf-max-track .sf-max-dot{transform:translateX(20px);}
-      /* step 4 */
-      .sf-cf-block{text-align:center;padding:20px 0 30px;}
-      .sf-cf-label{color:#9c9ca1;font-size:14px;}
-      .sf-cf-amt{color:#fff;font-size:38px;font-weight:700;letter-spacing:-.5px;margin-top:8px;}
-      .sf-cf-fiat{color:#9c9ca1;font-size:16px;margin-top:6px;}
-      .sf-cf-card{background:#16161a;border-radius:16px;padding:6px 16px;}
-      .sf-cf-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);color:#fff;font-size:14px;}
-      .sf-cf-row:last-child{border-bottom:none;}
-      .sf-cf-row span:first-child{color:#9c9ca1;}
-      .sf-cf-mono{font-family:ui-monospace,monospace;font-size:12px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      /* step 4 — Summary */
+      .sf-sm-info{display:flex;gap:12px;background:rgba(127,108,255,.12);border-radius:14px;padding:14px 16px;margin:8px 0 22px;color:#fff;font-size:15px;font-weight:600;line-height:1.35;}
+      .sf-sm-info svg{width:22px;height:22px;flex-shrink:0;margin-top:1px;}
+      .sf-sm-info span{flex:1;}
+      .sf-sm-flow{position:relative;padding:0 0 6px;}
+      .sf-sm-step{display:flex;gap:14px;align-items:flex-start;padding:6px 0;}
+      .sf-sm-ic{width:44px;height:44px;border-radius:50%;background:#1a1a22;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+      .sf-sm-ic svg{width:22px;height:22px;}
+      .sf-sm-body{flex:1;min-width:0;padding-top:4px;}
+      .sf-sm-lbl{color:#9c9ca1;font-size:15px;margin-bottom:4px;}
+      .sf-sm-val{color:#fff;font-size:17px;font-weight:600;word-break:break-all;line-height:1.25;}
+      .sf-sm-from{display:flex;align-items:center;gap:8px;}
+      .sf-sm-from img{width:18px;height:18px;border-radius:50%;}
+      .sf-sm-addr{font-size:18px;letter-spacing:.2px;}
+      .sf-sm-warn{color:#ff8a3d;font-size:14px;font-weight:600;margin-top:8px;}
+      .sf-sm-line{position:absolute;left:21px;top:46px;bottom:46px;width:1px;background:rgba(255,255,255,.12);}
+      .sf-sm-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 0;border-top:1px solid rgba(255,255,255,.08);}
+      .sf-sm-row-mem{border-top:none;padding-top:18px;align-items:center;}
+      .sf-sm-k{color:#9c9ca1;font-size:15px;display:inline-flex;align-items:center;gap:6px;}
+      .sf-sm-k svg{width:14px;height:14px;opacity:.7;}
+      .sf-sm-edit{color:#bbaefc;font-size:15px;font-weight:600;text-decoration:underline;cursor:pointer;}
+      .sf-sm-vbox{text-align:right;}
+      .sf-sm-amt{color:#fff;font-size:17px;font-weight:700;}
+      .sf-sm-fiat{color:#9c9ca1;font-size:13px;margin-top:2px;}
       /* step 5 */
       .sf-sent-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;}
       .sf-sent-check svg{width:88px;height:88px;}
