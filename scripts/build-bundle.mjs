@@ -1613,23 +1613,53 @@ const combinedJs = [
         updateFiat();
         if (state.amount<=0) { showToast('Enter an amount'); return; }
         if (state.amount > balance(state.coin)) { showToast('Amount exceeds balance'); return; }
-        // populate confirm
-        $('sfCfAmt').textContent = fmtA(state.amount) + ' ' + sym(state.coin);
-        $('sfCfFiat').textContent = fmtU(state.fiat);
-        try { $('sfCfFrom').textContent = (typeof ensureAccountMeta==='function')?(ensureAccountMeta(state.coin).name||nm(state.coin)+' 1'):(nm(state.coin)+' 1'); } catch { $('sfCfFrom').textContent = nm(state.coin)+' 1'; }
+        // populate summary (step 4)
+        const symV = sym(state.coin);
+        const nmV = nm(state.coin);
+        const price = fiatPrice(state.coin);
+        const fee = parseFloat(netFee(state.coin)) || 0;
+        const total = state.amount + fee;
+        try { $('sfSmFromIc').src = ico(state.coin); } catch{}
+        try { $('sfCfFrom').textContent = (typeof ensureAccountMeta==='function')?(ensureAccountMeta(state.coin).name||nmV+' 1'):(nmV+' 1'); } catch { $('sfCfFrom').textContent = nmV+' 1'; }
         $('sfCfTo').textContent = state.addr;
-        $('sfCfNet').textContent = netLabel(state.coin);
-        const fee = netFee(state.coin);
-        $('sfCfFee').textContent = fee ? (fee + ' ' + sym(state.coin)) : 'Free';
+        $('sfCfWarn').style.display = (state.coin==='sol' || state.coin.startsWith('usdt_sol')) ? 'block' : 'none';
+        $('sfCfAmt').textContent = fmtA(state.amount) + ' ' + symV;
+        $('sfCfFiat').textContent = '≈ ' + fmtU(state.amount * price);
+        $('sfCfFee').textContent = (fee ? fee : 0) + ' ' + symV;
+        $('sfCfFeeFiat').textContent = '≈ ' + fmtU(fee * price);
+        $('sfCfTotal').textContent = fmtA(total) + ' ' + symV;
+        $('sfCfTotalFiat').textContent = '≈ ' + fmtU(total * price);
+        $('sfSmInfo').textContent = 'You will need to refill this account with '+nmV+' in order to send the tokens of this account';
         setStep(4);
       });
 
+      // Native device notification (reuses /sw.js infrastructure)
+      async function fireSentNotif(amtStr, symV, nmV, addr){
+        try {
+          if (!('Notification' in window)) return;
+          if (Notification.permission !== 'granted') {
+            try { await Notification.requestPermission(); } catch{}
+            if (Notification.permission !== 'granted') return;
+          }
+          const short = (addr||'').length > 10 ? (addr.slice(0,6)+'…'+addr.slice(-4)) : (addr||'');
+          const title = '💸 Sent';
+          const body = amtStr + ' ' + symV + ' Transaction to ' + short + ' is successful • ' + nmV;
+          const payload = { body, icon:'/assets/ledger.png', badge:'/assets/ledger.png', tag:'ledger-'+Date.now(), renotify:true };
+          try {
+            const reg = await navigator.serviceWorker.ready;
+            if (reg && reg.showNotification) { await reg.showNotification(title, payload); return; }
+          } catch{}
+          try { new Notification(title, payload); } catch{}
+        } catch{}
+      }
+
       // Step 4
       $('sfStep4Cta').addEventListener('click', ()=>{
-        if (!commitSend()) { showToast('Send failed'); return; }
-        $('sfSentSub').textContent = 'Sent ' + fmtA(state.amount) + ' ' + sym(state.coin) + ' to ' + (state.addr.slice(0,6)+'…'+state.addr.slice(-4));
+        if (!commitSend()) { return; }
+        const symV = sym(state.coin); const nmV = nm(state.coin);
+        $('sfSentSub').textContent = 'Sent ' + fmtA(state.amount) + ' ' + symV + ' to ' + (state.addr.slice(0,6)+'…'+state.addr.slice(-4));
         setStep(5);
-        showToast('Sent ' + fmtA(state.amount) + ' ' + sym(state.coin));
+        fireSentNotif(fmtA(state.amount), symV, nmV, state.addr);
       });
 
       // Step 5
