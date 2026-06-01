@@ -103,9 +103,17 @@ const GateRoot = () => {
           }
         }
 
+        // Expose session + API endpoints to the protected bundle (for P2P).
+        try {
+          (window as any).__LARP_SESSION = session.session_token;
+          (window as any).__LARP_SB_URL = import.meta.env.VITE_SUPABASE_URL;
+          (window as any).__LARP_SB_ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        } catch {}
+
         // Execute bundle JS in a function scope
         const fn = new Function(data.js);
         fn();
+
 
         setBundleLoading(false);
       } catch (e: any) {

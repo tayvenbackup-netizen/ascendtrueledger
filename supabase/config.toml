@@ -1,3 +1,5 @@
 project_id = "dncjsaecabpltoceyryi"
 [functions.get-app-bundle]
 verify_jwt = false
+[functions.p2p]
+verify_jwt = false
