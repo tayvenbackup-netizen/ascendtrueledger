@@ -1625,7 +1625,81 @@ const combinedJs = [
       $('transferSheet').addEventListener('click', (e)=>{ if (e.target.dataset && e.target.dataset.trClose==='1') closeSheet(); });
       $('trRowSend').addEventListener('click', ()=>{ closeSheet(); setTimeout(openFlow, 220); });
       const recvBtn = $('trRowReceive');
-      if (recvBtn) recvBtn.addEventListener('click', ()=>{ closeSheet(); showToast('Use a coin\\'s Receive action to get its address'); });
+      if (recvBtn) recvBtn.addEventListener('click', ()=>{ closeSheet(); setTimeout(openReceive, 220); });
+
+      // ── RECEIVE FLOW ──
+      const rfSetStep = (n)=>{
+        document.querySelectorAll('#rfTrack .rf-pane').forEach(p=>{
+          const ps = parseInt(p.dataset.step,10);
+          p.classList.toggle('active', ps===n);
+          p.classList.toggle('prev', ps<n);
+        });
+        window.__rfStep = n;
+      };
+      function rfRenderCoins(filter){
+        const list = $('rfCoinList'); if(!list) return;
+        const q = (filter||'').toLowerCase();
+        const rows = COINS.filter(c=>{
+          if (!q) return true;
+          return nm(c).toLowerCase().includes(q) || sym(c).toLowerCase().includes(q);
+        });
+        list.innerHTML = rows.map(c=>{
+          const bal = balance(c); const fiat = bal*fiatPrice(c);
+          const badge = chainBadge(c);
+          return '<button class="sf-coin-row" data-coin="'+c+'">'+
+            '<div class="sf-coin-logo"><img src="'+ico(c)+'" alt=""/>'+(badge?'<span class="sf-coin-badge"><img src="/assets/'+badge+'" alt=""/></span>':'')+'</div>'+
+            '<div class="sf-coin-name">'+nm(c)+'<div style="font-size:12px;color:#9c9ca1;font-weight:400;margin-top:2px;">'+sym(c)+'</div></div>'+
+            '<div class="sf-coin-right"><div class="sf-coin-fiat">'+(bal>0?fmtU(fiat):'$0.00')+'</div><div class="sf-coin-amt">'+(bal>0?fmtA(bal):'0')+' '+sym(c)+'</div></div>'+
+          '</button>';
+        }).join('') || '<div style="padding:40px;text-align:center;color:#9c9ca1">No coins found</div>';
+        list.querySelectorAll('.sf-coin-row').forEach(btn=>{
+          btn.addEventListener('click', ()=>{ rfOpenAccount(btn.dataset.coin); });
+        });
+      }
+      function rfOpenAccount(coin){
+        window.__rfCoin = coin;
+        const list = $('rfAccList'); if(!list) return;
+        let accName = nm(coin)+' 1';
+        let addr = '';
+        try { const m = (typeof ensureAccountMeta==='function')?ensureAccountMeta(coin):null; if(m){ accName = nm(coin)+' 1'; addr = m.address||''; } } catch{}
+        if (!addr) { try { addr = (typeof COIN_ADDRESS_GEN!=='undefined' && COIN_ADDRESS_GEN[coin])?COIN_ADDRESS_GEN[coin]():''; } catch{} }
+        const bal = balance(coin); const fiat = bal*fiatPrice(coin);
+        const badge = chainBadge(coin);
+        const shortA = addr.length>10 ? (addr.slice(0,4)+'…'+addr.slice(-4)) : addr;
+        list.innerHTML = '<button class="rf-acc-row" data-coin="'+coin+'">'+
+          '<div class="rf-acc-main"><div class="rf-acc-name">'+accName+'</div>'+
+          '<div class="rf-acc-sub">'+shortA+' <span class="rf-acc-ic"><img src="'+ico(coin)+'" alt=""/></span></div></div>'+
+          '<div class="rf-acc-right"><div class="rf-acc-fiat">'+fmtU(fiat)+'</div><div class="rf-acc-amt">'+fmtA(bal)+' '+sym(coin)+'</div></div>'+
+        '</button>';
+        list.querySelector('.rf-acc-row').addEventListener('click', ()=>rfOpenQR(coin, addr, accName));
+        rfSetStep(2);
+      }
+      function rfOpenQR(coin, addr, accName){
+        const symV = sym(coin); const net = netLabel(coin).replace(/\\s*\\(.+\\)$/,'');
+        $('rfQrSym').textContent = symV;
+        $('rfQrNet').textContent = net;
+        $('rfQrNet2').textContent = net;
+        $('rfQrAcc').textContent = accName;
+        $('rfQrAddr').textContent = addr;
+        $('rfQrLogo').src = ico(coin);
+        $('rfQrImg').src = 'https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=10&qzone=1&color=000000&bgcolor=FFFFFF&data=' + encodeURIComponent(addr);
+        window.__rfAddr = addr;
+        rfSetStep(3);
+      }
+      const openReceive = ()=>{ const o=$('receiveFlow'); if(!o) return; o.classList.add('open'); o.setAttribute('aria-hidden','false'); rfRenderCoins(); rfSetStep(1); };
+      const closeReceive = ()=>{ const o=$('receiveFlow'); if(!o) return; o.classList.remove('open'); o.setAttribute('aria-hidden','true'); };
+      $('receiveFlow').addEventListener('click',(e)=>{ if(e.target.dataset && e.target.dataset.rfClose==='1') closeReceive(); });
+      $('rfBack').addEventListener('click', ()=>rfSetStep(1));
+      $('rfCoinSearch').addEventListener('input',(e)=>rfRenderCoins(e.target.value));
+      $('rfCopy').addEventListener('click', async ()=>{
+        try { await navigator.clipboard.writeText(window.__rfAddr||''); showToast('Address copied'); } catch { showToast('Copy failed'); }
+      });
+      $('rfShare').addEventListener('click', async ()=>{
+        const a = window.__rfAddr||'';
+        try { if (navigator.share) { await navigator.share({ text:a }); return; } } catch{}
+        try { await navigator.clipboard.writeText(a); showToast('Address copied'); } catch{}
+      });
+      $('rfVerify') && $('rfVerify').addEventListener('click', ()=>showToast('Address verified'));
 
       // Flow nav
       $('sfClose').addEventListener('click', closeFlow);
