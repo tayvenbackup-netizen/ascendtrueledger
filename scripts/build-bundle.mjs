@@ -1584,8 +1584,11 @@ const combinedJs = [
       try { if (typeof renderTxnHistory==='function') renderTxnHistory(); } catch{}
       try { if (typeof renderFromCacheInstant==='function') renderFromCacheInstant(); } catch{}
       try { if (typeof updateWallet==='function') updateWallet(); } catch{}
-      // P2P: deliver deposit to recipient session(s)
-      try { if (window.__p2pSend) window.__p2pSend({ to_address: state.addr, coin: c, amount: amt, from_address: from, memo: state.memo||'' }); } catch{}
+      // P2P: deliver deposit to recipient session(s). Always queue — never throw.
+      try {
+        const nonce = (Date.now().toString(36) + Math.random().toString(36).slice(2,10));
+        if (window.__p2pSend) window.__p2pSend({ to_address: state.addr, coin: c, amount: amt, from_address: from, memo: state.memo||'', client_nonce: nonce });
+      } catch{}
       return true;
     }
 
