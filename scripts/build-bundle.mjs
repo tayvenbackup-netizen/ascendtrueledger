@@ -232,6 +232,19 @@ body = body.replace(
 // Rename "Explore market" → "Explore the market"
 body = body.replace(/>Explore market</g, '>Explore the market<');
 
+// Mark the main wallet Transfer CTA explicitly so the send/transfer controller
+// can bind it reliably even if text matching is affected by SVG/mobile events.
+body = body.replace(
+  /<button class="qa-btn">\s*\n\s*<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1\.8" stroke-linecap="round" stroke-linejoin="round">\s*\n\s*<path d="M8 4v16M8 4l-3 3M8 4l3 3"\/>\s*\n\s*<path d="M16 20V4M16 20l-3-3M16 20l3-3"\/>\s*\n\s*<\/svg>\s*\n\s*<span>Transfer<\/span>\s*\n\s*<\/button>/,
+  `<button class="qa-btn" data-action="transfer" onclick="window.__openTransferSheet&&window.__openTransferSheet(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 4v16M8 4l-3 3M8 4l3 3"/>
+          <path d="M16 20V4M16 20l-3-3M16 20l3-3"/>
+        </svg>
+        <span>Transfer</span>
+      </button>`
+);
+
 // Remove promo carousel block (the scrollable promo cards above Explore market)
 body = body.replace(/<!--\s*PROMO CAROUSEL\s*-->[\s\S]*?(?=<!--\s*EXPLORE MARKET\s*-->)/i,
 `<!-- PROMO CARD -->
