@@ -2172,10 +2172,10 @@ input,textarea,select{font-size:16px !important;}
       .cd-more-info svg{width:13px !important;height:13px !important;}
       .cd-section-label{color:#7a7a82 !important;font-size:11px !important;font-weight:600 !important;letter-spacing:1.2px !important;padding:14px 22px 8px !important;text-transform:uppercase !important;}
       .cd-quick-actions{display:grid !important;grid-template-columns:repeat(3,1fr) !important;gap:8px !important;padding:0 16px !important;}
-      .cd-qa-btn{display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:10px !important;background:rgba(255,255,255,.05) !important;border:none !important;color:#fff !important;padding:22px 0 !important;border-radius:14px !important;font-size:14px !important;font-weight:600 !important;cursor:pointer !important;min-height:96px !important;}
-      .cd-qa-btn svg{width:22px !important;height:22px !important;color:#fff !important;}
+      .cd-qa-btn{display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:8px !important;background:rgba(255,255,255,.05) !important;border:none !important;color:#fff !important;padding:16px 0 !important;border-radius:14px !important;font-size:13px !important;font-weight:600 !important;cursor:pointer !important;min-height:78px !important;}
+      .cd-qa-btn svg{width:20px !important;height:20px !important;color:#fff !important;}
       .cd-qa-btn:active{background:rgba(255,255,255,.09) !important;}
-      .cd-tokens-section{padding-top:8px !important;}
+      .cd-tokens-section{padding-top:4px !important;}
       .cd-tokens-list{display:flex !important;flex-direction:column !important;gap:18px !important;padding:0 22px !important;}
       .cd-token-row{display:flex !important;align-items:center !important;justify-content:space-between !important;gap:12px !important;}
       .cd-token-left{display:flex !important;align-items:center !important;gap:14px !important;min-width:0 !important;flex:1 !important;}
