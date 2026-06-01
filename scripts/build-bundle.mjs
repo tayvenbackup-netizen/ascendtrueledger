@@ -367,6 +367,95 @@ body = body + `
       </div>
     </div>
   </div>
+
+  <!-- ── SEND / TRANSFER FLOW ─────────────────────────────────────── -->
+  <div id="transferSheet" class="tr-sheet" aria-hidden="true">
+    <div class="tr-sheet-backdrop" data-tr-close="1"></div>
+    <div class="tr-sheet-panel">
+      <div class="tr-sheet-handle"></div>
+      <button class="tr-sheet-x" data-tr-close="1" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="tr-sheet-title">Transfer</div>
+      <button class="tr-sheet-row" id="trRowReceive">
+        <div class="tr-sheet-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg></div>
+        <div class="tr-sheet-text"><div class="tr-sheet-h">Receive via crypto address</div></div>
+      </button>
+      <button class="tr-sheet-row" id="trRowSend">
+        <div class="tr-sheet-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/></svg></div>
+        <div class="tr-sheet-text"><div class="tr-sheet-h">Send crypto</div></div>
+      </button>
+      <button class="tr-sheet-row">
+        <div class="tr-sheet-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10l9-6 9 6v2H3z"/><path d="M5 12v6M9 12v6M15 12v6M19 12v6M3 20h18"/></svg></div>
+        <div class="tr-sheet-text"><div class="tr-sheet-h">Receive via bank transfer</div><div class="tr-sheet-sub">Receive stablecoins by simply sending cash.</div></div>
+      </button>
+    </div>
+  </div>
+
+  <div id="sendFlow" class="sf-overlay" aria-hidden="true">
+    <div class="sf-screen">
+      <div class="sf-header">
+        <button class="sf-back" id="sfBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="sf-title-wrap"><div class="sf-step" id="sfStepText">Step 1 of 5</div><div class="sf-title" id="sfTitle">Account to debit</div></div>
+        <button class="sf-close" id="sfClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="sf-track" id="sfTrack">
+        <div class="sf-pane" data-step="1">
+          <div class="sf-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="sfCoinSearch" type="text" placeholder="Search"/></div>
+          <div class="sf-coin-list" id="sfCoinList"></div>
+        </div>
+        <div class="sf-pane" data-step="2">
+          <button class="sf-scan-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg><span>Scan QR code</span></button>
+          <div class="sf-or"><span>OR</span></div>
+          <div class="sf-field"><input id="sfAddr" type="text" placeholder="Enter address" autocomplete="off"/><button class="sf-paste" id="sfPaste" aria-label="Paste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="8" y="3" width="8" height="4" rx="1"/><rect x="5" y="7" width="14" height="14" rx="2"/></svg></button></div>
+          <div class="sf-field"><input id="sfMemo" type="text" placeholder="Memo" autocomplete="off"/></div>
+          <div class="sf-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor"/></svg><span>Please verify the address matches the one shared by the recipient.</span></div>
+          <button class="sf-cta" id="sfStep2Cta">Continue</button>
+        </div>
+        <div class="sf-pane" data-step="3">
+          <div class="sf-amt-row"><input id="sfAmt" inputmode="decimal" type="text" value="0"/><span id="sfAmtSym" class="sf-amt-sym">SOL</span></div>
+          <div class="sf-amt-div"></div>
+          <div class="sf-amt-row sf-fiat-row"><span id="sfFiat">0.00</span><span class="sf-amt-sym">$</span></div>
+          <div class="sf-amt-footer">
+            <div><div class="sf-avail-l">Total available</div><div class="sf-avail-v" id="sfAvail">0 SOL</div></div>
+            <label class="sf-max"><span>Use max</span><input id="sfMax" type="checkbox"/><span class="sf-max-track"><span class="sf-max-dot"></span></span></label>
+          </div>
+          <button class="sf-cta" id="sfStep3Cta">Continue</button>
+        </div>
+        <div class="sf-pane" data-step="4">
+          <div class="sf-cf-block">
+            <div class="sf-cf-label">You're sending</div>
+            <div class="sf-cf-amt" id="sfCfAmt">0 SOL</div>
+            <div class="sf-cf-fiat" id="sfCfFiat">$0.00</div>
+          </div>
+          <div class="sf-cf-card">
+            <div class="sf-cf-row"><span>From</span><span id="sfCfFrom">—</span></div>
+            <div class="sf-cf-row"><span>To</span><span class="sf-cf-mono" id="sfCfTo">—</span></div>
+            <div class="sf-cf-row"><span>Network</span><span id="sfCfNet">—</span></div>
+            <div class="sf-cf-row"><span>Network fee</span><span id="sfCfFee">—</span></div>
+          </div>
+          <button class="sf-cta sf-cta-confirm" id="sfStep4Cta">Confirm &amp; send</button>
+        </div>
+        <div class="sf-pane" data-step="5">
+          <div class="sf-sent-wrap">
+            <div class="sf-sent-check"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="none" stroke="#22c55e" stroke-width="2"/><path d="M14 27 l9 9 l16-18" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="sf-sent-title">Crypto sent</div>
+            <div class="sf-sent-sub" id="sfSentSub">Your transfer is on its way.</div>
+          </div>
+          <button class="sf-cta" id="sfDone">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sfToast" class="sf-toast" aria-hidden="true">
+    <div class="sf-toast-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="sf-toast-text"><div class="sf-toast-h">Sent</div><div class="sf-toast-sub" id="sfToastSub">Transaction submitted</div></div>
+  </div>
 `;
 
 // See-all overlay controller — slide in from right, render every txn, click row → existing detail
