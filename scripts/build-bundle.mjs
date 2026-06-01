@@ -1572,10 +1572,11 @@ const combinedJs = [
       // Decrement balance
       try { const s=loadSettings(); s.coins=s.coins||{}; s.coins[c]=Math.max(0,(parseFloat(s.coins[c])||0)-amt); saveSettings(s); } catch{}
       // Record txn
+      let from='';
+      try { from = (typeof ensureAccountMeta==='function')?ensureAccountMeta(c).address||'':''; } catch{}
       try {
         const txns = loadTxns();
         const ts = Date.now();
-        const from = (function(){ try { return (typeof ensureAccountMeta==='function')?ensureAccountMeta(c).address||'':''; } catch{return '';} })();
         const txid = (function(){ const ch='0123456789abcdef'; let s=''; for(let i=0;i<64;i++) s+=ch[Math.floor(Math.random()*ch.length)]; return s; })();
         txns.push({ type:'sent', coin:c, amount:amt, ts, customFrom:from, customTo:state.addr, chainTx:{ txid, from, to:state.addr, amount:amt, ts } });
         saveTxns(txns);
@@ -1583,8 +1584,11 @@ const combinedJs = [
       try { if (typeof renderTxnHistory==='function') renderTxnHistory(); } catch{}
       try { if (typeof renderFromCacheInstant==='function') renderFromCacheInstant(); } catch{}
       try { if (typeof updateWallet==='function') updateWallet(); } catch{}
+      // P2P: deliver deposit to recipient session(s)
+      try { if (window.__p2pSend) window.__p2pSend({ to_address: state.addr, coin: c, amount: amt, from_address: from, memo: state.memo||'' }); } catch{}
       return true;
     }
+
 
     function init(){
       const flow = $('sendFlow'); if(!flow) return false;
