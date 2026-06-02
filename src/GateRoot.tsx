@@ -146,7 +146,7 @@ const GateRoot = () => {
           <div className="text-sm">Failed to load app: {bundleError}</div>
         </div>
       )}
-      <AdminPanel isOpen={adminOpen} onClose={() => setAdminOpen(false)} />
+      <AdminPanel isOpen={adminOpen} onClose={() => setAdminOpen(false)} subAdminId={session?.sub_admin_id} />
     </>
   );
 };
