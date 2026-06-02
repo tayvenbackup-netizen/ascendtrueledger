@@ -164,6 +164,32 @@ ledgerJs = ledgerJs.replace(
   "setPct('exploreSolPct','sol');\n    setPct('exploreUsdtPct','usdt_eth');\n}"
 );
 
+// Balance percent pill: compute live weighted 24h change from currently-held coins
+// so the pill never sits at 0% just because chart data hasn't loaded yet.
+ledgerJs = ledgerJs.replace(
+  /BASE_PRICE = totalValue;\s*\n\s*setBalanceDisplay\(totalValue\);/,
+  `BASE_PRICE = totalValue;
+    BASE_CHANGE_AMT = assetList.reduce((s,a)=>{
+      const ch = (typeof a.change === 'number' && isFinite(a.change)) ? a.change : 0;
+      if (!a.value || ch <= -100) return s;
+      const prev = a.value / (1 + ch/100);
+      return s + (a.value - prev);
+    }, 0);
+    try { clearDot(); } catch(_){}
+    setBalanceDisplay(totalValue);`
+);
+
+// After chart fetch, only override BASE_CHANGE_AMT with chart-derived delta when meaningful;
+// otherwise keep the weighted 24h value so the pill keeps reflecting held coins.
+ledgerJs = ledgerJs.replace(
+  /BASE_CHANGE_AMT = totalValue - \(chartData\[0\]\?\.value \|\| 0\);/,
+  `{
+      const _firstVal = chartData[0] && (typeof chartData[0] === 'number' ? chartData[0] : chartData[0].value);
+      const _delta = totalValue - (_firstVal || 0);
+      if (_firstVal && isFinite(_delta) && Math.abs(_delta) > 1e-9) BASE_CHANGE_AMT = _delta;
+    }`
+);
+
 // USDT crypto editor controller — single visible row "USDT [amount] [chain]"
 // that mirrors into per-chain hidden inputs (set-usdt_eth/sol/tron/bnb)
 // which the existing confirmSettings() loop already reads via COIN_ORDER.
