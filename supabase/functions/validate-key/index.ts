@@ -295,7 +295,7 @@ const ADMIN_ACTIONS = new Set([
   'toggle_bypass', 'set_game_modes',
   'refresh_key', 'refresh_all_keys', 'list_device_attempts', 'list_sessions',
   'create_group', 'list_groups', 'update_group', 'delete_group', 'assign_group',
-  'create_sub_admin', 'list_sub_admins', 'revoke_sub_admin',
+  'create_sub_admin', 'list_sub_admins', 'revoke_sub_admin', 'refresh_sub_admin', 'delete_sub_admin',
   'analytics_summary', 'list_audit_log',
   'list_security_alerts', 'mark_alert_reviewed',
 ]);
