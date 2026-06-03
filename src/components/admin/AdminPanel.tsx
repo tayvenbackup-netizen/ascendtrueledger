@@ -41,6 +41,12 @@ interface SubAdminRecord {
   key_value?: string | null;
   is_revoked: boolean;
   created_at: string;
+  device_fingerprint?: string | null;
+  activation_country?: string | null;
+  activation_region?: string | null;
+  activation_city?: string | null;
+  keys_created?: number;
+  active_keys?: number;
 }
 
 const API_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/validate-key`;
@@ -207,7 +213,9 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
 
   const revokeKey = async (id: string) => { await adminApi('revoke_key', { key_id: id }); loadKeys(); };
   const deleteKey = async (id: string) => { if (!confirm('Delete this key?')) return; await adminApi('delete_key', { key_id: id }); loadKeys(); };
-  const revokeAdmin = async (id: string) => { if (!confirm('Revoke this admin key?')) return; await adminApi('revoke_sub_admin', { key_id: id }); loadAdmins(); };
+  const revokeAdmin = async (id: string) => { if (!confirm('Revoke this admin key? They will lose access immediately.')) return; try { await adminApi('revoke_sub_admin', { key_id: id }); } catch (e: any) { alert(e?.message || 'Failed to revoke'); } loadAdmins(); };
+  const refreshAdmin = async (id: string) => { if (!confirm('Reset this admin key\'s device binding? They can re-activate on a new device.')) return; try { await adminApi('refresh_sub_admin', { key_id: id }); } catch (e: any) { alert(e?.message || 'Failed to refresh'); } loadAdmins(); };
+  const deleteAdmin = async (id: string) => { if (!confirm('PERMANENTLY delete this admin key? This cannot be undone. Keys they created will be kept (detached).')) return; try { await adminApi('delete_sub_admin', { key_id: id }); } catch (e: any) { alert(e?.message || 'Failed to delete'); } loadAdmins(); };
   const renameKey = async (id: string) => {
     if (!renameValue.trim()) { setRenameId(null); return; }
     try { await adminApi('rename_key', { key_id: id, key_name: renameValue.trim() }); } catch {}
@@ -621,13 +629,34 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
                               </p>
                               <p className="text-[10px]" style={{ color: C.textDim }}>
                                 {a.is_revoked ? 'Revoked' : 'Active'}
+                                {a.device_fingerprint ? ' · Device locked' : ' · No device'}
+                                {typeof a.keys_created === 'number' ? ` · ${a.keys_created} key${a.keys_created === 1 ? '' : 's'}` : ''}
                               </p>
+                              {a.device_fingerprint && (
+                                <p className="text-[9px] font-mono truncate" style={{ color: C.textDim }} title={a.device_fingerprint}>
+                                  {a.device_fingerprint.slice(0, 14)}…
+                                </p>
+                              )}
                             </div>
-                            {!a.is_revoked && (
-                              <button onClick={() => revokeAdmin(a.id)} className="p-1.5 rounded-lg"
-                                      style={{ background: `${C.red}15` }}>
-                                <Trash2 className="w-3 h-3" style={{ color: C.red }} />
-                              </button>
+                            {isMaster && (
+                              <div className="flex items-center gap-1 shrink-0">
+                                {!a.is_revoked && (
+                                  <button onClick={() => refreshAdmin(a.id)} className="p-1.5 rounded-lg" title="Reset device binding"
+                                          style={{ background: `${C.accent}15` }}>
+                                    <RefreshCw className="w-3 h-3" style={{ color: C.accent }} />
+                                  </button>
+                                )}
+                                {!a.is_revoked && (
+                                  <button onClick={() => revokeAdmin(a.id)} className="p-1.5 rounded-lg" title="Revoke access"
+                                          style={{ background: `${C.red}15` }}>
+                                    <Shield className="w-3 h-3" style={{ color: C.red }} />
+                                  </button>
+                                )}
+                                <button onClick={() => deleteAdmin(a.id)} className="p-1.5 rounded-lg" title="Delete permanently"
+                                        style={{ background: `${C.red}25` }}>
+                                  <Trash2 className="w-3 h-3" style={{ color: C.red }} />
+                                </button>
+                              </div>
                             )}
                           </div>
                           {a.key_value && (
