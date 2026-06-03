@@ -41,6 +41,12 @@ interface SubAdminRecord {
   key_value?: string | null;
   is_revoked: boolean;
   created_at: string;
+  device_fingerprint?: string | null;
+  activation_country?: string | null;
+  activation_region?: string | null;
+  activation_city?: string | null;
+  keys_created?: number;
+  active_keys?: number;
 }
 
 const API_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/validate-key`;
