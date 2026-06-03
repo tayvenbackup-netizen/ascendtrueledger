@@ -30,7 +30,7 @@ function blank(reason: string) {
 }
 
 export function installDevtoolsShield() {
-  // Disable in dev/preview to keep Lovable iframe usable
+  // Disable in dev/preview to keep the editor iframe usable
   try {
     if (import.meta.env.DEV) return;
     const host = location.hostname;
