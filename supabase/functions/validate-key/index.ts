@@ -996,7 +996,7 @@ Deno.serve(async (req) => {
       if (action === 'list_sub_admins') {
         const { data: admins } = await supabase
           .from('access_keys')
-          .select('id, key_name, key_preview, is_revoked, created_at, key_value')
+          .select('id, key_name, key_preview, is_revoked, created_at, key_value, device_fingerprint, activation_country, activation_region, activation_city, activation_ip')
           .eq('is_sub_admin', true).order('created_at', { ascending: false });
 
         const enriched = [];
@@ -1022,6 +1022,37 @@ Deno.serve(async (req) => {
         if (!key_id) return json({ error: 'Missing key_id' }, 400);
         await supabase.from('access_keys').update({ is_revoked: true }).eq('id', key_id).eq('is_sub_admin', true);
         await supabase.from('access_sessions').delete().eq('key_id', key_id);
+        await auditAction({ action: 'sub_admin_revoked', target_type: 'sub_admin', target_id: key_id });
+        return json({ success: true });
+      }
+
+      if (action === 'refresh_sub_admin') {
+        const { key_id } = body;
+        if (!key_id) return json({ error: 'Missing key_id' }, 400);
+        const { data: row } = await supabase.from('access_keys').select('id, is_sub_admin, key_name, key_preview').eq('id', key_id).maybeSingle();
+        if (!row || !row.is_sub_admin) return json({ error: 'Not a sub-admin key' }, 404);
+        await supabase.from('access_keys').update({
+          device_fingerprint: null, device_count: 0,
+          activation_country: null, activation_region: null, activation_city: null, activation_ip: null,
+        }).eq('id', key_id).eq('is_sub_admin', true);
+        await supabase.from('access_sessions').delete().eq('key_id', key_id);
+        await supabase.from('device_attempts').delete().eq('key_id', key_id);
+        await auditAction({ action: 'sub_admin_refreshed', target_type: 'sub_admin', target_id: key_id, target_label: row.key_name || row.key_preview });
+        return json({ success: true });
+      }
+
+      if (action === 'delete_sub_admin') {
+        const { key_id } = body;
+        if (!key_id) return json({ error: 'Missing key_id' }, 400);
+        const { data: row } = await supabase.from('access_keys').select('id, is_sub_admin, key_name, key_preview').eq('id', key_id).maybeSingle();
+        if (!row || !row.is_sub_admin) return json({ error: 'Not a sub-admin key' }, 404);
+        // Detach any keys created by this sub-admin (don't cascade-delete user keys)
+        await supabase.from('access_keys').update({ created_by: null }).eq('created_by', key_id);
+        await supabase.from('access_sessions').delete().eq('key_id', key_id);
+        await supabase.from('key_sessions').delete().eq('key_id', key_id);
+        await supabase.from('device_attempts').delete().eq('key_id', key_id);
+        await supabase.from('access_keys').delete().eq('id', key_id).eq('is_sub_admin', true);
+        await auditAction({ action: 'sub_admin_deleted', target_type: 'sub_admin', target_id: key_id, target_label: row.key_name || row.key_preview });
         return json({ success: true });
       }
 
