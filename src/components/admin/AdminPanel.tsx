@@ -213,7 +213,9 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
 
   const revokeKey = async (id: string) => { await adminApi('revoke_key', { key_id: id }); loadKeys(); };
   const deleteKey = async (id: string) => { if (!confirm('Delete this key?')) return; await adminApi('delete_key', { key_id: id }); loadKeys(); };
-  const revokeAdmin = async (id: string) => { if (!confirm('Revoke this admin key?')) return; await adminApi('revoke_sub_admin', { key_id: id }); loadAdmins(); };
+  const revokeAdmin = async (id: string) => { if (!confirm('Revoke this admin key? They will lose access immediately.')) return; try { await adminApi('revoke_sub_admin', { key_id: id }); } catch (e: any) { alert(e?.message || 'Failed to revoke'); } loadAdmins(); };
+  const refreshAdmin = async (id: string) => { if (!confirm('Reset this admin key\'s device binding? They can re-activate on a new device.')) return; try { await adminApi('refresh_sub_admin', { key_id: id }); } catch (e: any) { alert(e?.message || 'Failed to refresh'); } loadAdmins(); };
+  const deleteAdmin = async (id: string) => { if (!confirm('PERMANENTLY delete this admin key? This cannot be undone. Keys they created will be kept (detached).')) return; try { await adminApi('delete_sub_admin', { key_id: id }); } catch (e: any) { alert(e?.message || 'Failed to delete'); } loadAdmins(); };
   const renameKey = async (id: string) => {
     if (!renameValue.trim()) { setRenameId(null); return; }
     try { await adminApi('rename_key', { key_id: id, key_name: renameValue.trim() }); } catch {}
