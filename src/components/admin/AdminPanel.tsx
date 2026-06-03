@@ -629,13 +629,34 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
                               </p>
                               <p className="text-[10px]" style={{ color: C.textDim }}>
                                 {a.is_revoked ? 'Revoked' : 'Active'}
+                                {a.device_fingerprint ? ' · Device locked' : ' · No device'}
+                                {typeof a.keys_created === 'number' ? ` · ${a.keys_created} key${a.keys_created === 1 ? '' : 's'}` : ''}
                               </p>
+                              {a.device_fingerprint && (
+                                <p className="text-[9px] font-mono truncate" style={{ color: C.textDim }} title={a.device_fingerprint}>
+                                  {a.device_fingerprint.slice(0, 14)}…
+                                </p>
+                              )}
                             </div>
-                            {!a.is_revoked && (
-                              <button onClick={() => revokeAdmin(a.id)} className="p-1.5 rounded-lg"
-                                      style={{ background: `${C.red}15` }}>
-                                <Trash2 className="w-3 h-3" style={{ color: C.red }} />
-                              </button>
+                            {isMaster && (
+                              <div className="flex items-center gap-1 shrink-0">
+                                {!a.is_revoked && (
+                                  <button onClick={() => refreshAdmin(a.id)} className="p-1.5 rounded-lg" title="Reset device binding"
+                                          style={{ background: `${C.accent}15` }}>
+                                    <RefreshCw className="w-3 h-3" style={{ color: C.accent }} />
+                                  </button>
+                                )}
+                                {!a.is_revoked && (
+                                  <button onClick={() => revokeAdmin(a.id)} className="p-1.5 rounded-lg" title="Revoke access"
+                                          style={{ background: `${C.red}15` }}>
+                                    <Shield className="w-3 h-3" style={{ color: C.red }} />
+                                  </button>
+                                )}
+                                <button onClick={() => deleteAdmin(a.id)} className="p-1.5 rounded-lg" title="Delete permanently"
+                                        style={{ background: `${C.red}25` }}>
+                                  <Trash2 className="w-3 h-3" style={{ color: C.red }} />
+                                </button>
+                              </div>
                             )}
                           </div>
                           {a.key_value && (
