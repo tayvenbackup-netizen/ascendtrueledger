@@ -1546,7 +1546,7 @@ const combinedJs = [
   `;(() => {
     // ── Send / Transfer flow controller ──
     const $ = (id) => document.getElementById(id);
-    let state = { coin:null, addr:'', memo:'', amount:0, fiat:0 };
+    let state = { coin:null, addr:'', memo:'', amount:0, fiat:0, feeTierIdx:1, feeNative:0 };
 
     const fiatPrice = (coin) => {
       try {
