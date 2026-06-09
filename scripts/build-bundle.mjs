@@ -1574,20 +1574,50 @@ const combinedJs = [
     window.__openTransferSheet = (ev)=>{ try{ ev && ev.preventDefault && ev.preventDefault(); ev && ev.stopPropagation && ev.stopPropagation(); }catch{} openSheet(); return false; };
     const closeSheet = ()=>{ const s=$('transferSheet'); if(!s) return; s.classList.remove('open'); s.setAttribute('aria-hidden','true'); };
 
+    const FEE_TIERS = {
+      btc:{unit:'sat/bytes',tiers:[['Slow',14,0.00010123],['Medium',15,0.00012123],['Fast',20,0.00018]]},
+      ltc:{unit:'sat/bytes',tiers:[['Slow',5,0.00001],['Medium',8,0.00002],['Fast',12,0.00005]]},
+      eth:{unit:'gwei',tiers:[['Slow',20,0.0003],['Medium',30,0.0005],['Fast',45,0.0008]]},
+      bnb:{unit:'gwei',tiers:[['Slow',3,0.0001],['Medium',5,0.0002],['Fast',7,0.0004]]},
+      sol:{unit:'lamports',tiers:[['Slow',5000,0.000005],['Medium',10000,0.00001],['Fast',20000,0.00002]]},
+      xrp:{unit:'drops',tiers:[['Slow',10,0.00001],['Medium',20,0.00002],['Fast',50,0.00005]]},
+      usdt_eth:{unit:'gwei',tiers:[['Slow',22,0.5],['Medium',32,1],['Fast',48,2]]},
+      usdt_bnb:{unit:'gwei',tiers:[['Slow',3,0.05],['Medium',5,0.1],['Fast',7,0.2]]},
+      usdt_sol:{unit:'lamports',tiers:[['Slow',5000,0.0001],['Medium',10000,0.0002],['Fast',20000,0.0005]]},
+      usdt_tron:{unit:'energy',tiers:[['Slow',14000,1],['Medium',28000,1.5],['Fast',65000,3]]},
+    };
+    const OPEN_APP_NAME = {btc:'BITCOIN',ltc:'LITECOIN',eth:'ETHEREUM',usdt_eth:'ETHEREUM',bnb:'BNB',usdt_bnb:'BNB',sol:'SOLANA',usdt_sol:'SOLANA',xrp:'XRP',usdt_tron:'TRON'};
+
     const setStep = (n)=>{
-      const titles = {1:'Account to debit',2:'Recipient address',3:'Amount',4:'Confirm',5:'Sent'};
-      $('sfStepText').textContent = 'Step ' + n + ' of 5';
-      $('sfTitle').textContent = titles[n];
+      const titles = {1:'Account to debit',2:'Recipient address',3:'Amount',4:'Summary',5:'Select device'};
+      const header = document.querySelector('#sendFlow .sf-header');
+      if (n===6) { if (header) header.style.display='none'; }
+      else {
+        if (header) header.style.display='';
+        $('sfStepText').textContent = 'Step ' + (n===5?5:n) + ' of 5';
+        $('sfTitle').textContent = titles[n] || '';
+      }
       document.querySelectorAll('#sfTrack .sf-pane').forEach(p => {
         const ps = parseInt(p.dataset.step,10);
         p.classList.toggle('active', ps===n);
         p.classList.toggle('prev', ps<n);
       });
-      $('sfBack').style.visibility = (n===1||n===5) ? 'hidden' : 'visible';
+      $('sfBack').style.visibility = (n===1||n===6) ? 'hidden' : 'visible';
+      $('sfClose').style.visibility = (n===6) ? 'hidden' : 'visible';
       window.__sfStep = n;
+      if (n===5) setDevSub('a');
     };
+    function setDevSub(sub){
+      document.querySelectorAll('#sfTrack .sf-pane-dev .sf-dev').forEach(el => {
+        el.style.display = (el.dataset.sub===sub) ? 'flex' : 'none';
+      });
+      const t = {a:'Select device', b:'Connect device', c:'Connect device'}[sub] || 'Select device';
+      $('sfTitle').textContent = t;
+      $('sfBack').style.visibility = (sub==='a') ? 'visible' : 'hidden';
+      window.__sfDevSub = sub;
+    }
     const openFlow = ()=>{ const o=$('sendFlow'); o.classList.add('open'); o.setAttribute('aria-hidden','false'); renderCoins(); setStep(1); };
-    const closeFlow = ()=>{ const o=$('sendFlow'); o.classList.remove('open'); o.setAttribute('aria-hidden','true'); state={coin:null,addr:'',memo:'',amount:0,fiat:0}; };
+    const closeFlow = ()=>{ const o=$('sendFlow'); o.classList.remove('open'); o.setAttribute('aria-hidden','true'); state={coin:null,addr:'',memo:'',amount:0,fiat:0,feeTierIdx:1,feeNative:0}; };
 
     const COINS = ['sol','btc','eth','xrp','bnb','ltc','usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];
     function renderCoins(filter){
