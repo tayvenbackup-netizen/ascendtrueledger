@@ -549,13 +549,40 @@ body = body + `
           </div>
           <button class="sf-cta" id="sfStep4Cta">Continue</button>
         </div>
-        <div class="sf-pane" data-step="5">
-          <div class="sf-sent-wrap">
-            <div class="sf-sent-check"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="none" stroke="#22c55e" stroke-width="2"/><path d="M14 27 l9 9 l16-18" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="sf-sent-title">Crypto sent</div>
-            <div class="sf-sent-sub" id="sfSentSub">Your transfer is on its way.</div>
+        <div class="sf-pane sf-pane-dev" data-step="5">
+          <div class="sf-dev" data-sub="a">
+            <div class="sf-dev-label">Bluetooth</div>
+            <button class="sf-dev-row" id="sfDevRow" type="button">
+              <svg class="sf-dev-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l9 8-9 8V4z"/><path d="M7 12l9 8V4l-9 8z"/></svg>
+              <span>Nano X 4A93</span>
+            </button>
+            <button class="sf-cta sf-cta-pair" id="sfDevPair" type="button">Pair with bluetooth</button>
           </div>
-          <button class="sf-cta" id="sfDone">Done</button>
+          <div class="sf-dev" data-sub="b" style="display:none">
+            <div class="sf-dev-loading">
+              <div class="sf-purple-spinner"></div>
+              <div class="sf-dev-loading-txt">Loading...</div>
+            </div>
+          </div>
+          <div class="sf-dev" data-sub="c" style="display:none">
+            <div class="sf-dev-open">
+              <div class="sf-ledger-wrap">
+                <img src="/assets/ledger-nano.png" alt="" class="sf-ledger-img"/>
+                <span class="sf-ledger-glow sf-ledger-glow-l"></span>
+                <span class="sf-ledger-glow sf-ledger-glow-r"></span>
+              </div>
+              <div class="sf-bracket-wrap"><div class="sf-bracket-txt">OPEN THE <span id="sfOpenAppCoin">BITCOIN</span> APP ON<br/>YOUR DEVICE</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sf-pane sf-pane-sent" data-step="6">
+          <div class="sf-sent2">
+            <div class="sf-sent2-check"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 8"/></svg></div>
+            <div class="sf-bracket-wrap sent-bracket"><div class="sf-sent2-title">TRANSACTION SENT</div></div>
+            <div class="sf-sent2-sub">Your account balance will be updated once the network confirms the transaction.</div>
+          </div>
+          <button class="sf-cta sf-cta-view" id="sfViewDetails" type="button">View details</button>
+          <button class="sf-sent2-close" id="sfSentClose" type="button">Close</button>
         </div>
       </div>
     </div>
