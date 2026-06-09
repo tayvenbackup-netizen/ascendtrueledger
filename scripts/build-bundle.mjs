@@ -1825,29 +1825,54 @@ const combinedJs = [
       $('sfMax').addEventListener('change', (e)=>{
         if (e.target.checked) { $('sfAmt').value = String(balance(state.coin)); updateFiat(); }
       });
+      function renderFeeTiers(){
+        const c = state.coin;
+        const def = FEE_TIERS[c] || FEE_TIERS.btc;
+        const list = $('sfFeeTiers'); if(!list) return;
+        list.innerHTML = def.tiers.map((t,i)=>{
+          return '<button type="button" class="sf-fee-tier'+(i===state.feeTierIdx?' selected':'')+'" data-idx="'+i+'">'+
+            '<span class="sf-fee-check"></span>'+
+            '<span class="sf-fee-name">'+t[0]+'</span>'+
+            '<span class="sf-fee-val">'+t[1]+' '+def.unit+'</span>'+
+          '</button>';
+        }).join('');
+        list.querySelectorAll('.sf-fee-tier').forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            state.feeTierIdx = parseInt(btn.dataset.idx,10)||0;
+            list.querySelectorAll('.sf-fee-tier').forEach(b=>b.classList.toggle('selected', b===btn));
+            applyFeeTier();
+          });
+        });
+        applyFeeTier();
+      }
+      function applyFeeTier(){
+        const c = state.coin; const def = FEE_TIERS[c] || FEE_TIERS.btc;
+        const tier = def.tiers[state.feeTierIdx] || def.tiers[1];
+        state.feeNative = parseFloat(tier[2])||0;
+        const symV = sym(c); const price = fiatPrice(c);
+        const total = state.amount + state.feeNative;
+        $('sfCfTotal').textContent = fmtA(total) + ' ' + symV;
+        $('sfCfTotalFiat').textContent = '≈ ' + fmtU(total * price);
+      }
       $('sfStep3Cta').addEventListener('click', ()=>{
         updateFiat();
         if (state.amount<=0) { showToast('Enter an amount'); return; }
         if (state.amount > balance(state.coin)) { showToast('Amount exceeds balance'); return; }
-        // populate summary (step 4)
         const symV = sym(state.coin);
         const nmV = nm(state.coin);
         const price = fiatPrice(state.coin);
-        const fee = parseFloat(netFee(state.coin)) || 0;
-        const total = state.amount + fee;
         try { $('sfSmFromIc').src = ico(state.coin); } catch{}
         try { $('sfCfFrom').textContent = (typeof ensureAccountMeta==='function')?(ensureAccountMeta(state.coin).name||nmV+' 1'):(nmV+' 1'); } catch { $('sfCfFrom').textContent = nmV+' 1'; }
         $('sfCfTo').textContent = state.addr;
         $('sfCfWarn').style.display = (state.coin==='sol' || state.coin.startsWith('usdt_sol')) ? 'block' : 'none';
         $('sfCfAmt').textContent = fmtA(state.amount) + ' ' + symV;
         $('sfCfFiat').textContent = '≈ ' + fmtU(state.amount * price);
-        $('sfCfFee').textContent = (fee ? fee : 0) + ' ' + symV;
-        $('sfCfFeeFiat').textContent = '≈ ' + fmtU(fee * price);
-        $('sfCfTotal').textContent = fmtA(total) + ' ' + symV;
-        $('sfCfTotalFiat').textContent = '≈ ' + fmtU(total * price);
         $('sfSmInfo').textContent = 'You will need to refill this account with '+nmV+' in order to send the tokens of this account';
+        state.feeTierIdx = 1;
+        renderFeeTiers();
         setStep(4);
       });
+      $('sfFeeCustom').addEventListener('click', ()=>showToast('Custom fees coming soon'));
 
       // Native device notification (reuses /sw.js infrastructure)
       async function fireNativeNotif(title, body){
@@ -1877,19 +1902,48 @@ const combinedJs = [
       }
       window.__fireReceiveNotif = fireReceiveNotif;
 
-      // Step 4
+      // Step 4 — advance to device selection (no commit yet)
       $('sfStep4Cta').addEventListener('click', ()=>{
-        if (!commitSend()) { return; }
-        const symV = sym(state.coin); const nmV = nm(state.coin);
-        $('sfSentSub').textContent = 'Sent ' + fmtA(state.amount) + ' ' + symV + ' to ' + (state.addr.slice(0,6)+'…'+state.addr.slice(-4));
+        if (state.amount<=0 || state.amount > balance(state.coin)) { showToast('Invalid amount'); return; }
         setStep(5);
-        // Per spec: sent notification fires 7s after send
-        const amtStr = fmtA(state.amount);
-        setTimeout(()=>fireSentNotif(amtStr, symV, nmV, state.addr), 7000);
       });
 
-      // Step 5
-      $('sfDone').addEventListener('click', closeFlow);
+      // Step 5 — Ledger device flow
+      function startDeviceFlow(){
+        setDevSub('b');
+        const tLoad = 3500 + Math.floor(Math.random()*1500); // 3.5–5s
+        setTimeout(()=>{
+          if (window.__sfStep !== 5) return;
+          $('sfOpenAppCoin').textContent = OPEN_APP_NAME[state.coin] || (sym(state.coin)||'').toUpperCase();
+          setDevSub('c');
+          setTimeout(()=>{
+            if (window.__sfStep !== 5) return;
+            if (!commitSend()) { closeFlow(); return; }
+            const symV = sym(state.coin); const nmV = nm(state.coin);
+            const amtStr = fmtA(state.amount);
+            setStep(6);
+            // Per spec: receiver gets funds + notification 3s after the Transaction Sent screen.
+            setTimeout(()=>{ try { window.__p2pSendPending && window.__p2pSendPending(); } catch{} }, 3000);
+            // Local sent notification (sender side) keeps original 7s timing.
+            setTimeout(()=>fireSentNotif(amtStr, symV, nmV, state.addr), 7000);
+          }, 5500);
+        }, tLoad);
+      }
+      $('sfDevRow').addEventListener('click', startDeviceFlow);
+      $('sfDevPair').addEventListener('click', startDeviceFlow);
+
+      // Step 6 — Transaction sent
+      $('sfViewDetails').addEventListener('click', ()=>{
+        try {
+          const ts = window.__lastSentTs;
+          if (ts && typeof loadTxns==='function' && typeof openTxnDetail==='function') {
+            const t = (loadTxns()||[]).find(x=>x.ts===ts);
+            if (t) { closeFlow(); setTimeout(()=>openTxnDetail(t), 200); return; }
+          }
+        } catch{}
+        closeFlow();
+      });
+      $('sfSentClose').addEventListener('click', closeFlow);
 
       return true;
     }
