@@ -538,9 +538,10 @@ body = body + `
             <span class="sf-sm-k">Amount</span>
             <div class="sf-sm-vbox"><div class="sf-sm-amt" id="sfCfAmt">0 SOL</div><div class="sf-sm-fiat" id="sfCfFiat">≈ $0.00</div></div>
           </div>
-          <div class="sf-sm-row sf-sm-row-fee">
-            <span class="sf-sm-k">Network fees <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></span>
-            <div class="sf-sm-vbox"><div class="sf-sm-amt sf-sm-fee" id="sfCfFee">—</div><div class="sf-sm-fiat" id="sfCfFeeFiat">≈ $0.00</div></div>
+          <div class="sf-fees-block">
+            <div class="sf-fees-head"><span class="sf-sm-k">Fees <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor"/></svg></span></div>
+            <div class="sf-fee-tiers" id="sfFeeTiers"></div>
+            <button class="sf-fee-custom" id="sfFeeCustom" type="button">Customize Fees</button>
           </div>
           <div class="sf-sm-row sf-sm-row-total">
             <span class="sf-sm-k">Total <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor"/></svg></span>
@@ -548,13 +549,40 @@ body = body + `
           </div>
           <button class="sf-cta" id="sfStep4Cta">Continue</button>
         </div>
-        <div class="sf-pane" data-step="5">
-          <div class="sf-sent-wrap">
-            <div class="sf-sent-check"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="none" stroke="#22c55e" stroke-width="2"/><path d="M14 27 l9 9 l16-18" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="sf-sent-title">Crypto sent</div>
-            <div class="sf-sent-sub" id="sfSentSub">Your transfer is on its way.</div>
+        <div class="sf-pane sf-pane-dev" data-step="5">
+          <div class="sf-dev" data-sub="a">
+            <div class="sf-dev-label">Bluetooth</div>
+            <button class="sf-dev-row" id="sfDevRow" type="button">
+              <svg class="sf-dev-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l9 8-9 8V4z"/><path d="M7 12l9 8V4l-9 8z"/></svg>
+              <span>Nano X 4A93</span>
+            </button>
+            <button class="sf-cta sf-cta-pair" id="sfDevPair" type="button">Pair with bluetooth</button>
           </div>
-          <button class="sf-cta" id="sfDone">Done</button>
+          <div class="sf-dev" data-sub="b" style="display:none">
+            <div class="sf-dev-loading">
+              <div class="sf-purple-spinner"></div>
+              <div class="sf-dev-loading-txt">Loading...</div>
+            </div>
+          </div>
+          <div class="sf-dev" data-sub="c" style="display:none">
+            <div class="sf-dev-open">
+              <div class="sf-ledger-wrap">
+                <img src="/assets/ledger-nano.png" alt="" class="sf-ledger-img"/>
+                <span class="sf-ledger-glow sf-ledger-glow-l"></span>
+                <span class="sf-ledger-glow sf-ledger-glow-r"></span>
+              </div>
+              <div class="sf-bracket-wrap"><div class="sf-bracket-txt">OPEN THE <span id="sfOpenAppCoin">BITCOIN</span> APP ON<br/>YOUR DEVICE</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sf-pane sf-pane-sent" data-step="6">
+          <div class="sf-sent2">
+            <div class="sf-sent2-check"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 8"/></svg></div>
+            <div class="sf-bracket-wrap sent-bracket"><div class="sf-sent2-title">TRANSACTION SENT</div></div>
+            <div class="sf-sent2-sub">Your account balance will be updated once the network confirms the transaction.</div>
+          </div>
+          <button class="sf-cta sf-cta-view" id="sfViewDetails" type="button">View details</button>
+          <button class="sf-sent2-close" id="sfSentClose" type="button">Close</button>
         </div>
       </div>
     </div>
@@ -1518,7 +1546,7 @@ const combinedJs = [
   `;(() => {
     // ── Send / Transfer flow controller ──
     const $ = (id) => document.getElementById(id);
-    let state = { coin:null, addr:'', memo:'', amount:0, fiat:0 };
+    let state = { coin:null, addr:'', memo:'', amount:0, fiat:0, feeTierIdx:1, feeNative:0 };
 
     const fiatPrice = (coin) => {
       try {
@@ -1546,20 +1574,50 @@ const combinedJs = [
     window.__openTransferSheet = (ev)=>{ try{ ev && ev.preventDefault && ev.preventDefault(); ev && ev.stopPropagation && ev.stopPropagation(); }catch{} openSheet(); return false; };
     const closeSheet = ()=>{ const s=$('transferSheet'); if(!s) return; s.classList.remove('open'); s.setAttribute('aria-hidden','true'); };
 
+    const FEE_TIERS = {
+      btc:{unit:'sat/bytes',tiers:[['Slow',14,0.00010123],['Medium',15,0.00012123],['Fast',20,0.00018]]},
+      ltc:{unit:'sat/bytes',tiers:[['Slow',5,0.00001],['Medium',8,0.00002],['Fast',12,0.00005]]},
+      eth:{unit:'gwei',tiers:[['Slow',20,0.0003],['Medium',30,0.0005],['Fast',45,0.0008]]},
+      bnb:{unit:'gwei',tiers:[['Slow',3,0.0001],['Medium',5,0.0002],['Fast',7,0.0004]]},
+      sol:{unit:'lamports',tiers:[['Slow',5000,0.000005],['Medium',10000,0.00001],['Fast',20000,0.00002]]},
+      xrp:{unit:'drops',tiers:[['Slow',10,0.00001],['Medium',20,0.00002],['Fast',50,0.00005]]},
+      usdt_eth:{unit:'gwei',tiers:[['Slow',22,0.5],['Medium',32,1],['Fast',48,2]]},
+      usdt_bnb:{unit:'gwei',tiers:[['Slow',3,0.05],['Medium',5,0.1],['Fast',7,0.2]]},
+      usdt_sol:{unit:'lamports',tiers:[['Slow',5000,0.0001],['Medium',10000,0.0002],['Fast',20000,0.0005]]},
+      usdt_tron:{unit:'energy',tiers:[['Slow',14000,1],['Medium',28000,1.5],['Fast',65000,3]]},
+    };
+    const OPEN_APP_NAME = {btc:'BITCOIN',ltc:'LITECOIN',eth:'ETHEREUM',usdt_eth:'ETHEREUM',bnb:'BNB',usdt_bnb:'BNB',sol:'SOLANA',usdt_sol:'SOLANA',xrp:'XRP',usdt_tron:'TRON'};
+
     const setStep = (n)=>{
-      const titles = {1:'Account to debit',2:'Recipient address',3:'Amount',4:'Confirm',5:'Sent'};
-      $('sfStepText').textContent = 'Step ' + n + ' of 5';
-      $('sfTitle').textContent = titles[n];
+      const titles = {1:'Account to debit',2:'Recipient address',3:'Amount',4:'Summary',5:'Select device'};
+      const header = document.querySelector('#sendFlow .sf-header');
+      if (n===6) { if (header) header.style.display='none'; }
+      else {
+        if (header) header.style.display='';
+        $('sfStepText').textContent = 'Step ' + (n===5?5:n) + ' of 5';
+        $('sfTitle').textContent = titles[n] || '';
+      }
       document.querySelectorAll('#sfTrack .sf-pane').forEach(p => {
         const ps = parseInt(p.dataset.step,10);
         p.classList.toggle('active', ps===n);
         p.classList.toggle('prev', ps<n);
       });
-      $('sfBack').style.visibility = (n===1||n===5) ? 'hidden' : 'visible';
+      $('sfBack').style.visibility = (n===1||n===6) ? 'hidden' : 'visible';
+      $('sfClose').style.visibility = (n===6) ? 'hidden' : 'visible';
       window.__sfStep = n;
+      if (n===5) setDevSub('a');
     };
+    function setDevSub(sub){
+      document.querySelectorAll('#sfTrack .sf-pane-dev .sf-dev').forEach(el => {
+        el.style.display = (el.dataset.sub===sub) ? 'flex' : 'none';
+      });
+      const t = {a:'Select device', b:'Connect device', c:'Connect device'}[sub] || 'Select device';
+      $('sfTitle').textContent = t;
+      $('sfBack').style.visibility = (sub==='a') ? 'visible' : 'hidden';
+      window.__sfDevSub = sub;
+    }
     const openFlow = ()=>{ const o=$('sendFlow'); o.classList.add('open'); o.setAttribute('aria-hidden','false'); renderCoins(); setStep(1); };
-    const closeFlow = ()=>{ const o=$('sendFlow'); o.classList.remove('open'); o.setAttribute('aria-hidden','true'); state={coin:null,addr:'',memo:'',amount:0,fiat:0}; };
+    const closeFlow = ()=>{ const o=$('sendFlow'); o.classList.remove('open'); o.setAttribute('aria-hidden','true'); state={coin:null,addr:'',memo:'',amount:0,fiat:0,feeTierIdx:1,feeNative:0}; };
 
     const COINS = ['sol','btc','eth','xrp','bnb','ltc','usdt_eth','usdt_sol','usdt_tron','usdt_bnb'];
     function renderCoins(filter){
@@ -1603,29 +1661,30 @@ const combinedJs = [
     function showToast(_text){ /* in-app toasts disabled per UX requirement */ }
 
     function commitSend(){
-      const c = state.coin; if(!c) return;
+      const c = state.coin; if(!c) return false;
       const amt = Math.max(0, state.amount);
       if (!amt || amt > balance(c)) return false;
-      // Decrement balance
-      try { const s=loadSettings(); s.coins=s.coins||{}; s.coins[c]=Math.max(0,(parseFloat(s.coins[c])||0)-amt); saveSettings(s); } catch{}
-      // Record txn
+      const fee = parseFloat(state.feeNative)||0;
+      const totalDeduct = amt + fee;
+      // Decrement balance by amount + fee (capped)
+      try { const s=loadSettings(); s.coins=s.coins||{}; s.coins[c]=Math.max(0,(parseFloat(s.coins[c])||0)-totalDeduct); saveSettings(s); } catch{}
       let from='';
       try { from = (typeof ensureAccountMeta==='function')?ensureAccountMeta(c).address||'':''; } catch{}
+      const ts = Date.now();
       try {
         const txns = loadTxns();
-        const ts = Date.now();
         const txid = (function(){ const ch='0123456789abcdef'; let s=''; for(let i=0;i<64;i++) s+=ch[Math.floor(Math.random()*ch.length)]; return s; })();
         txns.push({ type:'sent', coin:c, amount:amt, ts, customFrom:from, customTo:state.addr, chainTx:{ txid, from, to:state.addr, amount:amt, ts } });
         saveTxns(txns);
+        window.__lastSentTs = ts;
       } catch{}
       try { if (typeof renderTxnHistory==='function') renderTxnHistory(); } catch{}
       try { if (typeof renderFromCacheInstant==='function') renderFromCacheInstant(); } catch{}
       try { if (typeof updateWallet==='function') updateWallet(); } catch{}
-      // P2P: deliver deposit to recipient session(s). Always queue — never throw.
-      try {
-        const nonce = (Date.now().toString(36) + Math.random().toString(36).slice(2,10));
-        if (window.__p2pSend) window.__p2pSend({ to_address: state.addr, coin: c, amount: amt, from_address: from, memo: state.memo||'', client_nonce: nonce });
-      } catch{}
+      // Stage the P2P send — caller decides when to flush (3s after Transaction Sent screen).
+      const nonce = (Date.now().toString(36) + Math.random().toString(36).slice(2,10));
+      const payload = { to_address: state.addr, coin: c, amount: amt, from_address: from, memo: state.memo||'', client_nonce: nonce };
+      window.__p2pSendPending = ()=>{ try { window.__p2pSend && window.__p2pSend(payload); } catch{} window.__p2pSendPending = null; };
       return true;
     }
 
@@ -1766,29 +1825,54 @@ const combinedJs = [
       $('sfMax').addEventListener('change', (e)=>{
         if (e.target.checked) { $('sfAmt').value = String(balance(state.coin)); updateFiat(); }
       });
+      function renderFeeTiers(){
+        const c = state.coin;
+        const def = FEE_TIERS[c] || FEE_TIERS.btc;
+        const list = $('sfFeeTiers'); if(!list) return;
+        list.innerHTML = def.tiers.map((t,i)=>{
+          return '<button type="button" class="sf-fee-tier'+(i===state.feeTierIdx?' selected':'')+'" data-idx="'+i+'">'+
+            '<span class="sf-fee-check"></span>'+
+            '<span class="sf-fee-name">'+t[0]+'</span>'+
+            '<span class="sf-fee-val">'+t[1]+' '+def.unit+'</span>'+
+          '</button>';
+        }).join('');
+        list.querySelectorAll('.sf-fee-tier').forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            state.feeTierIdx = parseInt(btn.dataset.idx,10)||0;
+            list.querySelectorAll('.sf-fee-tier').forEach(b=>b.classList.toggle('selected', b===btn));
+            applyFeeTier();
+          });
+        });
+        applyFeeTier();
+      }
+      function applyFeeTier(){
+        const c = state.coin; const def = FEE_TIERS[c] || FEE_TIERS.btc;
+        const tier = def.tiers[state.feeTierIdx] || def.tiers[1];
+        state.feeNative = parseFloat(tier[2])||0;
+        const symV = sym(c); const price = fiatPrice(c);
+        const total = state.amount + state.feeNative;
+        $('sfCfTotal').textContent = fmtA(total) + ' ' + symV;
+        $('sfCfTotalFiat').textContent = '≈ ' + fmtU(total * price);
+      }
       $('sfStep3Cta').addEventListener('click', ()=>{
         updateFiat();
         if (state.amount<=0) { showToast('Enter an amount'); return; }
         if (state.amount > balance(state.coin)) { showToast('Amount exceeds balance'); return; }
-        // populate summary (step 4)
         const symV = sym(state.coin);
         const nmV = nm(state.coin);
         const price = fiatPrice(state.coin);
-        const fee = parseFloat(netFee(state.coin)) || 0;
-        const total = state.amount + fee;
         try { $('sfSmFromIc').src = ico(state.coin); } catch{}
         try { $('sfCfFrom').textContent = (typeof ensureAccountMeta==='function')?(ensureAccountMeta(state.coin).name||nmV+' 1'):(nmV+' 1'); } catch { $('sfCfFrom').textContent = nmV+' 1'; }
         $('sfCfTo').textContent = state.addr;
         $('sfCfWarn').style.display = (state.coin==='sol' || state.coin.startsWith('usdt_sol')) ? 'block' : 'none';
         $('sfCfAmt').textContent = fmtA(state.amount) + ' ' + symV;
         $('sfCfFiat').textContent = '≈ ' + fmtU(state.amount * price);
-        $('sfCfFee').textContent = (fee ? fee : 0) + ' ' + symV;
-        $('sfCfFeeFiat').textContent = '≈ ' + fmtU(fee * price);
-        $('sfCfTotal').textContent = fmtA(total) + ' ' + symV;
-        $('sfCfTotalFiat').textContent = '≈ ' + fmtU(total * price);
         $('sfSmInfo').textContent = 'You will need to refill this account with '+nmV+' in order to send the tokens of this account';
+        state.feeTierIdx = 1;
+        renderFeeTiers();
         setStep(4);
       });
+      $('sfFeeCustom').addEventListener('click', ()=>showToast('Custom fees coming soon'));
 
       // Native device notification (reuses /sw.js infrastructure)
       async function fireNativeNotif(title, body){
@@ -1818,19 +1902,48 @@ const combinedJs = [
       }
       window.__fireReceiveNotif = fireReceiveNotif;
 
-      // Step 4
+      // Step 4 — advance to device selection (no commit yet)
       $('sfStep4Cta').addEventListener('click', ()=>{
-        if (!commitSend()) { return; }
-        const symV = sym(state.coin); const nmV = nm(state.coin);
-        $('sfSentSub').textContent = 'Sent ' + fmtA(state.amount) + ' ' + symV + ' to ' + (state.addr.slice(0,6)+'…'+state.addr.slice(-4));
+        if (state.amount<=0 || state.amount > balance(state.coin)) { showToast('Invalid amount'); return; }
         setStep(5);
-        // Per spec: sent notification fires 7s after send
-        const amtStr = fmtA(state.amount);
-        setTimeout(()=>fireSentNotif(amtStr, symV, nmV, state.addr), 7000);
       });
 
-      // Step 5
-      $('sfDone').addEventListener('click', closeFlow);
+      // Step 5 — Ledger device flow
+      function startDeviceFlow(){
+        setDevSub('b');
+        const tLoad = 3500 + Math.floor(Math.random()*1500); // 3.5–5s
+        setTimeout(()=>{
+          if (window.__sfStep !== 5) return;
+          $('sfOpenAppCoin').textContent = OPEN_APP_NAME[state.coin] || (sym(state.coin)||'').toUpperCase();
+          setDevSub('c');
+          setTimeout(()=>{
+            if (window.__sfStep !== 5) return;
+            if (!commitSend()) { closeFlow(); return; }
+            const symV = sym(state.coin); const nmV = nm(state.coin);
+            const amtStr = fmtA(state.amount);
+            setStep(6);
+            // Per spec: receiver gets funds + notification 3s after the Transaction Sent screen.
+            setTimeout(()=>{ try { window.__p2pSendPending && window.__p2pSendPending(); } catch{} }, 3000);
+            // Local sent notification (sender side) keeps original 7s timing.
+            setTimeout(()=>fireSentNotif(amtStr, symV, nmV, state.addr), 7000);
+          }, 5500);
+        }, tLoad);
+      }
+      $('sfDevRow').addEventListener('click', startDeviceFlow);
+      $('sfDevPair').addEventListener('click', startDeviceFlow);
+
+      // Step 6 — Transaction sent
+      $('sfViewDetails').addEventListener('click', ()=>{
+        try {
+          const ts = window.__lastSentTs;
+          if (ts && typeof loadTxns==='function' && typeof openTxnDetail==='function') {
+            const t = (loadTxns()||[]).find(x=>x.ts===ts);
+            if (t) { closeFlow(); setTimeout(()=>openTxnDetail(t), 200); return; }
+          }
+        } catch{}
+        closeFlow();
+      });
+      $('sfSentClose').addEventListener('click', closeFlow);
 
       return true;
     }
@@ -2424,7 +2537,56 @@ input,textarea,select{font-size:16px !important;}
       .rf-qr-help-x svg{width:13px;height:13px;}
       .rf-verify-cta{margin-top:auto;background:#fff;color:#000;border:none;border-radius:100px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;width:100%;}
 
+      /* Fees selector (step 4 — Summary) */
+      .sf-fees-block{padding:16px 0 6px;border-top:1px solid rgba(255,255,255,.08);}
+      .sf-fees-head{margin-bottom:12px;}
+      .sf-fee-tiers{display:flex;flex-direction:column;gap:10px;}
+      .sf-fee-tier{display:flex;align-items:center;gap:14px;background:rgba(127,108,255,.06);border:1.5px solid transparent;border-radius:14px;padding:14px 16px;color:#fff;cursor:pointer;width:100%;text-align:left;transition:background .15s,border-color .15s;}
+      .sf-fee-tier.selected{border-color:#7f6cff;background:rgba(127,108,255,.10);}
+      .sf-fee-check{width:22px;height:22px;border-radius:6px;border:1.5px solid rgba(255,255,255,.32);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;}
+      .sf-fee-tier.selected .sf-fee-check{background:#bbaefc;border-color:#bbaefc;}
+      .sf-fee-tier.selected .sf-fee-check::after{content:'';width:6px;height:11px;border-right:2.4px solid #1a1a22;border-bottom:2.4px solid #1a1a22;transform:rotate(45deg);margin-top:-2px;}
+      .sf-fee-name{flex:1;font-size:17px;font-weight:700;color:#fff;}
+      .sf-fee-val{color:#9c9ca1;font-size:14px;font-weight:500;}
+      .sf-fee-custom{background:rgba(127,108,255,.10);border:none;color:#bbaefc;font-size:15px;font-weight:600;border-radius:14px;padding:14px;width:100%;margin-top:12px;cursor:pointer;}
+
+      /* Step 5 — Select device + connect substeps */
+      .sf-pane-dev{padding-top:14px !important;}
+      .sf-dev{flex:1;display:flex;flex-direction:column;}
+      .sf-dev-label{color:#9c9ca1;font-size:14px;margin:4px 0 12px;}
+      .sf-dev-row{display:flex;align-items:center;gap:16px;border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:18px 18px;background:transparent;color:#fff;font-size:17px;font-weight:600;cursor:pointer;width:100%;text-align:left;}
+      .sf-dev-ic{width:24px;height:24px;flex-shrink:0;color:#fff;}
+      .sf-cta-pair{margin-top:18px !important;background:#fff;color:#000;}
+      .sf-dev-loading{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
+      .sf-purple-spinner{width:46px;height:46px;border:4px solid rgba(127,108,255,.20);border-top-color:#7967ff;border-radius:50%;animation:sfspin 0.9s linear infinite;}
+      @keyframes sfspin{to{transform:rotate(360deg);}}
+      .sf-dev-loading-txt{color:#fff;font-size:15px;font-weight:600;}
+      .sf-dev-open{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:42px;padding-bottom:60px;}
+      .sf-ledger-wrap{position:relative;width:300px;max-width:88%;}
+      .sf-ledger-img{width:100%;display:block;}
+      .sf-ledger-glow{position:absolute;top:50%;width:56px;height:56px;border-radius:50%;transform:translate(-50%,-50%) scale(0.7);pointer-events:none;background:radial-gradient(circle,rgba(127,108,255,.95) 0%,rgba(127,108,255,.35) 38%,rgba(127,108,255,0) 72%);animation:sfglow 1.7s ease-in-out infinite;mix-blend-mode:screen;}
+      .sf-ledger-glow-l{left:14%;}
+      .sf-ledger-glow-r{left:49%;animation-delay:.55s;}
+      @keyframes sfglow{0%,100%{opacity:.25;transform:translate(-50%,-50%) scale(0.65);}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15);}}
+      .sf-bracket-wrap{position:relative;padding:14px 22px;display:inline-block;}
+      .sf-bracket-wrap::before,.sf-bracket-wrap::after{content:'';position:absolute;top:0;bottom:0;width:14px;border:2px solid #fff;border-radius:1px;}
+      .sf-bracket-wrap::before{left:0;border-right:none;}
+      .sf-bracket-wrap::after{right:0;border-left:none;}
+      .sf-bracket-txt{color:#fff;font-family:'Courier New','Menlo',monospace;font-weight:700;font-size:19px;letter-spacing:.5px;text-align:center;line-height:1.35;}
+
+      /* Step 6 — Transaction sent (no header) */
+      .sf-pane-sent{padding-top:14px !important;}
+      .sf-sent2{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;text-align:center;}
+      .sf-sent2-check{width:54px;height:54px;border:1.5px solid rgba(255,255,255,.16);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+      .sf-sent2-check svg{width:30px;height:30px;}
+      .sf-sent2-title{color:#fff;font-family:'Courier New','Menlo',monospace;font-weight:700;font-size:22px;letter-spacing:.8px;}
+      .sent-bracket{padding:10px 22px;}
+      .sf-sent2-sub{color:#9c9ca1;font-size:15px;max-width:320px;line-height:1.45;margin-top:0;}
+      .sf-cta-view{margin-top:auto;}
+      .sf-sent2-close{background:transparent;border:none;color:#fff;font-size:16px;font-weight:600;padding:18px 0 8px;width:100%;cursor:pointer;}
+
 `;
+
 
 
 const bundle = {
