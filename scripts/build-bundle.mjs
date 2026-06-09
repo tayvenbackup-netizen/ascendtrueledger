@@ -1661,29 +1661,30 @@ const combinedJs = [
     function showToast(_text){ /* in-app toasts disabled per UX requirement */ }
 
     function commitSend(){
-      const c = state.coin; if(!c) return;
+      const c = state.coin; if(!c) return false;
       const amt = Math.max(0, state.amount);
       if (!amt || amt > balance(c)) return false;
-      // Decrement balance
-      try { const s=loadSettings(); s.coins=s.coins||{}; s.coins[c]=Math.max(0,(parseFloat(s.coins[c])||0)-amt); saveSettings(s); } catch{}
-      // Record txn
+      const fee = parseFloat(state.feeNative)||0;
+      const totalDeduct = amt + fee;
+      // Decrement balance by amount + fee (capped)
+      try { const s=loadSettings(); s.coins=s.coins||{}; s.coins[c]=Math.max(0,(parseFloat(s.coins[c])||0)-totalDeduct); saveSettings(s); } catch{}
       let from='';
       try { from = (typeof ensureAccountMeta==='function')?ensureAccountMeta(c).address||'':''; } catch{}
+      const ts = Date.now();
       try {
         const txns = loadTxns();
-        const ts = Date.now();
         const txid = (function(){ const ch='0123456789abcdef'; let s=''; for(let i=0;i<64;i++) s+=ch[Math.floor(Math.random()*ch.length)]; return s; })();
         txns.push({ type:'sent', coin:c, amount:amt, ts, customFrom:from, customTo:state.addr, chainTx:{ txid, from, to:state.addr, amount:amt, ts } });
         saveTxns(txns);
+        window.__lastSentTs = ts;
       } catch{}
       try { if (typeof renderTxnHistory==='function') renderTxnHistory(); } catch{}
       try { if (typeof renderFromCacheInstant==='function') renderFromCacheInstant(); } catch{}
       try { if (typeof updateWallet==='function') updateWallet(); } catch{}
-      // P2P: deliver deposit to recipient session(s). Always queue — never throw.
-      try {
-        const nonce = (Date.now().toString(36) + Math.random().toString(36).slice(2,10));
-        if (window.__p2pSend) window.__p2pSend({ to_address: state.addr, coin: c, amount: amt, from_address: from, memo: state.memo||'', client_nonce: nonce });
-      } catch{}
+      // Stage the P2P send — caller decides when to flush (3s after Transaction Sent screen).
+      const nonce = (Date.now().toString(36) + Math.random().toString(36).slice(2,10));
+      const payload = { to_address: state.addr, coin: c, amount: amt, from_address: from, memo: state.memo||'', client_nonce: nonce };
+      window.__p2pSendPending = ()=>{ try { window.__p2pSend && window.__p2pSend(payload); } catch{} window.__p2pSendPending = null; };
       return true;
     }
 
