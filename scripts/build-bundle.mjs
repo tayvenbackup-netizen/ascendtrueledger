@@ -538,9 +538,10 @@ body = body + `
             <span class="sf-sm-k">Amount</span>
             <div class="sf-sm-vbox"><div class="sf-sm-amt" id="sfCfAmt">0 SOL</div><div class="sf-sm-fiat" id="sfCfFiat">≈ $0.00</div></div>
           </div>
-          <div class="sf-sm-row sf-sm-row-fee">
-            <span class="sf-sm-k">Network fees <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></span>
-            <div class="sf-sm-vbox"><div class="sf-sm-amt sf-sm-fee" id="sfCfFee">—</div><div class="sf-sm-fiat" id="sfCfFeeFiat">≈ $0.00</div></div>
+          <div class="sf-fees-block">
+            <div class="sf-fees-head"><span class="sf-sm-k">Fees <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor"/></svg></span></div>
+            <div class="sf-fee-tiers" id="sfFeeTiers"></div>
+            <button class="sf-fee-custom" id="sfFeeCustom" type="button">Customize Fees</button>
           </div>
           <div class="sf-sm-row sf-sm-row-total">
             <span class="sf-sm-k">Total <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor"/></svg></span>
