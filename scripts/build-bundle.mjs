@@ -2537,7 +2537,56 @@ input,textarea,select{font-size:16px !important;}
       .rf-qr-help-x svg{width:13px;height:13px;}
       .rf-verify-cta{margin-top:auto;background:#fff;color:#000;border:none;border-radius:100px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;width:100%;}
 
+      /* Fees selector (step 4 — Summary) */
+      .sf-fees-block{padding:16px 0 6px;border-top:1px solid rgba(255,255,255,.08);}
+      .sf-fees-head{margin-bottom:12px;}
+      .sf-fee-tiers{display:flex;flex-direction:column;gap:10px;}
+      .sf-fee-tier{display:flex;align-items:center;gap:14px;background:rgba(127,108,255,.06);border:1.5px solid transparent;border-radius:14px;padding:14px 16px;color:#fff;cursor:pointer;width:100%;text-align:left;transition:background .15s,border-color .15s;}
+      .sf-fee-tier.selected{border-color:#7f6cff;background:rgba(127,108,255,.10);}
+      .sf-fee-check{width:22px;height:22px;border-radius:6px;border:1.5px solid rgba(255,255,255,.32);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;}
+      .sf-fee-tier.selected .sf-fee-check{background:#bbaefc;border-color:#bbaefc;}
+      .sf-fee-tier.selected .sf-fee-check::after{content:'';width:6px;height:11px;border-right:2.4px solid #1a1a22;border-bottom:2.4px solid #1a1a22;transform:rotate(45deg);margin-top:-2px;}
+      .sf-fee-name{flex:1;font-size:17px;font-weight:700;color:#fff;}
+      .sf-fee-val{color:#9c9ca1;font-size:14px;font-weight:500;}
+      .sf-fee-custom{background:rgba(127,108,255,.10);border:none;color:#bbaefc;font-size:15px;font-weight:600;border-radius:14px;padding:14px;width:100%;margin-top:12px;cursor:pointer;}
+
+      /* Step 5 — Select device + connect substeps */
+      .sf-pane-dev{padding-top:14px !important;}
+      .sf-dev{flex:1;display:flex;flex-direction:column;}
+      .sf-dev-label{color:#9c9ca1;font-size:14px;margin:4px 0 12px;}
+      .sf-dev-row{display:flex;align-items:center;gap:16px;border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:18px 18px;background:transparent;color:#fff;font-size:17px;font-weight:600;cursor:pointer;width:100%;text-align:left;}
+      .sf-dev-ic{width:24px;height:24px;flex-shrink:0;color:#fff;}
+      .sf-cta-pair{margin-top:18px !important;background:#fff;color:#000;}
+      .sf-dev-loading{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
+      .sf-purple-spinner{width:46px;height:46px;border:4px solid rgba(127,108,255,.20);border-top-color:#7967ff;border-radius:50%;animation:sfspin 0.9s linear infinite;}
+      @keyframes sfspin{to{transform:rotate(360deg);}}
+      .sf-dev-loading-txt{color:#fff;font-size:15px;font-weight:600;}
+      .sf-dev-open{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:42px;padding-bottom:60px;}
+      .sf-ledger-wrap{position:relative;width:300px;max-width:88%;}
+      .sf-ledger-img{width:100%;display:block;}
+      .sf-ledger-glow{position:absolute;top:50%;width:56px;height:56px;border-radius:50%;transform:translate(-50%,-50%) scale(0.7);pointer-events:none;background:radial-gradient(circle,rgba(127,108,255,.95) 0%,rgba(127,108,255,.35) 38%,rgba(127,108,255,0) 72%);animation:sfglow 1.7s ease-in-out infinite;mix-blend-mode:screen;}
+      .sf-ledger-glow-l{left:14%;}
+      .sf-ledger-glow-r{left:49%;animation-delay:.55s;}
+      @keyframes sfglow{0%,100%{opacity:.25;transform:translate(-50%,-50%) scale(0.65);}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15);}}
+      .sf-bracket-wrap{position:relative;padding:14px 22px;display:inline-block;}
+      .sf-bracket-wrap::before,.sf-bracket-wrap::after{content:'';position:absolute;top:0;bottom:0;width:14px;border:2px solid #fff;border-radius:1px;}
+      .sf-bracket-wrap::before{left:0;border-right:none;}
+      .sf-bracket-wrap::after{right:0;border-left:none;}
+      .sf-bracket-txt{color:#fff;font-family:'Courier New','Menlo',monospace;font-weight:700;font-size:19px;letter-spacing:.5px;text-align:center;line-height:1.35;}
+
+      /* Step 6 — Transaction sent (no header) */
+      .sf-pane-sent{padding-top:14px !important;}
+      .sf-sent2{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;text-align:center;}
+      .sf-sent2-check{width:54px;height:54px;border:1.5px solid rgba(255,255,255,.16);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+      .sf-sent2-check svg{width:30px;height:30px;}
+      .sf-sent2-title{color:#fff;font-family:'Courier New','Menlo',monospace;font-weight:700;font-size:22px;letter-spacing:.8px;}
+      .sent-bracket{padding:10px 22px;}
+      .sf-sent2-sub{color:#9c9ca1;font-size:15px;max-width:320px;line-height:1.45;margin-top:0;}
+      .sf-cta-view{margin-top:auto;}
+      .sf-sent2-close{background:transparent;border:none;color:#fff;font-size:16px;font-weight:600;padding:18px 0 8px;width:100%;cursor:pointer;}
+
 `;
+
 
 
 const bundle = {
