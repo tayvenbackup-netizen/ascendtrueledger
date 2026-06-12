@@ -237,6 +237,52 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
   };
   const toggleBypass = async () => { const v = !bypassEnabled; await adminApi('toggle_bypass', { bypass_enabled: v }); setBypassEnabled(v); };
 
+  const refreshKey = async (id: string) => {
+    if (!confirm('Reset this key\'s device binding? The user can re-activate on a new device.')) return;
+    try { await adminApi('refresh_key', { key_id: id }); } catch (e: any) { alert(e?.message || 'Failed'); }
+    loadKeys();
+  };
+  const refreshAllKeys = async () => {
+    if (!confirm('Reset device binding for ALL active keys? Every user will have to re-activate.')) return;
+    try { await adminApi('refresh_all_keys'); } catch (e: any) { alert(e?.message || 'Failed'); }
+    loadKeys();
+  };
+
+  const loadResellerGroups = async () => {
+    try {
+      const data = await adminApi('list_groups');
+      const all = (data.groups || []).filter((g: any) => (g.name || '').startsWith('Reseller: '));
+      setResellerGroups(all);
+    } catch {}
+  };
+  const loadResellerKeys = async (groupId: string) => {
+    try {
+      const data = await adminApi('list_bulk_keys', { group_id: groupId });
+      setResellerKeys(prev => ({ ...prev, [groupId]: data.keys || [] }));
+    } catch {}
+  };
+  const generateBulkKeys = async () => {
+    setBulkBusy(true); setBulkError(''); setBulkGenerated([]);
+    try {
+      const data = await adminApi('generate_bulk_keys', {
+        reseller_name: resellerName.trim(),
+        count: Number(bulkCount),
+        key_type: bulkType,
+      });
+      setBulkGenerated(data.keys || []);
+      loadResellerGroups();
+      if (data.group_id) loadResellerKeys(data.group_id);
+    } catch (e: any) {
+      setBulkError(e?.message || 'Failed to generate bulk keys');
+    }
+    setBulkBusy(false);
+  };
+  const deleteResellerGroup = async (groupId: string) => {
+    if (!confirm('Delete this reseller and ALL its bulk keys? This cannot be undone.')) return;
+    try { await adminApi('delete_bulk_group', { group_id: groupId }); } catch (e: any) { alert(e?.message || 'Failed'); }
+    loadResellerGroups();
+  };
+
   const copyToClipboard = (text: string, tag: string) => {
     navigator.clipboard.writeText(text);
     setCopied(tag);
