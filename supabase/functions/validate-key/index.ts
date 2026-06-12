@@ -753,6 +753,7 @@ Deno.serve(async (req) => {
 
       await supabase.from('access_keys').update({
         session_count: (keyRow.session_count || 0) + 1,
+        last_seen_at: new Date().toISOString(),
       }).eq('id', keyRow.id);
 
       const csrfToken = generateCsrfToken();
