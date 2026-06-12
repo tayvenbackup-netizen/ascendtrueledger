@@ -1351,7 +1351,6 @@ Deno.serve(async (req) => {
         await auditAction({ action: 'security_alert_reviewed', target_type: 'security_alert', target_id: alert_id });
         return json({ success: true });
       }
-      }
 
       if (action === 'generate_bulk_keys') {
         const { reseller_name, count, key_type, group_id } = body;
@@ -1382,14 +1381,20 @@ Deno.serve(async (req) => {
           }
         }
 
+        const randAlpha = (len: number) => {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          const arr = new Uint8Array(len);
+          crypto.getRandomValues(arr);
+          return Array.from(arr).map(b => chars[b % chars.length]).join('');
+        };
+
         const generated: string[] = [];
         const rows: any[] = [];
         const seen = new Set<string>();
         let attempts = 0;
         while (generated.length < n && attempts < n * 10) {
           attempts++;
-          const rand = Math.floor(Math.random() * 9999) + 1;
-          const rawKey = `${safeName}-RR-${rand}`;
+          const rawKey = `${safeName}-${randAlpha(4)}-${randAlpha(5)}`;
           if (seen.has(rawKey)) continue;
           seen.add(rawKey);
           const keyHash = await hmacHash(rawKey, PEPPER);
