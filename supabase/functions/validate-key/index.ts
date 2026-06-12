@@ -298,6 +298,7 @@ const ADMIN_ACTIONS = new Set([
   'create_sub_admin', 'list_sub_admins', 'revoke_sub_admin', 'refresh_sub_admin', 'delete_sub_admin',
   'analytics_summary', 'list_audit_log',
   'list_security_alerts', 'mark_alert_reviewed',
+  'generate_bulk_keys', 'list_bulk_keys', 'delete_bulk_group',
 ]);
 
 const CSRF_EXEMPT_ACTIONS = new Set([
@@ -1116,7 +1117,7 @@ Deno.serve(async (req) => {
           ? 'id, key_preview, key_type, activated_at, expires_at, is_revoked, created_at, key_name, device_count, device_fingerprint, session_count, total_play_seconds, group_id, created_by, is_sub_admin, activation_country, activation_region, activation_city, activation_ip, key_value'
           : 'id, key_preview, key_type, activated_at, expires_at, is_revoked, created_at, key_name, device_count, device_fingerprint, session_count, total_play_seconds, group_id, created_by, is_sub_admin, activation_country, activation_region, activation_city, activation_ip';
         let query = supabase.from('access_keys').select(fields)
-          .eq('is_sub_admin', false).order('created_at', { ascending: false });
+          .eq('is_sub_admin', false).eq('is_bulk', false).order('created_at', { ascending: false });
         if (!isMaster && adminId) query = query.eq('created_by', adminId);
         const { data: keys } = await query;
         await auditAction({ action: 'keys_listed', metadata: { count: keys?.length ?? 0 } });
@@ -1349,6 +1350,103 @@ Deno.serve(async (req) => {
         await supabase.from('security_alerts').update({ reviewed: true }).eq('id', alert_id);
         await auditAction({ action: 'security_alert_reviewed', target_type: 'security_alert', target_id: alert_id });
         return json({ success: true });
+      }
+      }
+
+      if (action === 'generate_bulk_keys') {
+        const { reseller_name, count, key_type, group_id } = body;
+        if (!reseller_name || typeof reseller_name !== 'string' || reseller_name.trim().length < 1 || reseller_name.trim().length > 40) {
+          return json({ error: 'Reseller name must be 1-40 characters' }, 400);
+        }
+        const n = Math.floor(Number(count));
+        if (!Number.isFinite(n) || n < 1 || n > 500) {
+          return json({ error: 'Count must be 1-500' }, 400);
+        }
+        if (!['daily', '3day', 'weekly', 'monthly', 'lifetime'].includes(key_type)) {
+          return json({ error: 'Invalid key type' }, 400);
+        }
+        const safeName = reseller_name.trim().replace(/[^A-Za-z0-9_-]/g, '');
+        if (!safeName) return json({ error: 'Invalid reseller name' }, 400);
+
+        let resellerGroupId: string | null = group_id || null;
+        if (!resellerGroupId) {
+          const { data: existingGroup } = await supabase
+            .from('key_groups').select('id').eq('name', `Reseller: ${safeName}`).maybeSingle();
+          if (existingGroup) resellerGroupId = existingGroup.id;
+          else {
+            const { data: newGroup } = await supabase.from('key_groups').insert({
+              name: `Reseller: ${safeName}`, color: '#bbaefc',
+              created_by: isMaster ? 'master' : adminId,
+            }).select('id').single();
+            resellerGroupId = newGroup?.id || null;
+          }
+        }
+
+        const generated: string[] = [];
+        const rows: any[] = [];
+        const seen = new Set<string>();
+        let attempts = 0;
+        while (generated.length < n && attempts < n * 10) {
+          attempts++;
+          const rand = Math.floor(Math.random() * 9999) + 1;
+          const rawKey = `${safeName}-RR-${rand}`;
+          if (seen.has(rawKey)) continue;
+          seen.add(rawKey);
+          const keyHash = await hmacHash(rawKey, PEPPER);
+          const { data: exists } = await supabase
+            .from('access_keys').select('id').eq('key_hash', keyHash).maybeSingle();
+          if (exists) continue;
+          rows.push({
+            key_hash: keyHash,
+            key_preview: rawKey.slice(-4),
+            key_type,
+            key_name: rawKey,
+            key_value: rawKey,
+            created_by: isMaster ? null : adminId,
+            group_id: resellerGroupId,
+            is_bulk: true,
+          });
+          generated.push(rawKey);
+        }
+        if (rows.length === 0) return json({ error: 'Could not generate unique keys' }, 500);
+        await supabase.from('access_keys').insert(rows);
+        await auditAction({
+          action: 'bulk_keys_generated', target_type: 'reseller',
+          target_id: resellerGroupId, target_label: safeName,
+          metadata: { count: rows.length, key_type },
+        });
+        return json({ keys: generated, group_id: resellerGroupId, reseller_name: safeName });
+      }
+
+      if (action === 'list_bulk_keys') {
+        const fields = 'id, key_preview, key_type, activated_at, expires_at, is_revoked, created_at, key_name, key_value, device_fingerprint, device_count, session_count, total_play_seconds, group_id, created_by';
+        let q = supabase.from('access_keys').select(fields)
+          .eq('is_bulk', true).eq('is_sub_admin', false)
+          .order('created_at', { ascending: false });
+        if (!isMaster && adminId) q = q.eq('created_by', adminId);
+        if (body.group_id) q = q.eq('group_id', body.group_id);
+        const { data: keys } = await q;
+        return json({ keys: keys || [] });
+      }
+
+      if (action === 'delete_bulk_group') {
+        const { group_id } = body;
+        if (!group_id) return json({ error: 'Missing group_id' }, 400);
+        const { data: targets } = await supabase
+          .from('access_keys').select('id').eq('group_id', group_id).eq('is_bulk', true);
+        const ids = (targets || []).map((r: any) => r.id);
+        if (ids.length) {
+          await supabase.from('access_sessions').delete().in('key_id', ids);
+          await supabase.from('key_sessions').delete().in('key_id', ids);
+          await supabase.from('device_attempts').delete().in('key_id', ids);
+          await supabase.from('access_keys').delete().in('id', ids);
+        }
+        await supabase.from('key_groups').delete().eq('id', group_id);
+        await auditAction({
+          action: 'bulk_group_deleted', target_type: 'reseller',
+          target_id: group_id, metadata: { keys_deleted: ids.length },
+        });
+        return json({ success: true, deleted: ids.length });
       }
     }
 

@@ -28,6 +28,7 @@ export type Database = {
           expires_at: string | null
           group_id: string | null
           id: string
+          is_bulk: boolean
           is_revoked: boolean
           is_sub_admin: boolean
           key_hash: string
@@ -51,6 +52,7 @@ export type Database = {
           expires_at?: string | null
           group_id?: string | null
           id?: string
+          is_bulk?: boolean
           is_revoked?: boolean
           is_sub_admin?: boolean
           key_hash: string
@@ -74,6 +76,7 @@ export type Database = {
           expires_at?: string | null
           group_id?: string | null
           id?: string
+          is_bulk?: boolean
           is_revoked?: boolean
           is_sub_admin?: boolean
           key_hash?: string
