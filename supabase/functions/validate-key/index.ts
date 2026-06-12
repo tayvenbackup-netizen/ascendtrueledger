@@ -194,56 +194,131 @@ async function getAdminMasterKeyHash(pepper: string): Promise<string> {
   return adminMasterKeyHash;
 }
 
-function getClientIP(req: Request): string {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    req.headers.get('cf-connecting-ip') ||
-    req.headers.get('x-real-ip') ||
-    'unknown';
+function isPrivateIP(ip: string): boolean {
+  if (!ip) return true;
+  const s = ip.trim().toLowerCase();
+  if (s === 'unknown' || s === '::1' || s === '::' || s === '0.0.0.0') return true;
+  if (s.startsWith('127.') || s.startsWith('10.') || s.startsWith('192.168.')) return true;
+  if (s.startsWith('169.254.') || s.startsWith('fc') || s.startsWith('fd') || s.startsWith('fe80:')) return true;
+  // 172.16.0.0/12
+  const m = s.match(/^172\.(\d+)\./);
+  if (m) { const n = parseInt(m[1], 10); if (n >= 16 && n <= 31) return true; }
+  // 100.64.0.0/10 CGNAT
+  const c = s.match(/^100\.(\d+)\./);
+  if (c) { const n = parseInt(c[1], 10); if (n >= 64 && n <= 127) return true; }
+  return false;
 }
 
-type GeoInfo = { country: string | null; region: string | null; city: string | null };
+function getClientIP(req: Request): string {
+  // Priority order: most trusted edge headers first
+  const candidates: string[] = [];
+  const push = (v: string | null) => { if (v) candidates.push(...v.split(',').map(x => x.trim())); };
+  push(req.headers.get('cf-connecting-ip'));
+  push(req.headers.get('true-client-ip'));
+  push(req.headers.get('fly-client-ip'));
+  push(req.headers.get('x-real-ip'));
+  push(req.headers.get('x-forwarded-for'));
+  push(req.headers.get('forwarded')?.match(/for=([^;,\s]+)/i)?.[1]?.replace(/^"|"$|\[|\]/g, '') || null);
+  for (const raw of candidates) {
+    if (!raw) continue;
+    // strip ipv6 brackets and ports
+    let ip = raw.replace(/^\[/, '').replace(/\]$/, '').replace(/^"|"$/g, '');
+    const portIdx = ip.lastIndexOf(':');
+    if (portIdx > -1 && ip.indexOf(':') === portIdx) ip = ip.slice(0, portIdx); // ipv4:port
+    if (!isPrivateIP(ip)) return ip;
+  }
+  return 'unknown';
+}
+
+type GeoInfo = { country: string | null; region: string | null; city: string | null; lat?: number | null; lon?: number | null };
 const geoCache = new Map<string, { at: number; data: GeoInfo }>();
-const GEO_TTL_MS = 10 * 60_000;
+const GEO_TTL_MS = 60 * 60_000;
 
-async function lookupGeo(ip: string): Promise<GeoInfo> {
-  const empty: GeoInfo = { country: null, region: null, city: null };
-  if (!ip || ip === 'unknown' || ip.startsWith('127.') || ip.startsWith('::1')) return empty;
+function mergeGeo(a: GeoInfo, b: GeoInfo): GeoInfo {
+  return {
+    country: a.country || b.country || null,
+    region:  a.region  || b.region  || null,
+    city:    a.city    || b.city    || null,
+    lat: a.lat ?? b.lat ?? null,
+    lon: a.lon ?? b.lon ?? null,
+  };
+}
+
+async function fetchJson(url: string, ms = 2000): Promise<any | null> {
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(ms) });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+async function lookupGeo(ip: string, req?: Request): Promise<GeoInfo> {
+  let acc: GeoInfo = { country: null, region: null, city: null, lat: null, lon: null };
+
+  // Always seed from CDN edge headers if present (these are highly reliable)
+  if (req) {
+    const cfCountry = req.headers.get('cf-ipcountry');
+    const cfCity = req.headers.get('cf-ipcity');
+    const cfRegion = req.headers.get('cf-region');
+    const vercelCountry = req.headers.get('x-vercel-ip-country');
+    const vercelCity = req.headers.get('x-vercel-ip-city');
+    const vercelRegion = req.headers.get('x-vercel-ip-country-region');
+    const vercelLat = req.headers.get('x-vercel-ip-latitude');
+    const vercelLon = req.headers.get('x-vercel-ip-longitude');
+    acc = mergeGeo(acc, {
+      country: cfCountry || vercelCountry || null,
+      region:  cfRegion  || vercelRegion  || null,
+      city:    cfCity    || (vercelCity ? decodeURIComponent(vercelCity) : null),
+      lat: vercelLat ? parseFloat(vercelLat) : null,
+      lon: vercelLon ? parseFloat(vercelLon) : null,
+    });
+  }
+
+  if (!ip || isPrivateIP(ip)) return acc;
+
   const cached = geoCache.get(ip);
-  if (cached && Date.now() - cached.at < GEO_TTL_MS) return cached.data;
+  if (cached && Date.now() - cached.at < GEO_TTL_MS) return mergeGeo(acc, cached.data);
 
-  try {
-    const r = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`, { signal: AbortSignal.timeout(2500) });
-    if (r.ok) {
-      const j = await r.json();
-      if (!j?.error) {
-        const data: GeoInfo = {
-          country: j.country_name || j.country || null,
-          region: j.region || j.region_code || null,
-          city: j.city || null,
-        };
-        geoCache.set(ip, { at: Date.now(), data });
-        return data;
-      }
-    }
-  } catch {}
+  // Query multiple providers in parallel and merge for max accuracy
+  const enc = encodeURIComponent(ip);
+  const [a, b, c] = await Promise.all([
+    fetchJson(`https://ipapi.co/${enc}/json/`),
+    fetchJson(`http://ip-api.com/json/${enc}?fields=status,country,regionName,city,lat,lon`),
+    fetchJson(`https://ipwho.is/${enc}`),
+  ]);
 
-  try {
-    const r = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,regionName,city`, { signal: AbortSignal.timeout(2500) });
-    if (r.ok) {
-      const j = await r.json();
-      if (j?.status === 'success') {
-        const data: GeoInfo = {
-          country: j.country || null,
-          region: j.regionName || null,
-          city: j.city || null,
-        };
-        geoCache.set(ip, { at: Date.now(), data });
-        return data;
-      }
-    }
-  } catch {}
+  let data: GeoInfo = { country: null, region: null, city: null, lat: null, lon: null };
 
-  return empty;
+  if (a && !a.error) {
+    data = mergeGeo(data, {
+      country: a.country_name || a.country || null,
+      region: a.region || a.region_code || null,
+      city: a.city || null,
+      lat: typeof a.latitude === 'number' ? a.latitude : null,
+      lon: typeof a.longitude === 'number' ? a.longitude : null,
+    });
+  }
+  if (b && b.status === 'success') {
+    data = mergeGeo(data, {
+      country: b.country || null,
+      region: b.regionName || null,
+      city: b.city || null,
+      lat: typeof b.lat === 'number' ? b.lat : null,
+      lon: typeof b.lon === 'number' ? b.lon : null,
+    });
+  }
+  if (c && c.success !== false) {
+    data = mergeGeo(data, {
+      country: c.country || null,
+      region: c.region || null,
+      city: c.city || null,
+      lat: typeof c.latitude === 'number' ? c.latitude : null,
+      lon: typeof c.longitude === 'number' ? c.longitude : null,
+    });
+  }
+
+  geoCache.set(ip, { at: Date.now(), data });
+  return mergeGeo(acc, data);
 }
 
 function isForeignLocation(activation: GeoInfo, attempt: GeoInfo): boolean {
