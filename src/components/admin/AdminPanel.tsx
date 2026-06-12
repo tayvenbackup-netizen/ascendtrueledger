@@ -478,12 +478,34 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
                       <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: C.textMuted }}>
                         Keys ({keys.length})
                       </h3>
-                      <button onClick={loadKeys} disabled={loading} className="p-1" style={{ color: C.textDim }}>
-                        <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        {isMaster && (
+                          <button onClick={refreshAllKeys} title="Reset device binding for ALL keys"
+                                  className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold"
+                                  style={{ background: `${C.yellow}15`, color: C.yellow }}>
+                            <RefreshCw className="w-3 h-3" /> Refresh All
+                          </button>
+                        )}
+                        <button onClick={loadKeys} disabled={loading} className="p-1" style={{ color: C.textDim }}>
+                          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: C.textDim }} />
+                      <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                             placeholder="Search by name or key…"
+                             className="w-full h-8 pl-8 pr-3 rounded-lg text-[11px] focus:outline-none"
+                             style={{ background: C.bg, border: `1px solid ${C.border}`, color: C.text }} />
                     </div>
                     <div className="space-y-2 max-h-[340px] overflow-y-auto pr-0.5">
-                      {[...activeKeys, ...revokedKeys].map(k => (
+                      {[...activeKeys, ...revokedKeys].filter(k => {
+                        const q = searchQuery.trim().toLowerCase();
+                        if (!q) return true;
+                        return (k.key_name || '').toLowerCase().includes(q)
+                          || (k.key_value || '').toLowerCase().includes(q)
+                          || (k.key_preview || '').toLowerCase().includes(q);
+                      }).map(k => (
                         <div key={k.id} className="rounded-xl px-3.5 py-2.5"
                              style={{ background: C.bg, border: `1px solid ${k.is_revoked ? `${C.red}30` : C.border}` }}>
                           <div className="flex items-center gap-3">
