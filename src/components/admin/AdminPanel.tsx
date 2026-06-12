@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import {
   X, Shield, ShieldAlert, Loader2, Key, Plus, Copy, Check, Ban, Trash2,
   RefreshCw, ToggleLeft, ToggleRight, ScrollText, UserPlus, Edit3, Crown,
-  MapPin, Smartphone, Globe, ChevronDown, ChevronUp,
+  MapPin, Smartphone, Globe, ChevronDown, ChevronUp, Search, Store, Package,
 } from 'lucide-react';
 import AdminAuditLog from './AdminAuditLog';
 import AdminSecurityAlerts from './AdminSecurityAlerts';
