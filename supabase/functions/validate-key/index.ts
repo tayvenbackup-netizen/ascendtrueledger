@@ -935,6 +935,45 @@ Deno.serve(async (req) => {
       return json({ success: true, is_master: true, csrf_token: csrfToken, admin_token: adminToken }, 200, h);
     }
 
+    if (action === 'reset_master_password') {
+      // Emergency reset: no admin session, no CSRF. Requires MASTER_RESET_TOKEN secret.
+      if (!(await checkRateLimitDB(supabase, `pwreset:${clientIP}`, 5, RATE_LIMIT_WINDOW))) {
+        return json({ error: 'Too many attempts. Try again later.' }, 429);
+      }
+      const resetTokenEnv = Deno.env.get('MASTER_RESET_TOKEN');
+      if (!resetTokenEnv || resetTokenEnv.length < 16) {
+        return json({ error: 'Reset is not configured' }, 503);
+      }
+      const { reset_token, new_password } = body;
+      if (typeof reset_token !== 'string' || typeof new_password !== 'string') {
+        return json({ error: 'Missing fields' }, 400);
+      }
+      if (new_password.length < 8 || new_password.length > 256) {
+        return json({ error: 'Password must be 8-256 characters' }, 400);
+      }
+      // Constant-time compare on equal-length buffers (hash both first to avoid length leaks)
+      const providedHash = await sha256Hash(reset_token);
+      const expectedHash = await sha256Hash(resetTokenEnv);
+      if (!timingSafeEqual(providedHash, expectedHash)) {
+        await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+        await audit(supabase, { actor_type: 'master', action: 'master_password_reset_failed', ip: clientIP, success: false });
+        return json({ error: 'Invalid reset token' }, 401);
+      }
+      const newHash = await hmacHash(new_password, PEPPER);
+      await supabase.from('app_settings').upsert({
+        id: 'admin_password_override_hash',
+        value: { hash: newHash, updated_at: new Date().toISOString() },
+        updated_at: new Date().toISOString(),
+      });
+      // Invalidate in-memory cache so the next admin_auth re-reads the override.
+      adminPasswordHash = null;
+      // Invalidate all existing admin sessions for safety.
+      await supabase.from('app_settings').delete().like('id', 'admin_session:%');
+      await audit(supabase, { actor_type: 'master', action: 'master_password_reset', ip: clientIP, success: true });
+      return json({ success: true });
+    }
+
+
     if (action === 'sub_admin_auth') {
       if (!(await checkRateLimitDB(supabase, `admin:${clientIP}`, RATE_LIMIT_MAX_ADMIN, RATE_LIMIT_WINDOW))) {
         return json({ error: 'Too many attempts. Locked for 1 minute.' }, 429);
