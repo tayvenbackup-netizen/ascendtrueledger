@@ -140,6 +140,20 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
   // Expanded key (for device/location details)
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
+  // Search
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Reseller tab state
+  const [resellerName, setResellerName] = useState('');
+  const [bulkCount, setBulkCount] = useState('10');
+  const [bulkType, setBulkType] = useState<KeyType>('weekly');
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkError, setBulkError] = useState('');
+  const [bulkGenerated, setBulkGenerated] = useState<string[]>([]);
+  const [resellerGroups, setResellerGroups] = useState<any[]>([]);
+  const [openReseller, setOpenReseller] = useState<string | null>(null);
+  const [resellerKeys, setResellerKeys] = useState<Record<string, any[]>>({});
+
   const [bypassEnabled, setBypassEnabled] = useState(false);
 
   const authenticate = async (e: React.FormEvent) => {
