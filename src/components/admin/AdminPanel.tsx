@@ -548,6 +548,13 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
                               <Edit3 className="w-3 h-3" style={{ color: C.accent }} />
                             </button>
                             {!k.is_revoked && (
+                              <button onClick={() => refreshKey(k.id)} title="Reset device binding"
+                                      className="p-1.5 rounded-lg"
+                                      style={{ background: `${C.accent}15` }}>
+                                <RefreshCw className="w-3 h-3" style={{ color: C.accent }} />
+                              </button>
+                            )}
+                            {!k.is_revoked && (
                               <button onClick={() => revokeKey(k.id)} className="p-1.5 rounded-lg"
                                       style={{ background: `${C.yellow}15` }}>
                                 <Ban className="w-3 h-3" style={{ color: C.yellow }} />
