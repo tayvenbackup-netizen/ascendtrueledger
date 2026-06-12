@@ -608,7 +608,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      const attemptGeo = await lookupGeo(clientIP);
+      const attemptGeo = await lookupGeo(clientIP, req);
       const userAgent = req.headers.get('user-agent') || 'Unknown';
 
       if (fp && keyRow.device_fingerprint && keyRow.device_fingerprint !== fp) {
