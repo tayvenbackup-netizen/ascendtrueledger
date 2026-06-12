@@ -21,12 +21,14 @@ export type Database = {
           activation_country: string | null
           activation_ip: string | null
           activation_region: string | null
+          activation_user_agent: string | null
           created_at: string
           created_by: string | null
           device_count: number
           device_fingerprint: string | null
           expires_at: string | null
           group_id: string | null
+          hwid: string | null
           id: string
           is_bulk: boolean
           is_revoked: boolean
@@ -36,6 +38,7 @@ export type Database = {
           key_preview: string
           key_type: Database["public"]["Enums"]["key_type"]
           key_value: string | null
+          last_seen_at: string | null
           session_count: number
           total_play_seconds: number
         }
@@ -45,12 +48,14 @@ export type Database = {
           activation_country?: string | null
           activation_ip?: string | null
           activation_region?: string | null
+          activation_user_agent?: string | null
           created_at?: string
           created_by?: string | null
           device_count?: number
           device_fingerprint?: string | null
           expires_at?: string | null
           group_id?: string | null
+          hwid?: string | null
           id?: string
           is_bulk?: boolean
           is_revoked?: boolean
@@ -60,6 +65,7 @@ export type Database = {
           key_preview: string
           key_type: Database["public"]["Enums"]["key_type"]
           key_value?: string | null
+          last_seen_at?: string | null
           session_count?: number
           total_play_seconds?: number
         }
@@ -69,12 +75,14 @@ export type Database = {
           activation_country?: string | null
           activation_ip?: string | null
           activation_region?: string | null
+          activation_user_agent?: string | null
           created_at?: string
           created_by?: string | null
           device_count?: number
           device_fingerprint?: string | null
           expires_at?: string | null
           group_id?: string | null
+          hwid?: string | null
           id?: string
           is_bulk?: boolean
           is_revoked?: boolean
@@ -84,6 +92,7 @@ export type Database = {
           key_preview?: string
           key_type?: Database["public"]["Enums"]["key_type"]
           key_value?: string | null
+          last_seen_at?: string | null
           session_count?: number
           total_play_seconds?: number
         }
@@ -226,6 +235,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "device_attempts_key_id_fkey"
+            columns: ["key_id"]
+            isOneToOne: false
+            referencedRelation: "access_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      device_requests: {
+        Row: {
+          city: string | null
+          country: string | null
+          decided_at: string | null
+          device_fingerprint: string | null
+          hwid: string | null
+          id: string
+          ip: string | null
+          key_id: string
+          reason: string | null
+          region: string | null
+          requested_at: string
+          status: string
+          user_agent: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          decided_at?: string | null
+          device_fingerprint?: string | null
+          hwid?: string | null
+          id?: string
+          ip?: string | null
+          key_id: string
+          reason?: string | null
+          region?: string | null
+          requested_at?: string
+          status?: string
+          user_agent?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          decided_at?: string | null
+          device_fingerprint?: string | null
+          hwid?: string | null
+          id?: string
+          ip?: string | null
+          key_id?: string
+          reason?: string | null
+          region?: string | null
+          requested_at?: string
+          status?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_requests_key_id_fkey"
             columns: ["key_id"]
             isOneToOne: false
             referencedRelation: "access_keys"
