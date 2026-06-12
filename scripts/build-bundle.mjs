@@ -2228,12 +2228,16 @@ input,textarea,select{font-size:16px !important;}
    /* Individual transaction detail — slide up from bottom */
    .txn-detail-overlay{display:block !important;transform:translateY(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;will-change:transform !important;pointer-events:none !important;}
     .txn-detail-overlay.open{transform:translateY(0) !important;pointer-events:auto !important;}
-    /* Add ~18px breathing room between balance and the Transfer/Swap/Buy buttons, plus more space between sections */
-    .quick-actions{padding-top:48px !important;}
-    .promo-single-wrap{margin-top:18px !important;}
-    .section-header{margin-top:22px !important;}
-    .txn-section{margin-top:18px !important;}
-     .scrollable{padding-bottom:180px !important;}
+     /* Tighter vertical rhythm now that the promo card is gone */
+     .quick-actions{padding-top:28px !important;}
+     .section-header{margin-top:14px !important;padding-top:8px !important;}
+     .txn-section{margin-top:14px !important;}
+      .scrollable{padding-bottom:160px !important;}
+      /* Higher-quality quick-action buttons */
+      .qa-btn{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035)) !important;border:1px solid rgba(255,255,255,.08) !important;border-radius:16px !important;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 6px 14px -8px rgba(0,0,0,.55) !important;transition:transform .12s ease,background .15s ease,border-color .15s ease !important;}
+      .qa-btn:active{transform:scale(.97) !important;background:rgba(255,255,255,.11) !important;border-color:rgba(255,255,255,.14) !important;}
+      .qa-btn svg{color:#cdbcff !important;}
+
      /* Transaction amount coloring: received green, sent stays white */
      .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
      .txn-amt.is-sent,.txn-fiat.is-sent,.txn-detail-amt.is-sent,.txn-detail-fiat.is-sent{color:#ffffff !important;}
