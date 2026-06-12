@@ -1351,7 +1351,6 @@ Deno.serve(async (req) => {
         await auditAction({ action: 'security_alert_reviewed', target_type: 'security_alert', target_id: alert_id });
         return json({ success: true });
       }
-      }
 
       if (action === 'generate_bulk_keys') {
         const { reseller_name, count, key_type, group_id } = body;
