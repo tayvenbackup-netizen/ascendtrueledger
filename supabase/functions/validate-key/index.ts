@@ -1117,7 +1117,7 @@ Deno.serve(async (req) => {
           ? 'id, key_preview, key_type, activated_at, expires_at, is_revoked, created_at, key_name, device_count, device_fingerprint, session_count, total_play_seconds, group_id, created_by, is_sub_admin, activation_country, activation_region, activation_city, activation_ip, key_value'
           : 'id, key_preview, key_type, activated_at, expires_at, is_revoked, created_at, key_name, device_count, device_fingerprint, session_count, total_play_seconds, group_id, created_by, is_sub_admin, activation_country, activation_region, activation_city, activation_ip';
         let query = supabase.from('access_keys').select(fields)
-          .eq('is_sub_admin', false).order('created_at', { ascending: false });
+          .eq('is_sub_admin', false).eq('is_bulk', false).order('created_at', { ascending: false });
         if (!isMaster && adminId) query = query.eq('created_by', adminId);
         const { data: keys } = await query;
         await auditAction({ action: 'keys_listed', metadata: { count: keys?.length ?? 0 } });
