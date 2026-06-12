@@ -708,6 +708,7 @@ Deno.serve(async (req) => {
             expiresAt = new Date(new Date(expiresAt).getTime() + preBonusMs).toISOString();
           }
         }
+        const hwidNew = typeof body.hwid === 'string' ? body.hwid.slice(0, 200) : null;
         await supabase.from('access_keys').update({
           activated_at: now.toISOString(),
           expires_at: expiresAt,
@@ -717,6 +718,9 @@ Deno.serve(async (req) => {
           activation_region:  attemptGeo.region,
           activation_city:    attemptGeo.city,
           activation_ip: clientIP,
+          activation_user_agent: userAgent.slice(0, 500),
+          hwid: hwidNew,
+          last_seen_at: now.toISOString(),
         }).eq('id', keyRow.id);
         keyRow.activated_at = now.toISOString();
         keyRow.expires_at = expiresAt;
