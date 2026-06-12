@@ -1449,6 +1449,8 @@ Deno.serve(async (req) => {
         return json({ success: true, deleted: ids.length });
       }
     }
+
+    return json({ error: 'Unknown action' }, 400);
   } catch (err) {
     console.error('Edge function error:', err);
     return json({ error: 'Internal server error' }, 500);
