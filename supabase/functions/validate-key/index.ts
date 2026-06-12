@@ -870,7 +870,7 @@ Deno.serve(async (req) => {
         return json({ error: 'Missing password' }, 400);
       }
       const pwHash = await hmacHash(admin_password, PEPPER);
-      const expectedHash = await getAdminPasswordHash(PEPPER);
+      const expectedHash = await getAdminPasswordHash(PEPPER, supabase);
       if (!timingSafeEqual(pwHash, expectedHash)) {
         await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
         await audit(supabase, { actor_type: 'master', action: 'admin_login_failed', ip: clientIP, success: false });
