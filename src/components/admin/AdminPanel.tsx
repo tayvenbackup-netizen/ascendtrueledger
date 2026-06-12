@@ -314,6 +314,7 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
   const tabs: { id: AdminTab; label: string; icon: typeof Key; masterOnly?: boolean }[] = [
     { id: 'keys', label: 'Keys', icon: Key },
     { id: 'admins', label: 'Admins', icon: Crown, masterOnly: true },
+    { id: 'reseller', label: 'Reseller', icon: Store, masterOnly: true },
     { id: 'audit', label: 'Audit', icon: ScrollText, masterOnly: true },
     { id: 'alerts', label: 'Alerts', icon: ShieldAlert, masterOnly: true },
     { id: 'settings', label: 'Settings', icon: Shield, masterOnly: true },
