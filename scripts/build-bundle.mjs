@@ -553,7 +553,7 @@ body = body + `
           <div class="sf-dev" data-sub="a">
             <div class="sf-dev-label">Bluetooth</div>
             <button class="sf-dev-row" id="sfDevRow" type="button">
-              <svg class="sf-dev-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l9 8-9 8V4z"/><path d="M7 12l9 8V4l-9 8z"/></svg>
+              <svg class="sf-dev-ic" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5 L25.5 12 L19 15 L9.5 9.5 Z"/><rect x="6" y="15" width="20" height="9" rx="2.2"/><circle cx="22" cy="19.5" r="0.9" fill="currentColor" stroke="none"/></svg>
               <span>Nano X 4A93</span>
             </button>
             <button class="sf-cta sf-cta-pair" id="sfDevPair" type="button">Pair with bluetooth</button>
@@ -2564,10 +2564,10 @@ input,textarea,select{font-size:16px !important;}
       .sf-dev-open{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:42px;padding-bottom:60px;}
       .sf-ledger-wrap{position:relative;width:300px;max-width:88%;}
       .sf-ledger-img{width:100%;display:block;}
-      .sf-ledger-glow{position:absolute;top:50%;width:56px;height:56px;border-radius:50%;transform:translate(-50%,-50%) scale(0.7);pointer-events:none;background:radial-gradient(circle,rgba(127,108,255,.95) 0%,rgba(127,108,255,.35) 38%,rgba(127,108,255,0) 72%);animation:sfglow 1.7s ease-in-out infinite;mix-blend-mode:screen;}
-      .sf-ledger-glow-l{left:14%;}
-      .sf-ledger-glow-r{left:49%;animation-delay:.55s;}
-      @keyframes sfglow{0%,100%{opacity:.25;transform:translate(-50%,-50%) scale(0.65);}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15);}}
+      .sf-ledger-glow{position:absolute;top:50%;width:44px;height:44px;border-radius:50%;transform:translate(-50%,-50%) scale(0.7);pointer-events:none;background:radial-gradient(circle,rgba(168,150,255,.95) 0%,rgba(140,118,255,.40) 40%,rgba(127,108,255,0) 72%);animation:sfglow 1.7s ease-in-out infinite;mix-blend-mode:screen;filter:blur(1px);}
+      .sf-ledger-glow-l{left:21.5%;}
+      .sf-ledger-glow-r{left:52%;animation-delay:.55s;}
+      @keyframes sfglow{0%,100%{opacity:.25;transform:translate(-50%,-50%) scale(0.6);}50%{opacity:1;transform:translate(-50%,-50%) scale(1.05);}}
       .sf-bracket-wrap{position:relative;padding:14px 22px;display:inline-block;}
       .sf-bracket-wrap::before,.sf-bracket-wrap::after{content:'';position:absolute;top:0;bottom:0;width:14px;border:2px solid #fff;border-radius:1px;}
       .sf-bracket-wrap::before{left:0;border-right:none;}
