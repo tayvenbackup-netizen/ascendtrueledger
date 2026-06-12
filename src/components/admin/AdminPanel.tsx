@@ -84,7 +84,7 @@ async function adminApi(action: string, body: Record<string, unknown> = {}) {
   return data;
 }
 
-type AdminTab = 'keys' | 'admins' | 'audit' | 'alerts' | 'settings';
+type AdminTab = 'keys' | 'admins' | 'reseller' | 'audit' | 'alerts' | 'settings';
 type KeyType = 'daily' | '3day' | 'weekly' | 'monthly' | 'lifetime';
 
 // Ascend Ledger brand palette
