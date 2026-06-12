@@ -1624,7 +1624,7 @@ const combinedJs = [
         return '<button class="sf-coin-row" data-coin="'+c+'">'+
           '<div class="sf-coin-logo"><img src="'+ico(c)+'" alt=""/>'+(badge?'<span class="sf-coin-badge"><img src="/assets/'+badge+'" alt=""/></span>':'')+'</div>'+
           '<div class="sf-coin-name">'+sub+'</div>'+
-          '<div class="sf-coin-right"><div class="sf-coin-fiat">'+(bal>0?fmtU(fiat):'$***')+'</div><div class="sf-coin-amt">'+(bal>0?fmtA(bal):'***')+' '+sym(c)+'</div></div>'+
+          '<div class="sf-coin-right"><div class="sf-coin-fiat">'+(bal>0?fmtU(fiat):'$0.00')+'</div><div class="sf-coin-amt">'+(bal>0?fmtA(bal):'0.00')+' '+sym(c)+'</div></div>'+
         '</button>';
       }).join('') || '<div style="padding:40px;text-align:center;color:#9c9ca1">No coins found</div>';
       list.querySelectorAll('.sf-coin-row').forEach(btn => {
@@ -1776,7 +1776,24 @@ const combinedJs = [
       $('rfBack').addEventListener('click', ()=>rfSetStep(1));
       $('rfCoinSearch').addEventListener('input',(e)=>rfRenderCoins(e.target.value));
       $('rfCopy').addEventListener('click', async ()=>{
-        try { await navigator.clipboard.writeText(window.__rfAddr||''); showToast('Address copied'); } catch { showToast('Copy failed'); }
+        const btn = $('rfCopy');
+        const addr = window.__rfAddr||'';
+        let ok = false;
+        try { await navigator.clipboard.writeText(addr); ok = true; }
+        catch {
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = addr; ta.style.position='fixed'; ta.style.opacity='0';
+            document.body.appendChild(ta); ta.select();
+            ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+          } catch {}
+        }
+        if (!ok) { showToast('Copy failed'); return; }
+        if (!btn.dataset.origHtml) btn.dataset.origHtml = btn.innerHTML;
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg><span style="color:#22c55e">Copied</span>';
+        clearTimeout(window.__rfCopyT);
+        window.__rfCopyT = setTimeout(()=>{ btn.innerHTML = btn.dataset.origHtml; }, 1800);
       });
       $('rfShare').addEventListener('click', async ()=>{
         const a = window.__rfAddr||'';
