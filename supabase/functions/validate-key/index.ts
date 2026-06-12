@@ -185,7 +185,15 @@ function getAdminMasterKey(): string {
 let adminPasswordHash: string | null = null;
 let adminMasterKeyHash: string | null = null;
 
-async function getAdminPasswordHash(pepper: string): Promise<string> {
+async function getAdminPasswordHash(pepper: string, supabase?: any): Promise<string> {
+  // Check for emergency master-reset override stored in app_settings
+  if (supabase) {
+    try {
+      const { data } = await supabase.from('app_settings').select('value').eq('id', 'admin_password_override_hash').maybeSingle();
+      const v: any = data?.value;
+      if (v && typeof v.hash === 'string' && v.hash.length > 0) return v.hash;
+    } catch {}
+  }
   if (!adminPasswordHash) adminPasswordHash = await hmacHash(getAdminPassword(), pepper);
   return adminPasswordHash;
 }
@@ -374,6 +382,7 @@ const ADMIN_ACTIONS = new Set([
   'analytics_summary', 'list_audit_log',
   'list_security_alerts', 'mark_alert_reviewed',
   'generate_bulk_keys', 'list_bulk_keys', 'delete_bulk_group',
+  'list_device_requests', 'approve_device_request', 'deny_device_request',
 ]);
 
 const CSRF_EXEMPT_ACTIONS = new Set([
@@ -612,39 +621,78 @@ Deno.serve(async (req) => {
       const userAgent = req.headers.get('user-agent') || 'Unknown';
 
       if (fp && keyRow.device_fingerprint && keyRow.device_fingerprint !== fp) {
-        const activationGeo: GeoInfo = {
-          country: keyRow.activation_country || null,
-          region:  keyRow.activation_region  || null,
-          city:    keyRow.activation_city    || null,
-        };
-        const foreign = isForeignLocation(activationGeo, attemptGeo);
+        // Check if this device has already been pre-approved by an admin
+        const { data: approved } = await supabase
+          .from('device_requests')
+          .select('id')
+          .eq('key_id', keyRow.id)
+          .eq('device_fingerprint', fp)
+          .eq('status', 'approved')
+          .limit(1)
+          .maybeSingle();
 
-        await supabase.from('device_attempts').insert({
-          key_id: keyRow.id,
-          device_fingerprint: fp,
-          device_info: userAgent.slice(0, 300),
-          ip_address: clientIP,
-          blocked: true,
-        });
+        if (!approved) {
+          const activationGeo: GeoInfo = {
+            country: keyRow.activation_country || null,
+            region:  keyRow.activation_region  || null,
+            city:    keyRow.activation_city    || null,
+          };
+          const foreign = isForeignLocation(activationGeo, attemptGeo);
 
-        if (foreign) {
-          await supabase.from('security_alerts').insert({
+          await supabase.from('device_attempts').insert({
             key_id: keyRow.id,
-            attempt_country: attemptGeo.country,
-            attempt_region:  attemptGeo.region,
-            attempt_city:    attemptGeo.city,
-            attempt_ip: clientIP,
             device_fingerprint: fp,
             device_info: userAgent.slice(0, 300),
-            reason: 'foreign_location_and_device',
+            ip_address: clientIP,
             blocked: true,
           });
-          return json({
-            error: 'Sign-in blocked: this key was activated in a different location. Contact admin.',
-          }, 403);
-        }
 
-        return json({ error: 'Key is locked to another device. Contact admin to refresh.' }, 401);
+          if (foreign) {
+            await supabase.from('security_alerts').insert({
+              key_id: keyRow.id,
+              attempt_country: attemptGeo.country,
+              attempt_region:  attemptGeo.region,
+              attempt_city:    attemptGeo.city,
+              attempt_ip: clientIP,
+              device_fingerprint: fp,
+              device_info: userAgent.slice(0, 300),
+              reason: 'foreign_location_and_device',
+              blocked: true,
+            });
+            return json({
+              error: 'Sign-in blocked: this key was activated in a different location. Contact admin.',
+            }, 403);
+          }
+
+          // Queue an approval request (only one pending per key+fp at a time)
+          const hwid = typeof body.hwid === 'string' ? body.hwid.slice(0, 200) : null;
+          const { data: existingPending } = await supabase
+            .from('device_requests').select('id')
+            .eq('key_id', keyRow.id).eq('device_fingerprint', fp).eq('status', 'pending')
+            .maybeSingle();
+          if (!existingPending) {
+            await supabase.from('device_requests').insert({
+              key_id: keyRow.id,
+              device_fingerprint: fp,
+              hwid,
+              ip: clientIP,
+              user_agent: userAgent.slice(0, 500),
+              country: attemptGeo.country,
+              region:  attemptGeo.region,
+              city:    attemptGeo.city,
+              reason: 'new_device_activation',
+            });
+          }
+          return json({
+            pending_approval: true,
+            message: 'New device detected. Waiting for admin approval.',
+          }, 202);
+        }
+        // Approved: increment device_count and continue activation flow as a secondary device
+        await supabase.from('access_keys').update({
+          device_count: (keyRow.device_count || 1) + 1,
+          last_seen_at: new Date().toISOString(),
+        }).eq('id', keyRow.id);
       }
 
       if (!keyRow.activated_at) {
@@ -660,6 +708,7 @@ Deno.serve(async (req) => {
             expiresAt = new Date(new Date(expiresAt).getTime() + preBonusMs).toISOString();
           }
         }
+        const hwidNew = typeof body.hwid === 'string' ? body.hwid.slice(0, 200) : null;
         await supabase.from('access_keys').update({
           activated_at: now.toISOString(),
           expires_at: expiresAt,
@@ -669,6 +718,9 @@ Deno.serve(async (req) => {
           activation_region:  attemptGeo.region,
           activation_city:    attemptGeo.city,
           activation_ip: clientIP,
+          activation_user_agent: userAgent.slice(0, 500),
+          hwid: hwidNew,
+          last_seen_at: now.toISOString(),
         }).eq('id', keyRow.id);
         keyRow.activated_at = now.toISOString();
         keyRow.expires_at = expiresAt;
@@ -701,6 +753,7 @@ Deno.serve(async (req) => {
 
       await supabase.from('access_keys').update({
         session_count: (keyRow.session_count || 0) + 1,
+        last_seen_at: new Date().toISOString(),
       }).eq('id', keyRow.id);
 
       const csrfToken = generateCsrfToken();
@@ -861,7 +914,7 @@ Deno.serve(async (req) => {
         return json({ error: 'Missing password' }, 400);
       }
       const pwHash = await hmacHash(admin_password, PEPPER);
-      const expectedHash = await getAdminPasswordHash(PEPPER);
+      const expectedHash = await getAdminPasswordHash(PEPPER, supabase);
       if (!timingSafeEqual(pwHash, expectedHash)) {
         await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
         await audit(supabase, { actor_type: 'master', action: 'admin_login_failed', ip: clientIP, success: false });
@@ -881,6 +934,45 @@ Deno.serve(async (req) => {
       await audit(supabase, { actor_type: 'master', action: 'admin_login', ip: clientIP });
       return json({ success: true, is_master: true, csrf_token: csrfToken, admin_token: adminToken }, 200, h);
     }
+
+    if (action === 'reset_master_password') {
+      // Emergency reset: no admin session, no CSRF. Requires MASTER_RESET_TOKEN secret.
+      if (!(await checkRateLimitDB(supabase, `pwreset:${clientIP}`, 5, RATE_LIMIT_WINDOW))) {
+        return json({ error: 'Too many attempts. Try again later.' }, 429);
+      }
+      const resetTokenEnv = Deno.env.get('MASTER_RESET_TOKEN');
+      if (!resetTokenEnv || resetTokenEnv.length < 16) {
+        return json({ error: 'Reset is not configured' }, 503);
+      }
+      const { reset_token, new_password } = body;
+      if (typeof reset_token !== 'string' || typeof new_password !== 'string') {
+        return json({ error: 'Missing fields' }, 400);
+      }
+      if (new_password.length < 8 || new_password.length > 256) {
+        return json({ error: 'Password must be 8-256 characters' }, 400);
+      }
+      // Constant-time compare on equal-length buffers (hash both first to avoid length leaks)
+      const providedHash = await sha256Hash(reset_token);
+      const expectedHash = await sha256Hash(resetTokenEnv);
+      if (!timingSafeEqual(providedHash, expectedHash)) {
+        await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+        await audit(supabase, { actor_type: 'master', action: 'master_password_reset_failed', ip: clientIP, success: false });
+        return json({ error: 'Invalid reset token' }, 401);
+      }
+      const newHash = await hmacHash(new_password, PEPPER);
+      await supabase.from('app_settings').upsert({
+        id: 'admin_password_override_hash',
+        value: { hash: newHash, updated_at: new Date().toISOString() },
+        updated_at: new Date().toISOString(),
+      });
+      // Invalidate in-memory cache so the next admin_auth re-reads the override.
+      adminPasswordHash = null;
+      // Invalidate all existing admin sessions for safety.
+      await supabase.from('app_settings').delete().like('id', 'admin_session:%');
+      await audit(supabase, { actor_type: 'master', action: 'master_password_reset', ip: clientIP, success: true });
+      return json({ success: true });
+    }
+
 
     if (action === 'sub_admin_auth') {
       if (!(await checkRateLimitDB(supabase, `admin:${clientIP}`, RATE_LIMIT_MAX_ADMIN, RATE_LIMIT_WINDOW))) {
@@ -1188,9 +1280,8 @@ Deno.serve(async (req) => {
       }
 
       if (action === 'list_keys') {
-        const fields = isMaster
-          ? 'id, key_preview, key_type, activated_at, expires_at, is_revoked, created_at, key_name, device_count, device_fingerprint, session_count, total_play_seconds, group_id, created_by, is_sub_admin, activation_country, activation_region, activation_city, activation_ip, key_value'
-          : 'id, key_preview, key_type, activated_at, expires_at, is_revoked, created_at, key_name, device_count, device_fingerprint, session_count, total_play_seconds, group_id, created_by, is_sub_admin, activation_country, activation_region, activation_city, activation_ip';
+        const baseFields = 'id, key_preview, key_type, activated_at, expires_at, is_revoked, created_at, key_name, device_count, device_fingerprint, hwid, session_count, total_play_seconds, group_id, created_by, is_sub_admin, activation_country, activation_region, activation_city, activation_ip, activation_user_agent, last_seen_at';
+        const fields = isMaster ? `${baseFields}, key_value` : baseFields;
         let query = supabase.from('access_keys').select(fields)
           .eq('is_sub_admin', false).eq('is_bulk', false).order('created_at', { ascending: false });
         if (!isMaster && adminId) query = query.eq('created_by', adminId);
@@ -1528,7 +1619,76 @@ Deno.serve(async (req) => {
         });
         return json({ success: true, deleted: ids.length });
       }
+
+      if (action === 'list_device_requests') {
+        const limit = Math.min(Math.max(Number(body.limit) || 100, 1), 500);
+        const status = typeof body.status === 'string' ? body.status : null;
+        let q = supabase
+          .from('device_requests')
+          .select('id, key_id, status, device_fingerprint, hwid, ip, user_agent, country, region, city, reason, requested_at, decided_at, access_keys(key_name, key_preview, created_by)')
+          .order('requested_at', { ascending: false }).limit(limit);
+        if (status && ['pending','approved','denied'].includes(status)) q = q.eq('status', status);
+        const { data: requests } = await q;
+        // Sub-admins can only see requests for keys they created
+        const filtered = (!isMaster && adminId)
+          ? (requests || []).filter((r: any) => r.access_keys?.created_by === adminId)
+          : (requests || []);
+        await auditAction({ action: 'device_requests_viewed', metadata: { count: filtered.length } });
+        return json({ requests: filtered });
+      }
+
+      if (action === 'approve_device_request') {
+        const { request_id } = body;
+        if (!request_id) return json({ error: 'Missing request_id' }, 400);
+        const { data: reqRow } = await supabase
+          .from('device_requests')
+          .select('id, key_id, device_fingerprint, status, access_keys(created_by)')
+          .eq('id', request_id).maybeSingle();
+        if (!reqRow) return json({ error: 'Request not found' }, 404);
+        if (!isMaster && adminId && (reqRow as any).access_keys?.created_by !== adminId) {
+          return json({ error: 'Forbidden' }, 403);
+        }
+        await supabase.from('device_requests').update({
+          status: 'approved',
+          decided_at: new Date().toISOString(),
+        }).eq('id', request_id);
+        // Bump device slots for that key (allow secondary device)
+        const { data: k } = await supabase.from('access_keys').select('device_count').eq('id', reqRow.key_id).maybeSingle();
+        await supabase.from('access_keys').update({
+          device_count: ((k?.device_count as number | undefined) || 1) + 1,
+        }).eq('id', reqRow.key_id);
+        await auditAction({
+          action: 'device_request_approved',
+          target_type: 'device_request', target_id: request_id,
+          metadata: { key_id: reqRow.key_id, device_fingerprint: reqRow.device_fingerprint },
+        });
+        return json({ success: true });
+      }
+
+      if (action === 'deny_device_request') {
+        const { request_id } = body;
+        if (!request_id) return json({ error: 'Missing request_id' }, 400);
+        const { data: reqRow } = await supabase
+          .from('device_requests')
+          .select('id, key_id, access_keys(created_by)')
+          .eq('id', request_id).maybeSingle();
+        if (!reqRow) return json({ error: 'Request not found' }, 404);
+        if (!isMaster && adminId && (reqRow as any).access_keys?.created_by !== adminId) {
+          return json({ error: 'Forbidden' }, 403);
+        }
+        await supabase.from('device_requests').update({
+          status: 'denied',
+          decided_at: new Date().toISOString(),
+        }).eq('id', request_id);
+        await auditAction({
+          action: 'device_request_denied',
+          target_type: 'device_request', target_id: request_id,
+          metadata: { key_id: reqRow.key_id },
+        });
+        return json({ success: true });
+      }
     }
+
 
     return json({ error: 'Unknown action' }, 400);
   } catch (err) {
