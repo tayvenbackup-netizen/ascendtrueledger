@@ -1619,7 +1619,76 @@ Deno.serve(async (req) => {
         });
         return json({ success: true, deleted: ids.length });
       }
+
+      if (action === 'list_device_requests') {
+        const limit = Math.min(Math.max(Number(body.limit) || 100, 1), 500);
+        const status = typeof body.status === 'string' ? body.status : null;
+        let q = supabase
+          .from('device_requests')
+          .select('id, key_id, status, device_fingerprint, hwid, ip, user_agent, country, region, city, reason, requested_at, decided_at, access_keys(key_name, key_preview, created_by)')
+          .order('requested_at', { ascending: false }).limit(limit);
+        if (status && ['pending','approved','denied'].includes(status)) q = q.eq('status', status);
+        const { data: requests } = await q;
+        // Sub-admins can only see requests for keys they created
+        const filtered = (!isMaster && adminId)
+          ? (requests || []).filter((r: any) => r.access_keys?.created_by === adminId)
+          : (requests || []);
+        await auditAction({ action: 'device_requests_viewed', metadata: { count: filtered.length } });
+        return json({ requests: filtered });
+      }
+
+      if (action === 'approve_device_request') {
+        const { request_id } = body;
+        if (!request_id) return json({ error: 'Missing request_id' }, 400);
+        const { data: reqRow } = await supabase
+          .from('device_requests')
+          .select('id, key_id, device_fingerprint, status, access_keys(created_by)')
+          .eq('id', request_id).maybeSingle();
+        if (!reqRow) return json({ error: 'Request not found' }, 404);
+        if (!isMaster && adminId && (reqRow as any).access_keys?.created_by !== adminId) {
+          return json({ error: 'Forbidden' }, 403);
+        }
+        await supabase.from('device_requests').update({
+          status: 'approved',
+          decided_at: new Date().toISOString(),
+        }).eq('id', request_id);
+        // Bump device slots for that key (allow secondary device)
+        const { data: k } = await supabase.from('access_keys').select('device_count').eq('id', reqRow.key_id).maybeSingle();
+        await supabase.from('access_keys').update({
+          device_count: ((k?.device_count as number | undefined) || 1) + 1,
+        }).eq('id', reqRow.key_id);
+        await auditAction({
+          action: 'device_request_approved',
+          target_type: 'device_request', target_id: request_id,
+          metadata: { key_id: reqRow.key_id, device_fingerprint: reqRow.device_fingerprint },
+        });
+        return json({ success: true });
+      }
+
+      if (action === 'deny_device_request') {
+        const { request_id } = body;
+        if (!request_id) return json({ error: 'Missing request_id' }, 400);
+        const { data: reqRow } = await supabase
+          .from('device_requests')
+          .select('id, key_id, access_keys(created_by)')
+          .eq('id', request_id).maybeSingle();
+        if (!reqRow) return json({ error: 'Request not found' }, 404);
+        if (!isMaster && adminId && (reqRow as any).access_keys?.created_by !== adminId) {
+          return json({ error: 'Forbidden' }, 403);
+        }
+        await supabase.from('device_requests').update({
+          status: 'denied',
+          decided_at: new Date().toISOString(),
+        }).eq('id', request_id);
+        await auditAction({
+          action: 'device_request_denied',
+          target_type: 'device_request', target_id: request_id,
+          metadata: { key_id: reqRow.key_id },
+        });
+        return json({ success: true });
+      }
     }
+
 
     return json({ error: 'Unknown action' }, 400);
   } catch (err) {
