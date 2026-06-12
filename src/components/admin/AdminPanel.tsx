@@ -306,6 +306,11 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, subAdminId]);
 
+  useEffect(() => {
+    if (authed && isMaster && activeTab === 'reseller') loadResellerGroups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed, isMaster, activeTab]);
+
   if (!isOpen) return null;
 
   const activeKeys = keys.filter(k => !k.is_revoked);
