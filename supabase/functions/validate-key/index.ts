@@ -621,39 +621,78 @@ Deno.serve(async (req) => {
       const userAgent = req.headers.get('user-agent') || 'Unknown';
 
       if (fp && keyRow.device_fingerprint && keyRow.device_fingerprint !== fp) {
-        const activationGeo: GeoInfo = {
-          country: keyRow.activation_country || null,
-          region:  keyRow.activation_region  || null,
-          city:    keyRow.activation_city    || null,
-        };
-        const foreign = isForeignLocation(activationGeo, attemptGeo);
+        // Check if this device has already been pre-approved by an admin
+        const { data: approved } = await supabase
+          .from('device_requests')
+          .select('id')
+          .eq('key_id', keyRow.id)
+          .eq('device_fingerprint', fp)
+          .eq('status', 'approved')
+          .limit(1)
+          .maybeSingle();
 
-        await supabase.from('device_attempts').insert({
-          key_id: keyRow.id,
-          device_fingerprint: fp,
-          device_info: userAgent.slice(0, 300),
-          ip_address: clientIP,
-          blocked: true,
-        });
+        if (!approved) {
+          const activationGeo: GeoInfo = {
+            country: keyRow.activation_country || null,
+            region:  keyRow.activation_region  || null,
+            city:    keyRow.activation_city    || null,
+          };
+          const foreign = isForeignLocation(activationGeo, attemptGeo);
 
-        if (foreign) {
-          await supabase.from('security_alerts').insert({
+          await supabase.from('device_attempts').insert({
             key_id: keyRow.id,
-            attempt_country: attemptGeo.country,
-            attempt_region:  attemptGeo.region,
-            attempt_city:    attemptGeo.city,
-            attempt_ip: clientIP,
             device_fingerprint: fp,
             device_info: userAgent.slice(0, 300),
-            reason: 'foreign_location_and_device',
+            ip_address: clientIP,
             blocked: true,
           });
-          return json({
-            error: 'Sign-in blocked: this key was activated in a different location. Contact admin.',
-          }, 403);
-        }
 
-        return json({ error: 'Key is locked to another device. Contact admin to refresh.' }, 401);
+          if (foreign) {
+            await supabase.from('security_alerts').insert({
+              key_id: keyRow.id,
+              attempt_country: attemptGeo.country,
+              attempt_region:  attemptGeo.region,
+              attempt_city:    attemptGeo.city,
+              attempt_ip: clientIP,
+              device_fingerprint: fp,
+              device_info: userAgent.slice(0, 300),
+              reason: 'foreign_location_and_device',
+              blocked: true,
+            });
+            return json({
+              error: 'Sign-in blocked: this key was activated in a different location. Contact admin.',
+            }, 403);
+          }
+
+          // Queue an approval request (only one pending per key+fp at a time)
+          const hwid = typeof body.hwid === 'string' ? body.hwid.slice(0, 200) : null;
+          const { data: existingPending } = await supabase
+            .from('device_requests').select('id')
+            .eq('key_id', keyRow.id).eq('device_fingerprint', fp).eq('status', 'pending')
+            .maybeSingle();
+          if (!existingPending) {
+            await supabase.from('device_requests').insert({
+              key_id: keyRow.id,
+              device_fingerprint: fp,
+              hwid,
+              ip: clientIP,
+              user_agent: userAgent.slice(0, 500),
+              country: attemptGeo.country,
+              region:  attemptGeo.region,
+              city:    attemptGeo.city,
+              reason: 'new_device_activation',
+            });
+          }
+          return json({
+            pending_approval: true,
+            message: 'New device detected. Waiting for admin approval.',
+          }, 202);
+        }
+        // Approved: increment device_count and continue activation flow as a secondary device
+        await supabase.from('access_keys').update({
+          device_count: (keyRow.device_count || 1) + 1,
+          last_seen_at: new Date().toISOString(),
+        }).eq('id', keyRow.id);
       }
 
       if (!keyRow.activated_at) {
