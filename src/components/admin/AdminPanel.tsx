@@ -775,6 +775,153 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
                 <AdminSecurityAlerts callApi={adminApi} onRevokeKey={async (id) => { await revokeKey(id); }} />
               )}
 
+              {/* RESELLER TAB (master only) */}
+              {activeTab === 'reseller' && isMaster && (
+                <div className="space-y-3">
+                  <div className="rounded-xl p-4 space-y-3"
+                       style={{ background: C.bg, border: `1px solid ${C.border}` }}>
+                    <div className="flex items-center gap-2">
+                      <Package className="w-4 h-4" style={{ color: C.accent }} />
+                      <span className="text-xs font-bold" style={{ color: C.text }}>Generate Bulk Keys</span>
+                    </div>
+                    <p className="text-[10px]" style={{ color: C.textDim }}>
+                      Bulk keys are hidden from the main Keys tab. Names follow{' '}
+                      <code style={{ color: C.accent }}>Reseller-RR-####</code>.
+                    </p>
+                    <input type="text" value={resellerName} onChange={e => setResellerName(e.target.value)}
+                           placeholder="Reseller name (e.g. Ascend)"
+                           className="w-full h-9 px-3 rounded-lg text-xs focus:outline-none"
+                           style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.text }} />
+                    <div className="flex gap-2">
+                      <input type="number" min={1} max={500} value={bulkCount}
+                             onChange={e => setBulkCount(e.target.value)}
+                             placeholder="Bulk keys amount"
+                             className="flex-1 h-9 px-3 rounded-lg text-xs focus:outline-none"
+                             style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.text }} />
+                    </div>
+                    <div className="flex gap-1 flex-wrap">
+                      {(['daily', '3day', 'weekly', 'monthly', 'lifetime'] as const).map(t => (
+                        <button key={t} onClick={() => setBulkType(t)}
+                                className="flex-1 min-w-[60px] h-9 rounded-lg text-[10px] font-bold transition-all"
+                                style={{
+                                  background: bulkType === t ? C.accent : C.surface,
+                                  color: bulkType === t ? C.text : C.textDim,
+                                  border: `1px solid ${bulkType === t ? C.accent : C.border}`,
+                                }}>
+                          {t === '3day' ? '3-Day' : t.charAt(0).toUpperCase() + t.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={generateBulkKeys} disabled={bulkBusy || !resellerName.trim()}
+                            className="w-full h-10 rounded-lg text-xs font-black flex items-center justify-center gap-2 disabled:opacity-50"
+                            style={{ background: C.green, color: C.bg }}>
+                      {bulkBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Package className="w-4 h-4" />}
+                      Generate Bulk Key {bulkCount || ''}
+                    </button>
+                    {bulkError && (<p className="text-xs" style={{ color: C.red }}>{bulkError}</p>)}
+                    {bulkGenerated.length > 0 && (
+                      <div className="rounded-lg p-3 space-y-1.5" style={{ background: C.surface, border: `1px solid ${C.green}40` }}>
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] font-bold" style={{ color: C.green }}>
+                            ✓ {bulkGenerated.length} Keys Created
+                          </p>
+                          <button onClick={() => copyToClipboard(bulkGenerated.join('\n'), 'bulk')}
+                                  className="flex items-center gap-1 px-2 py-1 rounded-md"
+                                  style={{ background: `${C.green}15` }}>
+                            {copied === 'bulk' ? <Check className="w-3 h-3" style={{ color: C.green }} />
+                                              : <Copy className="w-3 h-3" style={{ color: C.green }} />}
+                            <span className="text-[10px] font-bold" style={{ color: C.green }}>
+                              {copied === 'bulk' ? 'Copied' : 'Copy All'}
+                            </span>
+                          </button>
+                        </div>
+                        <div className="max-h-32 overflow-y-auto font-mono text-[10px] space-y-0.5" style={{ color: '#4eff4e' }}>
+                          {bulkGenerated.map(k => <div key={k}>{k}</div>)}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: C.textMuted }}>
+                        Resellers ({resellerGroups.length})
+                      </h3>
+                      <button onClick={loadResellerGroups} className="p-1" style={{ color: C.textDim }}>
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-0.5">
+                      {resellerGroups.map(g => {
+                        const displayName = (g.name || '').replace(/^Reseller:\s*/, '');
+                        const opened = openReseller === g.id;
+                        const keysList = resellerKeys[g.id] || [];
+                        return (
+                          <div key={g.id} className="rounded-xl"
+                               style={{ background: C.bg, border: `1px solid ${C.border}` }}>
+                            <div className="flex items-center gap-2 px-3 py-2">
+                              <Store className="w-3.5 h-3.5" style={{ color: C.accent }} />
+                              <p className="flex-1 text-[11px] font-bold truncate" style={{ color: C.text }}>
+                                {displayName}
+                              </p>
+                              <button onClick={() => {
+                                const next = opened ? null : g.id;
+                                setOpenReseller(next);
+                                if (next && !resellerKeys[g.id]) loadResellerKeys(g.id);
+                              }} className="p-1.5 rounded-lg" style={{ background: `${C.textDim}15` }}>
+                                {opened ? <ChevronUp className="w-3 h-3" style={{ color: C.textMuted }} />
+                                        : <ChevronDown className="w-3 h-3" style={{ color: C.textMuted }} />}
+                              </button>
+                              <button onClick={() => deleteResellerGroup(g.id)} className="p-1.5 rounded-lg"
+                                      style={{ background: `${C.red}15` }}>
+                                <Trash2 className="w-3 h-3" style={{ color: C.red }} />
+                              </button>
+                            </div>
+                            {opened && (
+                              <div className="px-3 pb-3 space-y-1" style={{ borderTop: `1px solid ${C.border}` }}>
+                                <p className="text-[9px] pt-2" style={{ color: C.textDim }}>
+                                  {keysList.length} key{keysList.length === 1 ? '' : 's'}
+                                </p>
+                                <div className="max-h-40 overflow-y-auto font-mono text-[10px] space-y-0.5" style={{ color: '#4eff4e' }}>
+                                  {keysList.map(k => (
+                                    <div key={k.id} className="flex items-center gap-1">
+                                      <span className="flex-1 truncate" style={{ color: k.is_revoked ? C.red : '#4eff4e' }}>
+                                        {k.key_value || k.key_name}
+                                      </span>
+                                      <span className="text-[9px]" style={{ color: C.textDim }}>
+                                        {k.activated_at ? 'used' : 'new'}
+                                      </span>
+                                    </div>
+                                  ))}
+                                  {keysList.length === 0 && (
+                                    <p className="text-center py-2" style={{ color: C.textDim }}>No keys</p>
+                                  )}
+                                </div>
+                                {keysList.length > 0 && (
+                                  <button onClick={() => copyToClipboard(
+                                    keysList.map(k => k.key_value || k.key_name).join('\n'), `r${g.id}`,
+                                  )}
+                                          className="w-full mt-1 h-7 rounded-md text-[10px] font-bold flex items-center justify-center gap-1"
+                                          style={{ background: `${C.accent}15`, color: C.accent }}>
+                                    {copied === `r${g.id}` ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                    {copied === `r${g.id}` ? 'Copied' : 'Copy all keys'}
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {resellerGroups.length === 0 && (
+                        <p className="text-xs text-center py-6" style={{ color: C.textDim }}>
+                          No resellers yet. Generate bulk keys above to create one.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'settings' && isMaster && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between rounded-xl px-4 py-3"
