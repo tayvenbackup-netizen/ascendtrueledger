@@ -883,43 +883,70 @@ const marketController = `;(() => {
       body.innerHTML = '<div class="market-loading">Failed to load market data.</div>';
     }
   };
-  const tryInit = () => {
+  const open = () => {
     const overlay = document.getElementById('marketAllOverlay');
-    const back = document.getElementById('marketBack');
     const body = document.getElementById('marketBody');
-    if (!overlay || !back || !body) return false;
-    if (overlay.dataset.bound === '1') return true;
-    overlay.dataset.bound = '1';
-    const open = (e) => {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      overlay.classList.add('open');
-      overlay.setAttribute('aria-hidden', 'false');
-      load(body);
-    };
-    const close = () => {
-      overlay.classList.remove('open');
-      overlay.setAttribute('aria-hidden', 'true');
-    };
-    back.addEventListener('click', close);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-    // Bind triggers: section header + view-all card
-    document.querySelectorAll('.section-header').forEach((h) => {
-      const t = (h.textContent || '').toLowerCase();
-      if (t.includes('explore the market') && h.dataset.marketBound !== '1') {
-        h.dataset.marketBound = '1';
-        h.style.cursor = 'pointer';
-        h.addEventListener('click', open);
-      }
-    });
-    document.querySelectorAll('.explore-card[data-coin="viewall"]').forEach((el) => {
-      if (el.dataset.marketBound === '1') return;
-      el.dataset.marketBound = '1';
-      el.style.cursor = 'pointer';
-      el.addEventListener('click', open);
-    });
-    return true;
+    if (!overlay || !body) return;
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.style.pointerEvents = 'auto';
+    load(body);
   };
-  const iv = setInterval(() => { tryInit(); }, 250);
+  const close = () => {
+    const overlay = document.getElementById('marketAllOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+  };
+  window.__openMarket = open;
+  window.__closeMarket = close;
+  // Delegated handlers — survive any DOM re-renders, no polling needed.
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!t || !t.closest) return;
+    // Close: back button OR backdrop click
+    if (t.closest('#marketBack')) { e.preventDefault(); e.stopPropagation(); close(); return; }
+    const overlay = document.getElementById('marketAllOverlay');
+    if (overlay && overlay.classList.contains('open') && t === overlay) { close(); return; }
+    // Open: section header for "Explore the market" OR the view-all card
+    const header = t.closest('.section-header');
+    if (header && (header.textContent || '').toLowerCase().includes('explore the market')) {
+      e.preventDefault(); e.stopPropagation(); open(); return;
+    }
+    if (t.closest('.explore-card[data-coin="viewall"]')) {
+      e.preventDefault(); e.stopPropagation(); open(); return;
+    }
+  }, true);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') close();
+  });
+
+  // ── Daily rotation of front-page Explore cards ──
+  const rotateExplore = () => {
+    const row = document.querySelector('.explore-row');
+    if (!row || row.dataset.rotated === '1') return;
+    const all = Array.from(row.children);
+    if (!all.length) return;
+    const mood = all.find(el => el.classList.contains('mood'));
+    const viewall = all.find(el => el.getAttribute('data-coin') === 'viewall');
+    const middle = all.filter(el => el !== mood && el !== viewall);
+    // Seeded shuffle: day-of-year → deterministic per-day order
+    const now = new Date();
+    const seed = Math.floor((now - new Date(now.getFullYear(),0,0)) / 86400000);
+    let s = seed * 2654435761 >>> 0;
+    const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+    for (let i = middle.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [middle[i], middle[j]] = [middle[j], middle[i]];
+    }
+    row.innerHTML = '';
+    if (mood) row.appendChild(mood);
+    middle.forEach(el => row.appendChild(el));
+    if (viewall) row.appendChild(viewall);
+    row.dataset.rotated = '1';
+  };
+  const iv = setInterval(() => { rotateExplore(); }, 250);
+  setTimeout(() => clearInterval(iv), 8000);
 })();`;
 
 // ── Coin Detail Overlay controller ────────────────────────────────────────────
