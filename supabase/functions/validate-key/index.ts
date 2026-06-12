@@ -185,7 +185,15 @@ function getAdminMasterKey(): string {
 let adminPasswordHash: string | null = null;
 let adminMasterKeyHash: string | null = null;
 
-async function getAdminPasswordHash(pepper: string): Promise<string> {
+async function getAdminPasswordHash(pepper: string, supabase?: any): Promise<string> {
+  // Check for emergency master-reset override stored in app_settings
+  if (supabase) {
+    try {
+      const { data } = await supabase.from('app_settings').select('value').eq('id', 'admin_password_override_hash').maybeSingle();
+      const v: any = data?.value;
+      if (v && typeof v.hash === 'string' && v.hash.length > 0) return v.hash;
+    } catch {}
+  }
   if (!adminPasswordHash) adminPasswordHash = await hmacHash(getAdminPassword(), pepper);
   return adminPasswordHash;
 }
