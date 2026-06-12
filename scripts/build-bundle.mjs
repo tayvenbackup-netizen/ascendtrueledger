@@ -2300,14 +2300,14 @@ input,textarea,select{font-size:16px !important;}
       .market-overlay.open{pointer-events:auto !important;}
       .market-screen{position:absolute !important;inset:0 !important;background:#0a0a0c !important;background-image:radial-gradient(1200px 600px at 50% -10%, rgba(187,174,252,.18), transparent 60%), linear-gradient(180deg,#0a0a0c,#0a0a0c) !important;transform:translateX(100%) !important;transition:transform .32s cubic-bezier(.25,1,.5,1) !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;}
       .market-overlay.open .market-screen{transform:translateX(0) !important;}
-      .market-header{display:flex !important;align-items:center !important;gap:10px !important;padding:14px 16px 14px !important;flex:none !important;}
-      .market-back{width:36px !important;height:36px !important;display:flex !important;align-items:center !important;justify-content:center !important;background:transparent !important;border:none !important;color:#fff !important;padding:0 !important;cursor:pointer !important;}
+      .market-header{display:flex !important;align-items:center !important;gap:10px !important;padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 14px !important;flex:none !important;}
+      .market-back{width:40px !important;height:40px !important;display:flex !important;align-items:center !important;justify-content:center !important;background:rgba(255,255,255,.06) !important;border:none !important;border-radius:999px !important;color:#fff !important;padding:0 !important;cursor:pointer !important;-webkit-tap-highlight-color:transparent !important;}
+      .market-back:active{background:rgba(255,255,255,.12) !important;}
       .market-back svg{width:22px !important;height:22px !important;}
-      .market-title{flex:1 !important;text-align:center !important;color:#fff !important;font-size:18px !important;font-weight:700 !important;letter-spacing:-.3px !important;margin-right:36px !important;}
-      .market-spacer{width:0 !important;}
+      .market-title{flex:1 1 auto !important;text-align:center !important;font-size:17px !important;font-weight:700 !important;color:#fff !important;margin-right:40px !important;}
       .market-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 12px 40px !important;display:flex !important;flex-direction:column !important;gap:8px !important;}
       .market-loading{padding:40px;text-align:center;color:#9c9ca1;font-size:14px;}
-      .market-row{display:grid !important;grid-template-columns:18px 36px minmax(0,1fr) 70px auto !important;align-items:center !important;gap:10px !important;padding:12px 12px !important;border-radius:16px !important;background:rgba(255,255,255,.04) !important;backdrop-filter:blur(14px) saturate(140%) !important;-webkit-backdrop-filter:blur(14px) saturate(140%) !important;border:1px solid rgba(255,255,255,.06) !important;box-shadow:0 4px 18px rgba(0,0,0,.25) !important;opacity:0 !important;transform:translateY(8px) !important;animation:marketIn .35s ease-out forwards !important;transition:transform .15s ease, background .15s ease !important;}
+      .market-row{display:grid !important;grid-template-columns:18px 36px minmax(0,1fr) 70px auto !important;align-items:center !important;gap:10px !important;padding:12px 12px !important;border-radius:16px !important;background:rgba(255,255,255,.04) !important;border:1px solid rgba(255,255,255,.06) !important;box-shadow:0 4px 18px rgba(0,0,0,.25) !important;opacity:1 !important;transform:none !important;animation:none !important;transition:transform .15s ease, background .15s ease !important;}
       .market-row:active{transform:scale(.985) !important;background:rgba(255,255,255,.07) !important;}
       @keyframes marketIn{to{opacity:1;transform:translateY(0);}}
       .market-rank{font-size:11px !important;color:#7a7a82 !important;text-align:center !important;font-weight:600 !important;}
