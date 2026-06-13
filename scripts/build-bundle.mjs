@@ -2396,7 +2396,7 @@ input,textarea,select{font-size:16px !important;}
        .quick-actions{padding-top:70px !important;}
        /* +4px on the qa-btn size */
        .qa-btn{min-height:78px !important;padding:14px 10px !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:8px !important;text-align:center !important;}
-       .qa-btn > svg,.qa-btn > img{display:block !important;margin:0 auto !important;width:30px !important;height:30px !important;}
+       .qa-btn > svg,.qa-btn > img{display:block !important;margin:0 auto !important;width:26px !important;height:26px !important;}
        .qa-btn > span{font-size:17px !important;line-height:1.1 !important;text-align:center !important;width:100% !important;}
        /* Replace the main Swap quick-action icon with the new swap-arrows asset (aligned size) */
        .qa-btn .qa-icon-img,.qa-btn img[src*="swap-icon"]{content:url('/assets/swap-action-icon.png') !important;width:30px !important;height:30px !important;object-fit:contain !important;filter:brightness(0) invert(1) !important;display:block !important;margin:0 auto !important;}
