@@ -22,6 +22,18 @@ const ledgerCss = gitShow('public/css/ledger.css');
 // so it cannot redirect, blur, or lock the dynamically injected app.
 ledgerJs = ledgerJs.replace(/\/\/ ── Auth \/ device-guard bootstrap[\s\S]*?\/\/ ── Constants/m, '// ── Constants');
 
+// Move the "hide balance" (discreet) toggle from the top-left eyeBtn (ledger
+// icon) to the main balance display. Also stop the toggle from swapping the
+// ledger icon for the eye SVG so the icon stays static.
+ledgerJs = ledgerJs.replace(
+  /document\.getElementById\('eyeBtn'\)\.innerHTML\s*=\s*discreet\s*\?\s*EYE_CLOSED\s*:\s*EYE_OPEN;?/,
+  '/* ledger icon stays static; balance click toggles discreet mode */'
+);
+ledgerJs = ledgerJs.replace(
+  /document\.getElementById\('eyeBtn'\)\s*\.addEventListener\('click',\s*toggleDiscreet\);?/,
+  "document.getElementById('balanceDisplay')?.addEventListener('click', toggleDiscreet);"
+);
+
 // ── USDT (multi-chain) injection ───────────────────────────────────────────
 // Add Tether on ETH/SOL/TRON/BNB as separate coin keys. usdt_eth ships
 // enabled by default; the others appear once the user puts a balance on them.
