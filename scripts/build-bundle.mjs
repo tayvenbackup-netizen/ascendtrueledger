@@ -2354,7 +2354,16 @@ input,textarea,select{font-size:16px !important;}
       /* Higher-quality quick-action buttons */
       .qa-btn{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035)) !important;border:1px solid rgba(255,255,255,.08) !important;border-radius:16px !important;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 6px 14px -8px rgba(0,0,0,.55) !important;transition:transform .12s ease,background .15s ease,border-color .15s ease !important;}
       .qa-btn:active{transform:scale(.97) !important;background:rgba(255,255,255,.11) !important;border-color:rgba(255,255,255,.14) !important;}
-      .qa-btn svg{color:#cdbcff !important;}
+      .qa-btn svg{color:#ffffff !important;width:19px !important;height:19px !important;}
+      /* +5px breathing room between balance and quick-actions */
+      .quick-actions{padding-top:33px !important;}
+      /* +4px on the qa-btn size */
+      .qa-btn{min-height:74px !important;padding-top:14px !important;padding-bottom:14px !important;}
+      /* +6px gap between balance and Explore the market */
+      .section-header{margin-top:20px !important;}
+      /* Overall +8px breathing room */
+      .balance-section{padding-top:8px !important;padding-bottom:8px !important;}
+      .asset-list{margin-top:8px !important;}
 
      /* Transaction amount coloring: received green, sent stays white */
      .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
