@@ -286,6 +286,15 @@ body = body
   .replace(/\/assets\/litecoin\.png/g, '/assets/coin-ltc.png')
   .replace(/\/assets\/usdt\.png/g, '/assets/coin-usdt.png')
   .replace(/\/assets\/tron\.webp/g, '/assets/coin-tron.png');
+
+// Replace header-right SVG buttons (Discover/Notifications/Settings) with the
+// new pre-rendered PNG icons so they match the top-left device icon style.
+body = body.replace(
+  /<button class="circle-btn" aria-label="Discover">[\s\S]*?<\/button>\s*<button class="circle-btn has-dot" aria-label="Notifications">[\s\S]*?<\/button>\s*<button class="circle-btn" aria-label="Settings">[\s\S]*?<\/button>/,
+  '<button class="circle-btn header-img-btn" aria-label="Discover"><img src="/assets/header-discover-icon.png" alt="Discover" class="header-icon-img"/></button>' +
+  '<button class="circle-btn header-img-btn" aria-label="Notifications"><img src="/assets/header-bell-icon.png" alt="Notifications" class="header-icon-img"/></button>' +
+  '<button class="circle-btn header-img-btn" aria-label="Settings"><img src="/assets/header-settings-icon.png" alt="Settings" class="header-icon-img"/></button>'
+);
 body = body.replace(
   /(<div class="explore-card coin-card" data-coin="sol">[\s\S]*?<\/div>\s*<\/div>)/,
   `$1\n${USDT_EXPLORE_CARD}`
