@@ -11,21 +11,19 @@
   <meta name="apple-mobile-web-app-title" content="Ledger">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-touch-fullscreen" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <!-- Use "default" (not black-translucent) so iOS automatically reserves the
+       status bar and home-indicator safe areas in standalone mode. With
+       black-translucent the layout viewport extended under the home indicator
+       and our manual env(safe-area-inset-bottom) math created the chin gap. -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="theme-color" content="#000000" />
   <style>
-    /* Full-bleed black canvas. viewport-fit=cover + black-translucent already
-       extends the body to the physical screen edges in standalone mode, so we
-       must NOT add padding-bottom: env(safe-area-inset-bottom) here — doing so
-       reserves ~34px of dead space above the home indicator (the "chin gap"). */
     html, body {
       margin: 0;
       padding: 0;
       background: #000 !important;
+      height: 100%;
     }
-    html { height: 100%; }
-    body { min-height: 100dvh; }
   </style>
   <link rel="apple-touch-startup-image" href="/assets/ledger.png">
   <link rel="icon" type="image/x-icon" href="/favicon.png?v=2">
