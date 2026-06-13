@@ -2411,7 +2411,7 @@ input,textarea,select{font-size:16px !important;}
        /* Top-left ledger icon — no surrounding circle, larger logo */
        #eyeBtn{width:70px !important;height:70px !important;min-width:70px !important;min-height:70px !important;padding:0 !important;overflow:visible !important;background:transparent !important;background-color:transparent !important;border:none !important;box-shadow:none !important;}
        #eyeBtn::before,#eyeBtn::after{content:none !important;display:none !important;}
-       #eyeBtn img,.header-device-img{width:62px !important;height:62px !important;object-fit:contain !important;display:block !important;}
+       #eyeBtn img,.header-device-img{width:69px !important;height:69px !important;object-fit:contain !important;display:block !important;}
        /* Wider explore-market cards (+3px) and slightly larger Mood card content */
        .explore-card{flex:0 0 98px !important;}
        .mood-gauge{width:54px !important;height:34px !important;margin-bottom:3px !important;}
