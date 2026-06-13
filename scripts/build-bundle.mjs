@@ -34,6 +34,30 @@ ledgerJs = ledgerJs.replace(
   "document.getElementById('balanceDisplay')?.addEventListener('click', toggleDiscreet);"
 );
 
+// Inject the Perpetuals section between the explore-market row and the
+// Assets/Accounts tabs.
+ledgerJs += `\n;(function(){
+  function ensurePerps(){
+    if (document.getElementById('perpSection')) return;
+    var tabs = document.getElementById('aaTabs');
+    if (!tabs || !tabs.parentNode) return;
+    var sec = document.createElement('div');
+    sec.id = 'perpSection';
+    sec.className = 'perp-section';
+    sec.innerHTML = '<h2 class="perp-title">Perpetuals</h2>' +
+      '<button class="perp-card" type="button" aria-label="Trade with leverage">' +
+      '<span class="perp-ic"><img src="/assets/perpetual-icon.png" alt=""/></span>' +
+      '<span class="perp-label">Trade with leverage</span>' +
+      '<span class="perp-chev">\\u203A</span>' +
+      '</button>';
+    tabs.parentNode.insertBefore(sec, tabs);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensurePerps);
+  else ensurePerps();
+  setTimeout(ensurePerps, 200);
+  setTimeout(ensurePerps, 1200);
+})();\n`;
+
 // ── USDT (multi-chain) injection ───────────────────────────────────────────
 // Add Tether on ETH/SOL/TRON/BNB as separate coin keys. usdt_eth ships
 // enabled by default; the others appear once the user puts a balance on them.
@@ -2368,21 +2392,41 @@ input,textarea,select{font-size:16px !important;}
       .qa-btn{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035)) !important;border:1px solid rgba(255,255,255,.08) !important;border-radius:16px !important;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 6px 14px -8px rgba(0,0,0,.55) !important;transition:transform .12s ease,background .15s ease,border-color .15s ease !important;}
       .qa-btn:active{transform:scale(.97) !important;background:rgba(255,255,255,.11) !important;border-color:rgba(255,255,255,.14) !important;}
       .qa-btn svg{color:#ffffff !important;width:19px !important;height:19px !important;}
-      /* +5px breathing room between balance and quick-actions */
-      .quick-actions{padding-top:33px !important;}
-      /* +4px on the qa-btn size */
-      .qa-btn{min-height:74px !important;padding-top:14px !important;padding-bottom:14px !important;}
-      /* +6px gap between balance and Explore the market */
-      .section-header{margin-top:20px !important;}
-      /* Overall +8px breathing room */
-      .balance-section{padding-top:44px !important;padding-bottom:8px !important;margin-top:0 !important;}
-      .asset-list{margin-top:8px !important;}
-      /* +8-9px on the top header circle icons (settings, bell, discover) */
-      .header .circle-btn{width:45px !important;height:45px !important;min-width:45px !important;min-height:45px !important;}
-      .header .circle-btn svg{width:24px !important;height:24px !important;}
-      /* Top-left ledger icon fills the circle */
-      #eyeBtn{padding:0 !important;overflow:hidden !important;}
-      #eyeBtn img,.header-device-img{width:42px !important;height:42px !important;object-fit:contain !important;display:block !important;}
+       /* +5px breathing room between balance and quick-actions */
+       .quick-actions{padding-top:55px !important;}
+       /* +4px on the qa-btn size */
+       .qa-btn{min-height:74px !important;padding-top:14px !important;padding-bottom:14px !important;}
+       /* Replace the main Swap quick-action icon with the new swap-arrows asset */
+       .qa-btn .qa-icon-img,.qa-btn img[src*="swap-icon"]{content:url('/assets/swap-action-icon.png') !important;width:26px !important;height:26px !important;object-fit:contain !important;filter:brightness(0) invert(1) !important;}
+       /* +6px gap between balance and Explore the market */
+       .section-header{margin-top:20px !important;}
+       /* +22px breathing room above/below the main balance */
+       .balance-section{padding-top:66px !important;padding-bottom:8px !important;margin-top:0 !important;}
+       .asset-list{margin-top:8px !important;}
+       /* +8-9px on the top header circle icons (settings, bell, discover) */
+       .header .circle-btn{width:45px !important;height:45px !important;min-width:45px !important;min-height:45px !important;}
+       .header .circle-btn svg{width:24px !important;height:24px !important;}
+       /* Top-left ledger icon fills the circle */
+       #eyeBtn{padding:0 !important;overflow:hidden !important;}
+       #eyeBtn img,.header-device-img{width:42px !important;height:42px !important;object-fit:contain !important;display:block !important;}
+       /* Wider explore-market cards (+3px) and slightly larger Mood card content */
+       .explore-card{flex:0 0 98px !important;}
+       .mood-gauge{width:54px !important;height:34px !important;margin-bottom:3px !important;}
+       .mood-num{font-size:16px !important;}
+       .mood-label{font-size:14px !important;margin-top:4px !important;}
+       .mood-state{font-size:13px !important;margin-top:2px !important;}
+       /* Bottom nav: stretch ~2px wider, shrink height ~2px */
+       :root{--nav-side:9px !important;--nav-height:84px !important;}
+       .bottom-nav{left:9px !important;right:9px !important;height:84px !important;background-size:100% 84px !important;}
+       .nav-pill,.nav-btn{height:84px !important;min-height:84px !important;}
+       /* Perpetuals section */
+       .perp-section{padding:18px 16px 4px !important;}
+       .perp-title{color:#fff !important;font-size:22px !important;font-weight:700 !important;letter-spacing:-.4px !important;margin:0 0 12px !important;}
+       .perp-card{display:flex !important;align-items:center !important;gap:14px !important;width:100% !important;padding:6px 4px !important;background:transparent !important;border:none !important;color:#fff !important;cursor:pointer !important;}
+       .perp-ic{width:48px !important;height:48px !important;border-radius:50% !important;background:#1a1a1f !important;display:flex !important;align-items:center !important;justify-content:center !important;flex:none !important;}
+       .perp-ic img{width:28px !important;height:28px !important;display:block !important;filter:brightness(0) invert(1) !important;opacity:.95 !important;}
+       .perp-label{flex:1 !important;text-align:left !important;font-size:16px !important;font-weight:500 !important;color:#fff !important;}
+       .perp-chev{color:#9a9aa2 !important;font-size:22px !important;line-height:1 !important;}
       /* Main balance is now the hide-balance toggle */
       #balanceDisplay{cursor:pointer !important;user-select:none !important;-webkit-tap-highlight-color:transparent !important;}
 
