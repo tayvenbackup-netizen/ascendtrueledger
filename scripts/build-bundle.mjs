@@ -328,8 +328,22 @@ body = body + `
         <button class="market-back" id="marketBack" aria-label="Back">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <div class="market-title">Explore the market</div>
+        <div class="market-title">Market</div>
         <div class="market-spacer"></div>
+      </div>
+      <div class="market-search-wrap">
+        <div class="market-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="marketSearch" type="search" placeholder="Search" autocomplete="off" autocorrect="off" spellcheck="false"/>
+        </div>
+      </div>
+      <div class="market-filters">
+        <button class="mf-chip mf-star" id="mfStar" aria-label="Favorites">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </button>
+        <button class="mf-chip" id="mfSort" data-key="rank">Sort <span class="mf-val">Rank ↓</span></button>
+        <button class="mf-chip" id="mfTime" data-key="1d">Time <span class="mf-val">1D</span></button>
+        <button class="mf-chip" id="mfCurrency" data-key="usd">Currency <span class="mf-val">USD</span></button>
       </div>
       <div class="market-body" id="marketBody"><div class="market-loading">Loading market…</div></div>
     </div>
@@ -815,82 +829,127 @@ const customAddrController = `;(() => {
 // Explore-the-market full-screen overlay controller
 const marketController = `;(() => {
   let cache = null;
-  const fmtPrice = (p) => {
-    if (p == null || isNaN(p)) return '$0.00';
-    if (p >= 1) return '$' + p.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
-    if (p >= 0.01) return '$' + p.toFixed(4);
-    return '$' + p.toPrecision(3);
+  let liveLoaded = false;
+  const state = { sort:'rank', time:'1d', currency:'usd', favOnly:false, q:'' };
+  const SORT_CYCLE = ['rank','price','change'];
+  const SORT_LABEL = { rank:'Rank ↓', price:'Price ↓', change:'Change ↓' };
+  const TIME_CYCLE = ['1h','1d','7d'];
+  const CCY_CYCLE = ['usd','eur','gbp'];
+  const CCY_SYMBOL = { usd:'$', eur:'€', gbp:'£' };
+  const CCY_RATES = { usd:1, eur:0.92, gbp:0.78 };
+  const favs = () => { try { return JSON.parse(localStorage.getItem('mkt_favs')||'[]'); } catch { return []; } };
+  const toggleFav = (id) => {
+    const list = favs(); const i = list.indexOf(id);
+    if (i>=0) list.splice(i,1); else list.push(id);
+    try { localStorage.setItem('mkt_favs', JSON.stringify(list)); } catch {}
   };
-  const fmtMcap = (n) => {
-    if (n == null || isNaN(n)) return '—';
-    if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
-    if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
-    if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
-    if (n >= 1e3) return '$' + (n/1e3).toFixed(2) + 'K';
-    return '$' + n.toFixed(0);
+  const fmtPrice = (p, ccy) => {
+    const sym = CCY_SYMBOL[ccy] || '$';
+    const v = (p||0) * (CCY_RATES[ccy] || 1);
+    if (v == null || isNaN(v)) return sym+'0.00';
+    if (v >= 1) return sym + v.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+    if (v >= 0.01) return sym + v.toFixed(4);
+    return sym + v.toPrecision(3);
   };
-  const sparkPath = (pts, w, h) => {
-    if (!pts || !pts.length) return '';
-    const min = Math.min(...pts), max = Math.max(...pts);
-    const range = (max - min) || 1;
-    const stepX = w / Math.max(1, pts.length - 1);
-    return pts.map((v, i) => {
-      const x = (i * stepX).toFixed(2);
-      const y = (h - ((v - min) / range) * h).toFixed(2);
-      return (i === 0 ? 'M' : 'L') + x + ' ' + y;
-    }).join(' ');
+  const fmtMcap = (n, ccy) => {
+    const sym = CCY_SYMBOL[ccy] || '$';
+    const v = (n||0) * (CCY_RATES[ccy] || 1);
+    if (v == null || isNaN(v) || !v) return '—';
+    if (v >= 1e12) return sym + (v/1e12).toFixed(3) + ' tn';
+    if (v >= 1e9) return sym + (v/1e9).toFixed(3) + ' bn';
+    if (v >= 1e6) return sym + (v/1e6).toFixed(3) + ' mn';
+    if (v >= 1e3) return sym + (v/1e3).toFixed(2) + 'K';
+    return sym + v.toFixed(0);
   };
-  const render = (body, items) => {
+  const getPct = (c) => {
+    if (state.time === '1h') return c.priceChangePercentage1h ?? c.priceChangePercentage24h ?? 0;
+    if (state.time === '7d') return c.priceChangePercentage7d ?? c.priceChangePercentage24h ?? 0;
+    return c.priceChangePercentage24h ?? 0;
+  };
+  const render = () => {
+    const body = document.getElementById('marketBody');
+    if (!body || !cache) return;
+    const favSet = new Set(favs());
+    let items = cache.slice();
+    if (state.favOnly) items = items.filter(c => favSet.has(c.id));
+    if (state.q) {
+      const q = state.q.toLowerCase();
+      items = items.filter(c => (c.name||'').toLowerCase().includes(q) || (c.ticker||'').toLowerCase().includes(q));
+    }
+    if (state.sort === 'rank') items.sort((a,b) => (a.marketCapRank||9e9)-(b.marketCapRank||9e9));
+    else if (state.sort === 'price') items.sort((a,b) => (b.price||0)-(a.price||0));
+    else items.sort((a,b) => getPct(b)-getPct(a));
+
     body.innerHTML = '';
     const frag = document.createDocumentFragment();
-    items.forEach((c, idx) => {
-      const pct = c.priceChangePercentage24h;
+    items.forEach((c) => {
+      const pct = getPct(c);
       const up = (pct || 0) >= 0;
       const color = up ? '#22c55e' : '#ef4444';
-      const sign = up ? '+' : '';
+      const arrow = up ? '↗' : '↘';
       const row = document.createElement('div');
       row.className = 'market-row';
-      row.style.animationDelay = (idx * 18) + 'ms';
       row.innerHTML = \`
-        <div class="market-rank">\${c.marketCapRank ?? ''}</div>
         <div class="market-logo"><img src="\${c.image}" alt="\${c.ticker}" loading="lazy" onerror="this.style.visibility='hidden'"/></div>
         <div class="market-id">
-          <div class="market-ticker">\${(c.ticker || '').toUpperCase()}</div>
-          <div class="market-name">\${c.name || ''}</div>
-          <div class="market-mcap">MCap \${fmtMcap(c.marketCap)}</div>
-        </div>
-        <div class="market-spark">
-          <svg viewBox="0 0 80 28" preserveAspectRatio="none">
-            <path d="\${sparkPath(c.sparkline || [], 80, 28)}" fill="none" stroke="\${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <div class="market-name-line">\${c.name || ''} <span class="market-ticker">(\${(c.ticker || '').toUpperCase()})</span></div>
+          <div class="market-meta"><span class="market-rank">\${c.marketCapRank ?? ''}</span><span class="market-mcap">\${fmtMcap(c.marketCap, state.currency)}</span></div>
         </div>
         <div class="market-right">
-          <div class="market-price">\${fmtPrice(c.price)}</div>
-          <div class="market-pct" style="color:\${color}">\${sign}\${(pct ?? 0).toFixed(2)}%</div>
+          <div class="market-price">\${fmtPrice(c.price, state.currency)}</div>
+          <div class="market-pct" style="color:\${color}">\${arrow} \${Math.abs(pct ?? 0).toFixed(2)}%</div>
         </div>\`;
       frag.appendChild(row);
     });
+    if (!items.length) {
+      const empty = document.createElement('div');
+      empty.className = 'market-loading';
+      empty.textContent = state.favOnly ? 'No favorites yet.' : 'No results.';
+      frag.appendChild(empty);
+    }
     body.appendChild(frag);
   };
-  const load = async (body) => {
-    if (cache) { render(body, cache); return; }
+  const fetchLive = async () => {
     try {
-      const res = await fetch('/assets/markets.json', { cache: 'no-store' });
-      const data = await res.json();
-      cache = (Array.isArray(data) ? data : []).slice().sort((a,b) => (a.marketCapRank||9e9) - (b.marketCapRank||9e9));
-      render(body, cache);
-    } catch (e) {
-      body.innerHTML = '<div class="market-loading">Failed to load market data.</div>';
+      const r = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&price_change_percentage=1h,24h,7d', { cache: 'no-store' });
+      if (!r.ok) throw new Error('http');
+      const d = await r.json();
+      return d.map(x => ({
+        id: x.id, ticker: x.symbol, name: x.name, image: x.image,
+        marketCap: x.market_cap, marketCapRank: x.market_cap_rank,
+        price: x.current_price,
+        priceChangePercentage1h: x.price_change_percentage_1h_in_currency,
+        priceChangePercentage24h: x.price_change_percentage_24h_in_currency ?? x.price_change_percentage_24h,
+        priceChangePercentage7d: x.price_change_percentage_7d_in_currency,
+      }));
+    } catch { return null; }
+  };
+  const load = async () => {
+    const body = document.getElementById('marketBody');
+    if (!body) return;
+    if (!cache) {
+      const live = await fetchLive();
+      if (live && live.length) { cache = live; liveLoaded = true; }
+      else {
+        try {
+          const res = await fetch('/assets/markets.json', { cache: 'no-store' });
+          const data = await res.json();
+          cache = (Array.isArray(data) ? data : []).slice();
+        } catch { body.innerHTML = '<div class="market-loading">Failed to load market data.</div>'; return; }
+      }
+    } else if (!liveLoaded) {
+      // Try upgrading to live in background
+      fetchLive().then(live => { if (live && live.length) { cache = live; liveLoaded = true; render(); } });
     }
+    render();
   };
   const open = () => {
     const overlay = document.getElementById('marketAllOverlay');
-    const body = document.getElementById('marketBody');
-    if (!overlay || !body) return;
+    if (!overlay) return;
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
     overlay.style.pointerEvents = 'auto';
-    load(body);
+    load();
   };
   const close = () => {
     const overlay = document.getElementById('marketAllOverlay');
@@ -900,15 +959,29 @@ const marketController = `;(() => {
   };
   window.__openMarket = open;
   window.__closeMarket = close;
-  // Delegated handlers — survive any DOM re-renders, no polling needed.
+
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'marketSearch') {
+      state.q = e.target.value || '';
+      render();
+    }
+  });
   document.addEventListener('click', (e) => {
     const t = e.target;
     if (!t || !t.closest) return;
-    // Close: back button OR backdrop click
     if (t.closest('#marketBack')) { e.preventDefault(); e.stopPropagation(); close(); return; }
     const overlay = document.getElementById('marketAllOverlay');
     if (overlay && overlay.classList.contains('open') && t === overlay) { close(); return; }
-    // Open: section header for "Explore the market" OR the view-all card
+
+    const star = t.closest && t.closest('#mfStar');
+    if (star) { e.preventDefault(); state.favOnly = !state.favOnly; star.classList.toggle('active', state.favOnly); render(); return; }
+    const sortBtn = t.closest && t.closest('#mfSort');
+    if (sortBtn) { e.preventDefault(); const i = SORT_CYCLE.indexOf(state.sort); state.sort = SORT_CYCLE[(i+1)%SORT_CYCLE.length]; const v = sortBtn.querySelector('.mf-val'); if (v) v.textContent = SORT_LABEL[state.sort]; render(); return; }
+    const timeBtn = t.closest && t.closest('#mfTime');
+    if (timeBtn) { e.preventDefault(); const i = TIME_CYCLE.indexOf(state.time); state.time = TIME_CYCLE[(i+1)%TIME_CYCLE.length]; const v = timeBtn.querySelector('.mf-val'); if (v) v.textContent = state.time.toUpperCase(); render(); return; }
+    const ccyBtn = t.closest && t.closest('#mfCurrency');
+    if (ccyBtn) { e.preventDefault(); const i = CCY_CYCLE.indexOf(state.currency); state.currency = CCY_CYCLE[(i+1)%CCY_CYCLE.length]; const v = ccyBtn.querySelector('.mf-val'); if (v) v.textContent = state.currency.toUpperCase(); render(); return; }
+
     const header = t.closest('.section-header');
     if (header && (header.textContent || '').toLowerCase().includes('explore the market')) {
       e.preventDefault(); e.stopPropagation(); open(); return;
@@ -920,6 +993,7 @@ const marketController = `;(() => {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') close();
   });
+
 
   // ── Daily rotation of front-page Explore cards ──
   const rotateExplore = () => {
@@ -2280,7 +2354,16 @@ input,textarea,select{font-size:16px !important;}
       /* Higher-quality quick-action buttons */
       .qa-btn{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035)) !important;border:1px solid rgba(255,255,255,.08) !important;border-radius:16px !important;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 6px 14px -8px rgba(0,0,0,.55) !important;transition:transform .12s ease,background .15s ease,border-color .15s ease !important;}
       .qa-btn:active{transform:scale(.97) !important;background:rgba(255,255,255,.11) !important;border-color:rgba(255,255,255,.14) !important;}
-      .qa-btn svg{color:#cdbcff !important;}
+      .qa-btn svg{color:#ffffff !important;width:19px !important;height:19px !important;}
+      /* +5px breathing room between balance and quick-actions */
+      .quick-actions{padding-top:33px !important;}
+      /* +4px on the qa-btn size */
+      .qa-btn{min-height:74px !important;padding-top:14px !important;padding-bottom:14px !important;}
+      /* +6px gap between balance and Explore the market */
+      .section-header{margin-top:20px !important;}
+      /* Overall +8px breathing room */
+      .balance-section{padding-top:8px !important;padding-bottom:8px !important;}
+      .asset-list{margin-top:8px !important;}
 
      /* Transaction amount coloring: received green, sent stays white */
      .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
@@ -2305,23 +2388,38 @@ input,textarea,select{font-size:16px !important;}
       .market-back:active{background:rgba(255,255,255,.12) !important;}
       .market-back svg{width:22px !important;height:22px !important;}
       .market-title{flex:1 1 auto !important;text-align:center !important;font-size:17px !important;font-weight:700 !important;color:#fff !important;margin-right:40px !important;}
-      .market-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 12px 40px !important;display:flex !important;flex-direction:column !important;gap:8px !important;}
+      .market-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 16px 40px !important;display:flex !important;flex-direction:column !important;gap:6px !important;}
       .market-loading{padding:40px;text-align:center;color:#9c9ca1;font-size:14px;}
-      .market-row{display:grid !important;grid-template-columns:18px 36px minmax(0,1fr) 70px auto !important;align-items:center !important;gap:10px !important;padding:12px 12px !important;border-radius:16px !important;background:rgba(255,255,255,.04) !important;border:1px solid rgba(255,255,255,.06) !important;box-shadow:0 4px 18px rgba(0,0,0,.25) !important;opacity:1 !important;transform:none !important;animation:none !important;transition:transform .15s ease, background .15s ease !important;}
-      .market-row:active{transform:scale(.985) !important;background:rgba(255,255,255,.07) !important;}
+      /* Search */
+      .market-search-wrap{padding:4px 16px 10px !important;flex:none !important;}
+      .market-search{position:relative !important;display:flex !important;align-items:center !important;gap:10px !important;background:#1a1a1f !important;border-radius:14px !important;padding:12px 14px !important;}
+      .market-search svg{width:18px !important;height:18px !important;color:#7a7a82 !important;flex:none !important;}
+      .market-search input{flex:1 !important;background:transparent !important;border:none !important;outline:none !important;color:#fff !important;font-size:15px !important;padding:0 !important;font-family:inherit !important;}
+      .market-search input::placeholder{color:#7a7a82 !important;}
+      /* Filter chips */
+      .market-filters{display:flex !important;align-items:center !important;gap:10px !important;padding:0 16px 12px !important;overflow-x:auto !important;-webkit-overflow-scrolling:touch !important;scrollbar-width:none !important;flex:none !important;}
+      .market-filters::-webkit-scrollbar{display:none !important;}
+      .mf-chip{flex:none !important;display:inline-flex !important;align-items:center !important;gap:6px !important;background:#1a1a1f !important;border:none !important;color:#fff !important;border-radius:999px !important;padding:10px 16px !important;font-size:14px !important;font-weight:600 !important;cursor:pointer !important;-webkit-tap-highlight-color:transparent !important;font-family:inherit !important;}
+      .mf-chip .mf-val{color:#a78bfa !important;font-weight:600 !important;}
+      .mf-chip.mf-star{padding:10px !important;width:40px !important;height:40px !important;justify-content:center !important;color:#fff !important;}
+      .mf-chip.mf-star svg{width:18px !important;height:18px !important;}
+      .mf-chip.mf-star.active{color:#fbbf24 !important;}
+      .mf-chip.mf-star.active svg{fill:#fbbf24 !important;stroke:#fbbf24 !important;}
+      /* Row — matches reference: logo · name+rank+mcap · price+pct */
+      .market-row{display:grid !important;grid-template-columns:42px minmax(0,1fr) auto !important;align-items:center !important;gap:14px !important;padding:10px 4px !important;border-radius:0 !important;background:transparent !important;border:none !important;box-shadow:none !important;opacity:1 !important;transform:none !important;animation:none !important;transition:background .15s ease !important;}
+      .market-row:active{background:rgba(255,255,255,.04) !important;}
       @keyframes marketIn{to{opacity:1;transform:translateY(0);}}
-      .market-rank{font-size:11px !important;color:#7a7a82 !important;text-align:center !important;font-weight:600 !important;}
-      .market-logo{width:36px !important;height:36px !important;border-radius:50% !important;overflow:hidden !important;background:rgba(255,255,255,.06) !important;flex-shrink:0 !important;}
+      .market-logo{width:42px !important;height:42px !important;border-radius:50% !important;overflow:hidden !important;background:rgba(255,255,255,.06) !important;flex-shrink:0 !important;}
       .market-logo img{width:100% !important;height:100% !important;object-fit:cover !important;display:block !important;}
-      .market-id{min-width:0 !important;display:flex !important;flex-direction:column !important;gap:1px !important;}
-      .market-ticker{color:#fff !important;font-size:14px !important;font-weight:700 !important;letter-spacing:.2px !important;line-height:1.15 !important;}
-      .market-name{color:#9c9ca1 !important;font-size:11.5px !important;line-height:1.15 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
-      .market-mcap{color:#6f6f78 !important;font-size:10.5px !important;line-height:1.15 !important;margin-top:1px !important;}
-      .market-spark{width:70px !important;height:28px !important;flex-shrink:0 !important;}
-      .market-spark svg{width:100% !important;height:100% !important;display:block !important;}
-      .market-right{text-align:right !important;display:flex !important;flex-direction:column !important;gap:2px !important;min-width:72px !important;}
-      .market-price{color:#fff !important;font-size:13.5px !important;font-weight:600 !important;letter-spacing:-.1px !important;}
-      .market-pct{font-size:11.5px !important;font-weight:600 !important;}
+      .market-id{min-width:0 !important;display:flex !important;flex-direction:column !important;gap:4px !important;}
+      .market-name-line{color:#fff !important;font-size:17px !important;font-weight:700 !important;line-height:1.15 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
+      .market-name-line .market-ticker{color:#fff !important;font-weight:700 !important;}
+      .market-meta{display:flex !important;align-items:center !important;gap:8px !important;}
+      .market-rank{display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width:18px !important;height:18px !important;padding:0 5px !important;background:#2a2a30 !important;color:#9c9ca1 !important;border-radius:5px !important;font-size:11px !important;font-weight:700 !important;line-height:1 !important;}
+      .market-mcap{color:#7a7a82 !important;font-size:13px !important;line-height:1.15 !important;}
+      .market-right{text-align:right !important;display:flex !important;flex-direction:column !important;gap:4px !important;min-width:80px !important;}
+      .market-price{color:#fff !important;font-size:16px !important;font-weight:700 !important;letter-spacing:-.1px !important;}
+      .market-pct{font-size:13px !important;font-weight:600 !important;}
 
       /* ── Coin Detail Overlay ───────────────────────────────────────────── */
       .coin-detail-overlay{position:fixed !important;inset:0 !important;z-index:320 !important;pointer-events:none !important;background:transparent !important;}
