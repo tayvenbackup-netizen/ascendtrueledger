@@ -2401,7 +2401,7 @@ input,textarea,select{font-size:16px !important;}
        /* Replace the main Swap quick-action icon with the new swap-arrows asset (aligned size) */
        .qa-btn .qa-icon-img,.qa-btn img[src*="swap-icon"]{content:url('/assets/swap-action-icon.png') !important;width:39px !important;height:39px !important;object-fit:contain !important;filter:brightness(0) invert(1) !important;display:block !important;margin:0 auto !important;}
        /* Move the Swap label closer to its icon (-3px) */
-       .qa-btn .qa-icon-img + span,.qa-btn img[src*="swap-icon"] + span{margin-top:-3px !important;}
+       .qa-btn .qa-icon-img + span,.qa-btn img[src*="swap-icon"] + span{margin-top:-8px !important;}
        /* +6px gap between balance and Explore the market */
        .section-header{margin-top:20px !important;}
        /* +15px MORE breathing room above/below the main balance */
