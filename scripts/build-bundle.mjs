@@ -829,82 +829,127 @@ const customAddrController = `;(() => {
 // Explore-the-market full-screen overlay controller
 const marketController = `;(() => {
   let cache = null;
-  const fmtPrice = (p) => {
-    if (p == null || isNaN(p)) return '$0.00';
-    if (p >= 1) return '$' + p.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
-    if (p >= 0.01) return '$' + p.toFixed(4);
-    return '$' + p.toPrecision(3);
+  let liveLoaded = false;
+  const state = { sort:'rank', time:'1d', currency:'usd', favOnly:false, q:'' };
+  const SORT_CYCLE = ['rank','price','change'];
+  const SORT_LABEL = { rank:'Rank ↓', price:'Price ↓', change:'Change ↓' };
+  const TIME_CYCLE = ['1h','1d','7d'];
+  const CCY_CYCLE = ['usd','eur','gbp'];
+  const CCY_SYMBOL = { usd:'$', eur:'€', gbp:'£' };
+  const CCY_RATES = { usd:1, eur:0.92, gbp:0.78 };
+  const favs = () => { try { return JSON.parse(localStorage.getItem('mkt_favs')||'[]'); } catch { return []; } };
+  const toggleFav = (id) => {
+    const list = favs(); const i = list.indexOf(id);
+    if (i>=0) list.splice(i,1); else list.push(id);
+    try { localStorage.setItem('mkt_favs', JSON.stringify(list)); } catch {}
   };
-  const fmtMcap = (n) => {
-    if (n == null || isNaN(n)) return '—';
-    if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
-    if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
-    if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
-    if (n >= 1e3) return '$' + (n/1e3).toFixed(2) + 'K';
-    return '$' + n.toFixed(0);
+  const fmtPrice = (p, ccy) => {
+    const sym = CCY_SYMBOL[ccy] || '$';
+    const v = (p||0) * (CCY_RATES[ccy] || 1);
+    if (v == null || isNaN(v)) return sym+'0.00';
+    if (v >= 1) return sym + v.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+    if (v >= 0.01) return sym + v.toFixed(4);
+    return sym + v.toPrecision(3);
   };
-  const sparkPath = (pts, w, h) => {
-    if (!pts || !pts.length) return '';
-    const min = Math.min(...pts), max = Math.max(...pts);
-    const range = (max - min) || 1;
-    const stepX = w / Math.max(1, pts.length - 1);
-    return pts.map((v, i) => {
-      const x = (i * stepX).toFixed(2);
-      const y = (h - ((v - min) / range) * h).toFixed(2);
-      return (i === 0 ? 'M' : 'L') + x + ' ' + y;
-    }).join(' ');
+  const fmtMcap = (n, ccy) => {
+    const sym = CCY_SYMBOL[ccy] || '$';
+    const v = (n||0) * (CCY_RATES[ccy] || 1);
+    if (v == null || isNaN(v) || !v) return '—';
+    if (v >= 1e12) return sym + (v/1e12).toFixed(3) + ' tn';
+    if (v >= 1e9) return sym + (v/1e9).toFixed(3) + ' bn';
+    if (v >= 1e6) return sym + (v/1e6).toFixed(3) + ' mn';
+    if (v >= 1e3) return sym + (v/1e3).toFixed(2) + 'K';
+    return sym + v.toFixed(0);
   };
-  const render = (body, items) => {
+  const getPct = (c) => {
+    if (state.time === '1h') return c.priceChangePercentage1h ?? c.priceChangePercentage24h ?? 0;
+    if (state.time === '7d') return c.priceChangePercentage7d ?? c.priceChangePercentage24h ?? 0;
+    return c.priceChangePercentage24h ?? 0;
+  };
+  const render = () => {
+    const body = document.getElementById('marketBody');
+    if (!body || !cache) return;
+    const favSet = new Set(favs());
+    let items = cache.slice();
+    if (state.favOnly) items = items.filter(c => favSet.has(c.id));
+    if (state.q) {
+      const q = state.q.toLowerCase();
+      items = items.filter(c => (c.name||'').toLowerCase().includes(q) || (c.ticker||'').toLowerCase().includes(q));
+    }
+    if (state.sort === 'rank') items.sort((a,b) => (a.marketCapRank||9e9)-(b.marketCapRank||9e9));
+    else if (state.sort === 'price') items.sort((a,b) => (b.price||0)-(a.price||0));
+    else items.sort((a,b) => getPct(b)-getPct(a));
+
     body.innerHTML = '';
     const frag = document.createDocumentFragment();
-    items.forEach((c, idx) => {
-      const pct = c.priceChangePercentage24h;
+    items.forEach((c) => {
+      const pct = getPct(c);
       const up = (pct || 0) >= 0;
       const color = up ? '#22c55e' : '#ef4444';
-      const sign = up ? '+' : '';
+      const arrow = up ? '↗' : '↘';
       const row = document.createElement('div');
       row.className = 'market-row';
-      row.style.animationDelay = (idx * 18) + 'ms';
       row.innerHTML = \`
-        <div class="market-rank">\${c.marketCapRank ?? ''}</div>
         <div class="market-logo"><img src="\${c.image}" alt="\${c.ticker}" loading="lazy" onerror="this.style.visibility='hidden'"/></div>
         <div class="market-id">
-          <div class="market-ticker">\${(c.ticker || '').toUpperCase()}</div>
-          <div class="market-name">\${c.name || ''}</div>
-          <div class="market-mcap">MCap \${fmtMcap(c.marketCap)}</div>
-        </div>
-        <div class="market-spark">
-          <svg viewBox="0 0 80 28" preserveAspectRatio="none">
-            <path d="\${sparkPath(c.sparkline || [], 80, 28)}" fill="none" stroke="\${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <div class="market-name-line">\${c.name || ''} <span class="market-ticker">(\${(c.ticker || '').toUpperCase()})</span></div>
+          <div class="market-meta"><span class="market-rank">\${c.marketCapRank ?? ''}</span><span class="market-mcap">\${fmtMcap(c.marketCap, state.currency)}</span></div>
         </div>
         <div class="market-right">
-          <div class="market-price">\${fmtPrice(c.price)}</div>
-          <div class="market-pct" style="color:\${color}">\${sign}\${(pct ?? 0).toFixed(2)}%</div>
+          <div class="market-price">\${fmtPrice(c.price, state.currency)}</div>
+          <div class="market-pct" style="color:\${color}">\${arrow} \${Math.abs(pct ?? 0).toFixed(2)}%</div>
         </div>\`;
       frag.appendChild(row);
     });
+    if (!items.length) {
+      const empty = document.createElement('div');
+      empty.className = 'market-loading';
+      empty.textContent = state.favOnly ? 'No favorites yet.' : 'No results.';
+      frag.appendChild(empty);
+    }
     body.appendChild(frag);
   };
-  const load = async (body) => {
-    if (cache) { render(body, cache); return; }
+  const fetchLive = async () => {
     try {
-      const res = await fetch('/assets/markets.json', { cache: 'no-store' });
-      const data = await res.json();
-      cache = (Array.isArray(data) ? data : []).slice().sort((a,b) => (a.marketCapRank||9e9) - (b.marketCapRank||9e9));
-      render(body, cache);
-    } catch (e) {
-      body.innerHTML = '<div class="market-loading">Failed to load market data.</div>';
+      const r = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&price_change_percentage=1h,24h,7d', { cache: 'no-store' });
+      if (!r.ok) throw new Error('http');
+      const d = await r.json();
+      return d.map(x => ({
+        id: x.id, ticker: x.symbol, name: x.name, image: x.image,
+        marketCap: x.market_cap, marketCapRank: x.market_cap_rank,
+        price: x.current_price,
+        priceChangePercentage1h: x.price_change_percentage_1h_in_currency,
+        priceChangePercentage24h: x.price_change_percentage_24h_in_currency ?? x.price_change_percentage_24h,
+        priceChangePercentage7d: x.price_change_percentage_7d_in_currency,
+      }));
+    } catch { return null; }
+  };
+  const load = async () => {
+    const body = document.getElementById('marketBody');
+    if (!body) return;
+    if (!cache) {
+      const live = await fetchLive();
+      if (live && live.length) { cache = live; liveLoaded = true; }
+      else {
+        try {
+          const res = await fetch('/assets/markets.json', { cache: 'no-store' });
+          const data = await res.json();
+          cache = (Array.isArray(data) ? data : []).slice();
+        } catch { body.innerHTML = '<div class="market-loading">Failed to load market data.</div>'; return; }
+      }
+    } else if (!liveLoaded) {
+      // Try upgrading to live in background
+      fetchLive().then(live => { if (live && live.length) { cache = live; liveLoaded = true; render(); } });
     }
+    render();
   };
   const open = () => {
     const overlay = document.getElementById('marketAllOverlay');
-    const body = document.getElementById('marketBody');
-    if (!overlay || !body) return;
+    if (!overlay) return;
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
     overlay.style.pointerEvents = 'auto';
-    load(body);
+    load();
   };
   const close = () => {
     const overlay = document.getElementById('marketAllOverlay');
@@ -914,15 +959,29 @@ const marketController = `;(() => {
   };
   window.__openMarket = open;
   window.__closeMarket = close;
-  // Delegated handlers — survive any DOM re-renders, no polling needed.
+
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'marketSearch') {
+      state.q = e.target.value || '';
+      render();
+    }
+  });
   document.addEventListener('click', (e) => {
     const t = e.target;
     if (!t || !t.closest) return;
-    // Close: back button OR backdrop click
     if (t.closest('#marketBack')) { e.preventDefault(); e.stopPropagation(); close(); return; }
     const overlay = document.getElementById('marketAllOverlay');
     if (overlay && overlay.classList.contains('open') && t === overlay) { close(); return; }
-    // Open: section header for "Explore the market" OR the view-all card
+
+    const star = t.closest && t.closest('#mfStar');
+    if (star) { e.preventDefault(); state.favOnly = !state.favOnly; star.classList.toggle('active', state.favOnly); render(); return; }
+    const sortBtn = t.closest && t.closest('#mfSort');
+    if (sortBtn) { e.preventDefault(); const i = SORT_CYCLE.indexOf(state.sort); state.sort = SORT_CYCLE[(i+1)%SORT_CYCLE.length]; const v = sortBtn.querySelector('.mf-val'); if (v) v.textContent = SORT_LABEL[state.sort]; render(); return; }
+    const timeBtn = t.closest && t.closest('#mfTime');
+    if (timeBtn) { e.preventDefault(); const i = TIME_CYCLE.indexOf(state.time); state.time = TIME_CYCLE[(i+1)%TIME_CYCLE.length]; const v = timeBtn.querySelector('.mf-val'); if (v) v.textContent = state.time.toUpperCase(); render(); return; }
+    const ccyBtn = t.closest && t.closest('#mfCurrency');
+    if (ccyBtn) { e.preventDefault(); const i = CCY_CYCLE.indexOf(state.currency); state.currency = CCY_CYCLE[(i+1)%CCY_CYCLE.length]; const v = ccyBtn.querySelector('.mf-val'); if (v) v.textContent = state.currency.toUpperCase(); render(); return; }
+
     const header = t.closest('.section-header');
     if (header && (header.textContent || '').toLowerCase().includes('explore the market')) {
       e.preventDefault(); e.stopPropagation(); open(); return;
@@ -934,6 +993,7 @@ const marketController = `;(() => {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') close();
   });
+
 
   // ── Daily rotation of front-page Explore cards ──
   const rotateExplore = () => {
