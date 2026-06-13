@@ -34,6 +34,30 @@ ledgerJs = ledgerJs.replace(
   "document.getElementById('balanceDisplay')?.addEventListener('click', toggleDiscreet);"
 );
 
+// Inject the Perpetuals section between the explore-market row and the
+// Assets/Accounts tabs.
+ledgerJs += `\n;(function(){
+  function ensurePerps(){
+    if (document.getElementById('perpSection')) return;
+    var tabs = document.getElementById('aaTabs');
+    if (!tabs || !tabs.parentNode) return;
+    var sec = document.createElement('div');
+    sec.id = 'perpSection';
+    sec.className = 'perp-section';
+    sec.innerHTML = '<h2 class="perp-title">Perpetuals</h2>' +
+      '<button class="perp-card" type="button" aria-label="Trade with leverage">' +
+      '<span class="perp-ic"><img src="/assets/perpetual-icon.png" alt=""/></span>' +
+      '<span class="perp-label">Trade with leverage</span>' +
+      '<span class="perp-chev">\\u203A</span>' +
+      '</button>';
+    tabs.parentNode.insertBefore(sec, tabs);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensurePerps);
+  else ensurePerps();
+  setTimeout(ensurePerps, 200);
+  setTimeout(ensurePerps, 1200);
+})();\n`;
+
 // ── USDT (multi-chain) injection ───────────────────────────────────────────
 // Add Tether on ETH/SOL/TRON/BNB as separate coin keys. usdt_eth ships
 // enabled by default; the others appear once the user puts a balance on them.
