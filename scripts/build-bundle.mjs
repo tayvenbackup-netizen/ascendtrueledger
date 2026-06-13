@@ -2413,7 +2413,7 @@ input,textarea,select{font-size:16px !important;}
        #eyeBtn::before,#eyeBtn::after{content:none !important;display:none !important;}
        #eyeBtn img,.header-device-img{width:69px !important;height:69px !important;object-fit:contain !important;display:block !important;}
        /* Wider explore-market cards (+3px) and slightly larger Mood card content */
-       .explore-card{flex:0 0 98px !important;}
+       .explore-card{flex:0 0 101px !important;}
        .mood-gauge{width:54px !important;height:34px !important;margin-bottom:3px !important;}
        .mood-num{font-size:16px !important;}
        .mood-label{font-size:14px !important;margin-top:4px !important;}
