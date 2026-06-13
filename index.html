@@ -15,24 +15,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#000000" />
   <style>
-    html, body { background: #000 !important; }
-    html { min-height: 100dvh; }
-    body {
-      min-height: 100dvh;
-      min-height: 100vh;
-      /* Extend background beyond safe areas to cover iOS chin gap */
-      padding-bottom: env(safe-area-inset-bottom);
+    /* Full-bleed black canvas. viewport-fit=cover + black-translucent already
+       extends the body to the physical screen edges in standalone mode, so we
+       must NOT add padding-bottom: env(safe-area-inset-bottom) here — doing so
+       reserves ~34px of dead space above the home indicator (the "chin gap"). */
+    html, body {
+      margin: 0;
+      padding: 0;
       background: #000 !important;
     }
-    /* Paint an extra layer behind everything that extends past safe areas */
-    html::before {
-      content: "";
-      position: fixed;
-      top: -100px; left: -100px; right: -100px; bottom: -100px;
-      background: #000;
-      z-index: -10;
-      pointer-events: none;
-    }
+    html { height: 100%; }
+    body { min-height: 100dvh; }
   </style>
   <link rel="apple-touch-startup-image" href="/assets/ledger.png">
   <link rel="icon" type="image/x-icon" href="/favicon.png?v=2">
