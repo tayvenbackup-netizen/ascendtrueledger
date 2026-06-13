@@ -2399,7 +2399,7 @@ input,textarea,select{font-size:16px !important;}
        .qa-btn > svg,.qa-btn > img{display:block !important;margin:0 auto !important;width:26px !important;height:26px !important;}
        .qa-btn > span{font-size:17px !important;line-height:1.1 !important;text-align:center !important;width:100% !important;}
        /* Replace the main Swap quick-action icon with the new swap-arrows asset (aligned size) */
-       .qa-btn .qa-icon-img,.qa-btn img[src*="swap-icon"]{content:url('/assets/swap-action-icon.png') !important;width:30px !important;height:30px !important;object-fit:contain !important;filter:brightness(0) invert(1) !important;display:block !important;margin:0 auto !important;}
+       .qa-btn .qa-icon-img,.qa-btn img[src*="swap-icon"]{content:url('/assets/swap-action-icon.png') !important;width:33px !important;height:33px !important;object-fit:contain !important;filter:brightness(0) invert(1) !important;display:block !important;margin:0 auto !important;}
        /* +6px gap between balance and Explore the market */
        .section-header{margin-top:20px !important;}
        /* +15px MORE breathing room above/below the main balance */
