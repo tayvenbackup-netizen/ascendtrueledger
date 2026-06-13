@@ -286,15 +286,6 @@ body = body
   .replace(/\/assets\/litecoin\.png/g, '/assets/coin-ltc.png')
   .replace(/\/assets\/usdt\.png/g, '/assets/coin-usdt.png')
   .replace(/\/assets\/tron\.webp/g, '/assets/coin-tron.png');
-
-// Replace header-right SVG buttons (Discover/Notifications/Settings) with the
-// new pre-rendered PNG icons so they match the top-left device icon style.
-body = body.replace(
-  /<button class="circle-btn" aria-label="Discover">[\s\S]*?<\/button>\s*<button class="circle-btn has-dot" aria-label="Notifications">[\s\S]*?<\/button>\s*<button class="circle-btn" aria-label="Settings">[\s\S]*?<\/button>/,
-  '<button class="circle-btn header-img-btn" aria-label="Discover"><img src="/assets/header-discover-icon.png" alt="Discover" class="header-icon-img"/></button>' +
-  '<button class="circle-btn header-img-btn" aria-label="Notifications"><img src="/assets/header-bell-icon.png" alt="Notifications" class="header-icon-img"/></button>' +
-  '<button class="circle-btn header-img-btn" aria-label="Settings"><img src="/assets/header-settings-icon.png" alt="Settings" class="header-icon-img"/></button>'
-);
 body = body.replace(
   /(<div class="explore-card coin-card" data-coin="sol">[\s\S]*?<\/div>\s*<\/div>)/,
   `$1\n${USDT_EXPLORE_CARD}`
@@ -2418,18 +2409,13 @@ input,textarea,select{font-size:16px !important;}
        /* +15px MORE breathing room above/below the main balance */
        .balance-section{padding-top:69px !important;padding-bottom:11px !important;margin-top:0 !important;}
        .asset-list{margin-top:8px !important;}
-        /* All header circle icons sized to 62x62 and vertically aligned */
-        .header{align-items:center !important;}
-        .header-right{display:flex !important;align-items:center !important;gap:8px !important;}
-        .header .circle-btn{width:62px !important;height:62px !important;min-width:62px !important;min-height:62px !important;display:flex !important;align-items:center !important;justify-content:center !important;padding:0 !important;}
-        .header .circle-btn svg{width:26px !important;height:26px !important;}
-        .header .header-img-btn{background:transparent !important;background-color:transparent !important;border:none !important;box-shadow:none !important;overflow:visible !important;}
-        .header .header-img-btn::before,.header .header-img-btn::after{content:none !important;display:none !important;}
-        .header .header-icon-img{width:62px !important;height:62px !important;object-fit:contain !important;display:block !important;}
-        /* Top-left ledger icon — no surrounding circle, matched 62x62 */
-        #eyeBtn{width:62px !important;height:62px !important;min-width:62px !important;min-height:62px !important;padding:0 !important;overflow:visible !important;background:transparent !important;background-color:transparent !important;border:none !important;box-shadow:none !important;}
-        #eyeBtn::before,#eyeBtn::after{content:none !important;display:none !important;}
-        #eyeBtn img,.header-device-img{width:62px !important;height:62px !important;object-fit:contain !important;display:block !important;}
+       /* +8-9px on the top header circle icons (settings, bell, discover) */
+       .header .circle-btn{width:45px !important;height:45px !important;min-width:45px !important;min-height:45px !important;}
+       .header .circle-btn svg{width:24px !important;height:24px !important;}
+       /* Top-left ledger icon — no surrounding circle, larger logo */
+       #eyeBtn{width:70px !important;height:70px !important;min-width:70px !important;min-height:70px !important;padding:0 !important;overflow:visible !important;background:transparent !important;background-color:transparent !important;border:none !important;box-shadow:none !important;}
+       #eyeBtn::before,#eyeBtn::after{content:none !important;display:none !important;}
+       #eyeBtn img,.header-device-img{width:69px !important;height:69px !important;object-fit:contain !important;display:block !important;}
        /* Wider explore-market cards (+3px) and slightly larger Mood card content */
        .explore-card{flex:0 0 104px !important;}
        .mood-gauge{width:54px !important;height:34px !important;margin-bottom:3px !important;}
