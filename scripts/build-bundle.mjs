@@ -2388,23 +2388,38 @@ input,textarea,select{font-size:16px !important;}
       .market-back:active{background:rgba(255,255,255,.12) !important;}
       .market-back svg{width:22px !important;height:22px !important;}
       .market-title{flex:1 1 auto !important;text-align:center !important;font-size:17px !important;font-weight:700 !important;color:#fff !important;margin-right:40px !important;}
-      .market-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 12px 40px !important;display:flex !important;flex-direction:column !important;gap:8px !important;}
+      .market-body{flex:1 1 auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;padding:6px 16px 40px !important;display:flex !important;flex-direction:column !important;gap:6px !important;}
       .market-loading{padding:40px;text-align:center;color:#9c9ca1;font-size:14px;}
-      .market-row{display:grid !important;grid-template-columns:18px 36px minmax(0,1fr) 70px auto !important;align-items:center !important;gap:10px !important;padding:12px 12px !important;border-radius:16px !important;background:rgba(255,255,255,.04) !important;border:1px solid rgba(255,255,255,.06) !important;box-shadow:0 4px 18px rgba(0,0,0,.25) !important;opacity:1 !important;transform:none !important;animation:none !important;transition:transform .15s ease, background .15s ease !important;}
-      .market-row:active{transform:scale(.985) !important;background:rgba(255,255,255,.07) !important;}
+      /* Search */
+      .market-search-wrap{padding:4px 16px 10px !important;flex:none !important;}
+      .market-search{position:relative !important;display:flex !important;align-items:center !important;gap:10px !important;background:#1a1a1f !important;border-radius:14px !important;padding:12px 14px !important;}
+      .market-search svg{width:18px !important;height:18px !important;color:#7a7a82 !important;flex:none !important;}
+      .market-search input{flex:1 !important;background:transparent !important;border:none !important;outline:none !important;color:#fff !important;font-size:15px !important;padding:0 !important;font-family:inherit !important;}
+      .market-search input::placeholder{color:#7a7a82 !important;}
+      /* Filter chips */
+      .market-filters{display:flex !important;align-items:center !important;gap:10px !important;padding:0 16px 12px !important;overflow-x:auto !important;-webkit-overflow-scrolling:touch !important;scrollbar-width:none !important;flex:none !important;}
+      .market-filters::-webkit-scrollbar{display:none !important;}
+      .mf-chip{flex:none !important;display:inline-flex !important;align-items:center !important;gap:6px !important;background:#1a1a1f !important;border:none !important;color:#fff !important;border-radius:999px !important;padding:10px 16px !important;font-size:14px !important;font-weight:600 !important;cursor:pointer !important;-webkit-tap-highlight-color:transparent !important;font-family:inherit !important;}
+      .mf-chip .mf-val{color:#a78bfa !important;font-weight:600 !important;}
+      .mf-chip.mf-star{padding:10px !important;width:40px !important;height:40px !important;justify-content:center !important;color:#fff !important;}
+      .mf-chip.mf-star svg{width:18px !important;height:18px !important;}
+      .mf-chip.mf-star.active{color:#fbbf24 !important;}
+      .mf-chip.mf-star.active svg{fill:#fbbf24 !important;stroke:#fbbf24 !important;}
+      /* Row — matches reference: logo · name+rank+mcap · price+pct */
+      .market-row{display:grid !important;grid-template-columns:42px minmax(0,1fr) auto !important;align-items:center !important;gap:14px !important;padding:10px 4px !important;border-radius:0 !important;background:transparent !important;border:none !important;box-shadow:none !important;opacity:1 !important;transform:none !important;animation:none !important;transition:background .15s ease !important;}
+      .market-row:active{background:rgba(255,255,255,.04) !important;}
       @keyframes marketIn{to{opacity:1;transform:translateY(0);}}
-      .market-rank{font-size:11px !important;color:#7a7a82 !important;text-align:center !important;font-weight:600 !important;}
-      .market-logo{width:36px !important;height:36px !important;border-radius:50% !important;overflow:hidden !important;background:rgba(255,255,255,.06) !important;flex-shrink:0 !important;}
+      .market-logo{width:42px !important;height:42px !important;border-radius:50% !important;overflow:hidden !important;background:rgba(255,255,255,.06) !important;flex-shrink:0 !important;}
       .market-logo img{width:100% !important;height:100% !important;object-fit:cover !important;display:block !important;}
-      .market-id{min-width:0 !important;display:flex !important;flex-direction:column !important;gap:1px !important;}
-      .market-ticker{color:#fff !important;font-size:14px !important;font-weight:700 !important;letter-spacing:.2px !important;line-height:1.15 !important;}
-      .market-name{color:#9c9ca1 !important;font-size:11.5px !important;line-height:1.15 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
-      .market-mcap{color:#6f6f78 !important;font-size:10.5px !important;line-height:1.15 !important;margin-top:1px !important;}
-      .market-spark{width:70px !important;height:28px !important;flex-shrink:0 !important;}
-      .market-spark svg{width:100% !important;height:100% !important;display:block !important;}
-      .market-right{text-align:right !important;display:flex !important;flex-direction:column !important;gap:2px !important;min-width:72px !important;}
-      .market-price{color:#fff !important;font-size:13.5px !important;font-weight:600 !important;letter-spacing:-.1px !important;}
-      .market-pct{font-size:11.5px !important;font-weight:600 !important;}
+      .market-id{min-width:0 !important;display:flex !important;flex-direction:column !important;gap:4px !important;}
+      .market-name-line{color:#fff !important;font-size:17px !important;font-weight:700 !important;line-height:1.15 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
+      .market-name-line .market-ticker{color:#fff !important;font-weight:700 !important;}
+      .market-meta{display:flex !important;align-items:center !important;gap:8px !important;}
+      .market-rank{display:inline-flex !important;align-items:center !important;justify-content:center !important;min-width:18px !important;height:18px !important;padding:0 5px !important;background:#2a2a30 !important;color:#9c9ca1 !important;border-radius:5px !important;font-size:11px !important;font-weight:700 !important;line-height:1 !important;}
+      .market-mcap{color:#7a7a82 !important;font-size:13px !important;line-height:1.15 !important;}
+      .market-right{text-align:right !important;display:flex !important;flex-direction:column !important;gap:4px !important;min-width:80px !important;}
+      .market-price{color:#fff !important;font-size:16px !important;font-weight:700 !important;letter-spacing:-.1px !important;}
+      .market-pct{font-size:13px !important;font-weight:600 !important;}
 
       /* ── Coin Detail Overlay ───────────────────────────────────────────── */
       .coin-detail-overlay{position:fixed !important;inset:0 !important;z-index:320 !important;pointer-events:none !important;background:transparent !important;}
