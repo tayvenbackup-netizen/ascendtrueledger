@@ -2283,7 +2283,7 @@ console.log('Obfuscated to', obfuscated.length, 'bytes');
 // Viewport-fit overrides: copied from the fullscreen Trust Wallet method.
 // The shell owns a fixed full-height viewport, while the inner content scrolls.
 const viewportFix = `
-:root{--nav-side:10px;--nav-bottom:max(env(safe-area-inset-bottom, 0px), 8px);--nav-height:86px;--sat:env(safe-area-inset-top, 0px);--sab:env(safe-area-inset-bottom, 0px);--app-bg:#000000;}
+:root{--nav-side:10px;--nav-bottom:max(env(safe-area-inset-bottom, 0px) - 22px, 6px);--nav-height:86px;--sat:env(safe-area-inset-top, 0px);--sab:env(safe-area-inset-bottom, 0px);--app-bg:#000000;}
 html{width:100% !important;height:100% !important;min-height:100% !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:var(--app-bg) !important;overscroll-behavior:none !important;-webkit-text-size-adjust:100% !important;}
 body{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100% !important;margin:0 !important;padding:0 !important;overflow:hidden !important;background:var(--app-bg) !important;overscroll-behavior:none !important;-ms-overflow-style:none !important;scrollbar-width:none !important;}
 body::-webkit-scrollbar{display:none !important;}
@@ -2393,22 +2393,24 @@ input,textarea,select{font-size:16px !important;}
       .qa-btn:active{transform:scale(.97) !important;background:rgba(255,255,255,.11) !important;border-color:rgba(255,255,255,.14) !important;}
       .qa-btn svg{color:#ffffff !important;width:19px !important;height:19px !important;}
        /* +5px breathing room between balance and quick-actions */
-       .quick-actions{padding-top:55px !important;}
+       .quick-actions{padding-top:70px !important;}
        /* +4px on the qa-btn size */
-       .qa-btn{min-height:74px !important;padding-top:14px !important;padding-bottom:14px !important;}
-       /* Replace the main Swap quick-action icon with the new swap-arrows asset */
-       .qa-btn .qa-icon-img,.qa-btn img[src*="swap-icon"]{content:url('/assets/swap-action-icon.png') !important;width:26px !important;height:26px !important;object-fit:contain !important;filter:brightness(0) invert(1) !important;}
+       .qa-btn{min-height:74px !important;padding:14px 10px !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:6px !important;text-align:center !important;}
+       .qa-btn > svg,.qa-btn > img{display:block !important;margin:0 auto !important;}
+       .qa-btn > span{font-size:13px !important;line-height:1.1 !important;text-align:center !important;width:100% !important;}
+       /* Replace the main Swap quick-action icon with the new swap-arrows asset (larger) */
+       .qa-btn .qa-icon-img,.qa-btn img[src*="swap-icon"]{content:url('/assets/swap-action-icon.png') !important;width:36px !important;height:36px !important;object-fit:contain !important;filter:brightness(0) invert(1) !important;display:block !important;margin:0 auto !important;}
        /* +6px gap between balance and Explore the market */
        .section-header{margin-top:20px !important;}
-       /* +22px breathing room above/below the main balance */
-       .balance-section{padding-top:66px !important;padding-bottom:8px !important;margin-top:0 !important;}
+       /* +15px MORE breathing room above/below the main balance */
+       .balance-section{padding-top:81px !important;padding-bottom:23px !important;margin-top:0 !important;}
        .asset-list{margin-top:8px !important;}
        /* +8-9px on the top header circle icons (settings, bell, discover) */
        .header .circle-btn{width:45px !important;height:45px !important;min-width:45px !important;min-height:45px !important;}
        .header .circle-btn svg{width:24px !important;height:24px !important;}
-       /* Top-left ledger icon fills the circle */
-       #eyeBtn{padding:0 !important;overflow:hidden !important;}
-       #eyeBtn img,.header-device-img{width:42px !important;height:42px !important;object-fit:contain !important;display:block !important;}
+       /* Top-left ledger icon — bigger circle so the ledger fills it */
+       #eyeBtn{width:58px !important;height:58px !important;min-width:58px !important;min-height:58px !important;padding:0 !important;overflow:hidden !important;}
+       #eyeBtn img,.header-device-img{width:56px !important;height:56px !important;object-fit:contain !important;display:block !important;}
        /* Wider explore-market cards (+3px) and slightly larger Mood card content */
        .explore-card{flex:0 0 98px !important;}
        .mood-gauge{width:54px !important;height:34px !important;margin-bottom:3px !important;}
