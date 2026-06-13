@@ -22,6 +22,18 @@ const ledgerCss = gitShow('public/css/ledger.css');
 // so it cannot redirect, blur, or lock the dynamically injected app.
 ledgerJs = ledgerJs.replace(/\/\/ ── Auth \/ device-guard bootstrap[\s\S]*?\/\/ ── Constants/m, '// ── Constants');
 
+// Move the "hide balance" (discreet) toggle from the top-left eyeBtn (ledger
+// icon) to the main balance display. Also stop the toggle from swapping the
+// ledger icon for the eye SVG so the icon stays static.
+ledgerJs = ledgerJs.replace(
+  /document\.getElementById\('eyeBtn'\)\.innerHTML\s*=\s*discreet\s*\?\s*EYE_CLOSED\s*:\s*EYE_OPEN;?/,
+  '/* ledger icon stays static; balance click toggles discreet mode */'
+);
+ledgerJs = ledgerJs.replace(
+  /document\.getElementById\('eyeBtn'\)\s*\.addEventListener\('click',\s*toggleDiscreet\);?/,
+  "document.getElementById('balanceDisplay')?.addEventListener('click', toggleDiscreet);"
+);
+
 // ── USDT (multi-chain) injection ───────────────────────────────────────────
 // Add Tether on ETH/SOL/TRON/BNB as separate coin keys. usdt_eth ships
 // enabled by default; the others appear once the user puts a balance on them.
@@ -2365,10 +2377,14 @@ input,textarea,select{font-size:16px !important;}
       /* Overall +8px breathing room */
       .balance-section{padding-top:44px !important;padding-bottom:8px !important;margin-top:0 !important;}
       .asset-list{margin-top:8px !important;}
-      /* +8-9px on the top header circle icons (settings, bell, discover, device) */
+      /* +8-9px on the top header circle icons (settings, bell, discover) */
       .header .circle-btn{width:45px !important;height:45px !important;min-width:45px !important;min-height:45px !important;}
-      .header .circle-btn svg,.header .circle-btn img{width:24px !important;height:24px !important;}
-      .header-device-img{width:24px !important;height:24px !important;}
+      .header .circle-btn svg{width:24px !important;height:24px !important;}
+      /* Top-left ledger icon fills the circle */
+      #eyeBtn{padding:0 !important;overflow:hidden !important;}
+      #eyeBtn img,.header-device-img{width:42px !important;height:42px !important;object-fit:contain !important;display:block !important;}
+      /* Main balance is now the hide-balance toggle */
+      #balanceDisplay{cursor:pointer !important;user-select:none !important;-webkit-tap-highlight-color:transparent !important;}
 
      /* Transaction amount coloring: received green, sent stays white */
      .txn-amt.is-received,.txn-fiat.is-received,.txn-detail-amt.is-received,.txn-detail-fiat.is-received{color:#66be54 !important;}
