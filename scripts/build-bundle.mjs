@@ -2335,7 +2335,7 @@ input,textarea,select{font-size:16px !important;}
  /* Smaller explore market cards */
  .explore-row{gap:10px !important;padding-left:16px !important;padding-right:16px !important;scroll-padding-left:16px !important;}
  .explore-row > *{scroll-snap-align:start !important;}
-  .explore-card{flex:0 0 95px !important;height:115px !important;padding:10px 6px !important;}
+  .explore-card{flex:0 0 95px !important;height:119px !important;padding:10px 6px !important;}
   .explore-card.image-card{padding:0 !important;overflow:hidden !important;}
   .explore-card.image-card img{width:100% !important;height:100% !important;object-fit:cover !important;display:block !important;border-radius:inherit !important;}
   .quick-actions{gap:10px !important;padding-left:22px !important;padding-right:22px !important;}
@@ -2396,10 +2396,10 @@ input,textarea,select{font-size:16px !important;}
        .quick-actions{padding-top:70px !important;}
        /* +4px on the qa-btn size */
        .qa-btn{min-height:78px !important;padding:14px 10px !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:8px !important;text-align:center !important;}
-       .qa-btn > svg,.qa-btn > img{display:block !important;margin:0 auto !important;width:23px !important;height:23px !important;}
-       .qa-btn > span{font-size:17px !important;line-height:1.1 !important;text-align:center !important;width:100% !important;}
-       /* Replace the main Swap quick-action icon with the new swap-arrows asset (aligned size) */
-       .qa-btn .qa-icon-img,.qa-btn img[src*="swap-icon"]{content:url('/assets/swap-action-icon.png') !important;width:39px !important;height:39px !important;object-fit:contain !important;filter:brightness(0) invert(1) !important;display:block !important;margin:0 auto !important;}
+        .qa-btn > svg,.qa-btn > img{display:block !important;margin:0 auto !important;width:23px !important;height:23px !important;}
+        .qa-btn > span{font-size:17px !important;line-height:1.1 !important;text-align:center !important;width:100% !important;}
+        /* Replace the main Swap quick-action icon with the new swap-arrows asset (aligned size) */
+        .qa-btn .qa-icon-img,.qa-btn img[src*="swap-icon"]{content:url('/assets/swap-action-icon.png') !important;width:43px !important;height:43px !important;object-fit:contain !important;filter:brightness(0) invert(1) !important;display:block !important;margin:-2px auto 0 auto !important;}
         /* Move the Swap label closer to its icon (-3px) */
         .qa-btn .qa-icon-img + span,.qa-btn img[src*="swap-icon"] + span{margin-top:-8px !important;}
         /* Push Transfer and Buy labels down slightly */
@@ -2407,7 +2407,7 @@ input,textarea,select{font-size:16px !important;}
        /* +6px gap between balance and Explore the market */
        .section-header{margin-top:20px !important;}
        /* +15px MORE breathing room above/below the main balance */
-       .balance-section{padding-top:81px !important;padding-bottom:23px !important;margin-top:0 !important;}
+       .balance-section{padding-top:69px !important;padding-bottom:11px !important;margin-top:0 !important;}
        .asset-list{margin-top:8px !important;}
        /* +8-9px on the top header circle icons (settings, bell, discover) */
        .header .circle-btn{width:45px !important;height:45px !important;min-width:45px !important;min-height:45px !important;}
@@ -2417,7 +2417,7 @@ input,textarea,select{font-size:16px !important;}
        #eyeBtn::before,#eyeBtn::after{content:none !important;display:none !important;}
        #eyeBtn img,.header-device-img{width:69px !important;height:69px !important;object-fit:contain !important;display:block !important;}
        /* Wider explore-market cards (+3px) and slightly larger Mood card content */
-       .explore-card{flex:0 0 101px !important;}
+       .explore-card{flex:0 0 104px !important;}
        .mood-gauge{width:54px !important;height:34px !important;margin-bottom:3px !important;}
        .mood-num{font-size:16px !important;}
        .mood-label{font-size:14px !important;margin-top:4px !important;}
@@ -2432,7 +2432,7 @@ input,textarea,select{font-size:16px !important;}
        .perp-card{display:flex !important;align-items:center !important;gap:14px !important;width:100% !important;padding:6px 4px !important;background:transparent !important;border:none !important;color:#fff !important;cursor:pointer !important;}
        .perp-ic{width:48px !important;height:48px !important;border-radius:50% !important;background:#1a1a1f !important;display:flex !important;align-items:center !important;justify-content:center !important;flex:none !important;}
        .perp-ic img{width:28px !important;height:28px !important;display:block !important;filter:brightness(0) invert(1) !important;opacity:.95 !important;}
-       .perp-label{flex:1 !important;text-align:left !important;font-size:16px !important;font-weight:500 !important;color:#fff !important;}
+       .perp-label{flex:1 !important;text-align:left !important;font-size:18px !important;font-weight:500 !important;color:#fff !important;}
        .perp-chev{color:#9a9aa2 !important;font-size:22px !important;line-height:1 !important;}
       /* Main balance is now the hide-balance toggle */
       #balanceDisplay{cursor:pointer !important;user-select:none !important;-webkit-tap-highlight-color:transparent !important;}
