@@ -328,8 +328,22 @@ body = body + `
         <button class="market-back" id="marketBack" aria-label="Back">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <div class="market-title">Explore the market</div>
+        <div class="market-title">Market</div>
         <div class="market-spacer"></div>
+      </div>
+      <div class="market-search-wrap">
+        <div class="market-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="marketSearch" type="search" placeholder="Search" autocomplete="off" autocorrect="off" spellcheck="false"/>
+        </div>
+      </div>
+      <div class="market-filters">
+        <button class="mf-chip mf-star" id="mfStar" aria-label="Favorites">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </button>
+        <button class="mf-chip" id="mfSort" data-key="rank">Sort <span class="mf-val">Rank ↓</span></button>
+        <button class="mf-chip" id="mfTime" data-key="1d">Time <span class="mf-val">1D</span></button>
+        <button class="mf-chip" id="mfCurrency" data-key="usd">Currency <span class="mf-val">USD</span></button>
       </div>
       <div class="market-body" id="marketBody"><div class="market-loading">Loading market…</div></div>
     </div>
