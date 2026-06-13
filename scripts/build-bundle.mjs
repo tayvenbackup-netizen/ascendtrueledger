@@ -2396,10 +2396,10 @@ input,textarea,select{font-size:16px !important;}
        .quick-actions{padding-top:70px !important;}
        /* +4px on the qa-btn size */
        .qa-btn{min-height:78px !important;padding:14px 10px !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:8px !important;text-align:center !important;}
-       .qa-btn > svg,.qa-btn > img{display:block !important;margin:0 auto !important;width:30px !important;height:30px !important;}
+       .qa-btn > svg,.qa-btn > img{display:block !important;margin:0 auto !important;width:26px !important;height:26px !important;}
        .qa-btn > span{font-size:17px !important;line-height:1.1 !important;text-align:center !important;width:100% !important;}
        /* Replace the main Swap quick-action icon with the new swap-arrows asset (aligned size) */
-       .qa-btn .qa-icon-img,.qa-btn img[src*="swap-icon"]{content:url('/assets/swap-action-icon.png') !important;width:30px !important;height:30px !important;object-fit:contain !important;filter:brightness(0) invert(1) !important;display:block !important;margin:0 auto !important;}
+       .qa-btn .qa-icon-img,.qa-btn img[src*="swap-icon"]{content:url('/assets/swap-action-icon.png') !important;width:33px !important;height:33px !important;object-fit:contain !important;filter:brightness(0) invert(1) !important;display:block !important;margin:0 auto !important;}
        /* +6px gap between balance and Explore the market */
        .section-header{margin-top:20px !important;}
        /* +15px MORE breathing room above/below the main balance */
@@ -2409,11 +2409,11 @@ input,textarea,select{font-size:16px !important;}
        .header .circle-btn{width:45px !important;height:45px !important;min-width:45px !important;min-height:45px !important;}
        .header .circle-btn svg{width:24px !important;height:24px !important;}
        /* Top-left ledger icon — no surrounding circle, larger logo */
-       #eyeBtn{width:62px !important;height:62px !important;min-width:62px !important;min-height:62px !important;padding:0 !important;overflow:visible !important;background:transparent !important;background-color:transparent !important;border:none !important;box-shadow:none !important;}
+       #eyeBtn{width:70px !important;height:70px !important;min-width:70px !important;min-height:70px !important;padding:0 !important;overflow:visible !important;background:transparent !important;background-color:transparent !important;border:none !important;box-shadow:none !important;}
        #eyeBtn::before,#eyeBtn::after{content:none !important;display:none !important;}
-       #eyeBtn img,.header-device-img{width:62px !important;height:62px !important;object-fit:contain !important;display:block !important;}
+       #eyeBtn img,.header-device-img{width:69px !important;height:69px !important;object-fit:contain !important;display:block !important;}
        /* Wider explore-market cards (+3px) and slightly larger Mood card content */
-       .explore-card{flex:0 0 98px !important;}
+       .explore-card{flex:0 0 101px !important;}
        .mood-gauge{width:54px !important;height:34px !important;margin-bottom:3px !important;}
        .mood-num{font-size:16px !important;}
        .mood-label{font-size:14px !important;margin-top:4px !important;}
