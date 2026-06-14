@@ -5,6 +5,7 @@ import { useAccessControl } from './hooks/useAccessControl';
 import { isMobileDevice } from './lib/shield';
 
 const BUNDLE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-app-bundle`;
+const BUNDLE_TIMEOUT_MS = 15000;
 
 const IntroOverlay = () => (
   <div className="fixed inset-0 z-[9999] overflow-hidden" style={{ background: '#000' }}>
@@ -61,10 +62,13 @@ const GateRoot = () => {
     injectedRef.current = true;
     setBundleLoading(true);
     (async () => {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), BUNDLE_TIMEOUT_MS);
       try {
         const res = await fetch(BUNDLE_URL, {
           method: 'POST',
           credentials: 'include',
+          signal: controller.signal,
           headers: {
             'Content-Type': 'application/json',
             'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -117,9 +121,11 @@ const GateRoot = () => {
 
         setBundleLoading(false);
       } catch (e: any) {
-        setBundleError(e?.message || 'Failed to load app');
+        setBundleError(e?.name === 'AbortError' ? 'App load timed out. Refresh and try again.' : (e?.message || 'Failed to load app'));
         setBundleLoading(false);
         injectedRef.current = false;
+      } finally {
+        window.clearTimeout(timeout);
       }
     })();
   }, [isAuthed, session?.session_token]);

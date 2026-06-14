@@ -17,6 +17,7 @@ interface SessionInfo {
 
 const API_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/validate-key`;
 const SESSION_STORAGE_KEY = 'tl_ac_session_v2';
+const API_TIMEOUT_MS = 12000;
 
 function getDeviceFingerprint(): string {
   const signals = [
@@ -72,10 +73,15 @@ async function callApi(action: string, body: Record<string, unknown> = {}) {
   };
   if (memorySession?.csrf_token) headers['x-csrf-token'] = memorySession.csrf_token;
   let res: Response;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
   try {
-    res = await fetch(API_URL, { method: 'POST', credentials: 'include', headers, body: JSON.stringify({ action, ...body }) });
-  } catch {
+    res = await fetch(API_URL, { method: 'POST', credentials: 'include', headers, body: JSON.stringify({ action, ...body }), signal: controller.signal });
+  } catch (e: any) {
+    if (e?.name === 'AbortError') throw new Error('Connection timed out. Refresh and try again.');
     throw new Error('Connection blocked. Refresh and try again.');
+  } finally {
+    window.clearTimeout(timeout);
   }
 
   let data: any = null;
@@ -166,6 +172,20 @@ export function useAccessControl() {
   }, []);
 
   useEffect(() => { checkSession(); /* eslint-disable-next-line */ }, []);
+
+  useEffect(() => {
+    if (!isLoading) return;
+    const t = window.setTimeout(async () => {
+      memorySession = null;
+      await persistSession(null);
+      setIsAuthed(false);
+      setIsAdmin(false);
+      setSession(null);
+      setIsLoading(false);
+      setAuthState({ ready: true, authed: false, csrfToken: null, sessionToken: null });
+    }, API_TIMEOUT_MS + 3000);
+    return () => window.clearTimeout(t);
+  }, [isLoading]);
 
   useEffect(() => {
     if (!isAuthed || !memorySession?.session_token) return;
