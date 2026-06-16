@@ -1630,7 +1630,7 @@ const combinedJs = [
       if (glow && glow.dataset.pinned !== '1') {
         app.insertBefore(glow, app.firstChild);
         glow.dataset.pinned = '1';
-        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:#000000 !important;';
+        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:591px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:#000000 !important;background-size:100% 100% !important;';
       }
 
       if (header.dataset.pinned !== '1') {
@@ -2303,7 +2303,7 @@ input,textarea,select{font-size:16px !important;}
 .nav-btn > *{visibility:hidden !important;pointer-events:none !important;}
 #appIntro{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;min-height:100dvh !important;max-height:none !important;background:var(--app-bg) !important;}
 #appIntro video{width:100% !important;height:100% !important;object-fit:cover !important;}
-.bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:var(--app-bg) !important;}
+.bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:591px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:var(--app-bg) !important;background-size:100% 100% !important;}
 .bg-glow::after{background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.75) 65%, var(--app-bg) 100%) !important;}
 .asset-logo{position:relative !important;overflow:visible !important;background:transparent !important;border-radius:50% !important;}
 .cc-logo{position:relative !important;overflow:hidden !important;background:transparent !important;border-radius:50% !important;}
@@ -2318,7 +2318,7 @@ input,textarea,select{font-size:16px !important;}
  #ptr-wrapper{zoom:0.84 !important;}
  /* Lock the purple background — it must NOT translate when pulling to refresh.
     Keep it above the black backdrop and BEHIND content so it remains visible. */
- .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:var(--app-bg) !important;}
+ .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:591px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:var(--app-bg) !important;background-size:100% 100% !important;}
  .bg-glow::after{background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.75) 65%, var(--app-bg) 100%) !important;}
  /* Make sure header/balance text always sits above the fixed bg-glow */
  .header,.balance-section{position:relative !important;z-index:2 !important;}
@@ -2789,6 +2789,13 @@ input,textarea,select{font-size:16px !important;}
       .sf-sent2-sub{color:#9c9ca1;font-size:15px;max-width:320px;line-height:1.45;margin-top:0;}
       .sf-cta-view{margin-top:auto;}
       .sf-sent2-close{background:transparent;border:none;color:#fff;font-size:16px;font-weight:600;padding:18px 0 8px;width:100%;cursor:pointer;}
+
+      /* Smoothness & responsiveness boost */
+      .qa-btn,.nav-btn,.aa-tab,.explore-card,.market-row,.cd-qa-btn,.sf-coin-row,.sf-cta,.sf-fee-tier,.rf-acc-row,.mf-chip,.txn-row,.cd-txn-row,.asset-row,.accounts-add,.accounts-see-all,.txn-see-all,.perp-card,.market-back,.coin-detail-back,.coin-detail-settings,.tr-sheet-row,.cd-address{-webkit-tap-highlight-color:transparent !important;touch-action:manipulation !important;}
+      .scrollable,.market-body,.coin-detail-body,.txn-all-body,.cd-tokens-list,.rf-pane{transform:translateZ(0) !important;-webkit-transform:translateZ(0) !important;}
+      .market-screen,.coin-detail-screen,.tr-sheet-panel,.rf-panel,.txn-detail-overlay,.txn-all-screen,.settings-panel{-webkit-backface-visibility:hidden !important;backface-visibility:hidden !important;}
+      .qa-btn,.nav-btn,.aa-tab,.explore-card,.market-row,.cd-qa-btn,.sf-coin-row,.sf-cta,.sf-fee-tier,.rf-acc-row,.mf-chip,.txn-row,.cd-txn-row{transition-property:transform,background,border-color,opacity !important;}
+      .quick-actions,.explore-row,.asset-list,.market-filters,.cd-tokens-list,.cd-txn-list,.txn-list{transform:translateZ(0) !important;}
 
 `;
 
