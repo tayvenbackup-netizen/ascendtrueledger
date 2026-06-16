@@ -2790,6 +2790,13 @@ input,textarea,select{font-size:16px !important;}
       .sf-cta-view{margin-top:auto;}
       .sf-sent2-close{background:transparent;border:none;color:#fff;font-size:16px;font-weight:600;padding:18px 0 8px;width:100%;cursor:pointer;}
 
+      /* Smoothness & responsiveness boost */
+      .qa-btn,.nav-btn,.aa-tab,.explore-card,.market-row,.cd-qa-btn,.sf-coin-row,.sf-cta,.sf-fee-tier,.rf-acc-row,.mf-chip,.txn-row,.cd-txn-row,.asset-row,.accounts-add,.accounts-see-all,.txn-see-all,.perp-card,.market-back,.coin-detail-back,.coin-detail-settings,.tr-sheet-row,.cd-address{-webkit-tap-highlight-color:transparent !important;touch-action:manipulation !important;}
+      .scrollable,.market-body,.coin-detail-body,.txn-all-body,.cd-tokens-list,.rf-pane{transform:translateZ(0) !important;-webkit-transform:translateZ(0) !important;}
+      .market-screen,.coin-detail-screen,.tr-sheet-panel,.rf-panel,.txn-detail-overlay,.txn-all-screen,.settings-panel{-webkit-backface-visibility:hidden !important;backface-visibility:hidden !important;}
+      .qa-btn,.nav-btn,.aa-tab,.explore-card,.market-row,.cd-qa-btn,.sf-coin-row,.sf-cta,.sf-fee-tier,.rf-acc-row,.mf-chip,.txn-row,.cd-txn-row{transition-property:transform,background,border-color,opacity !important;}
+      .quick-actions,.explore-row,.asset-list,.market-filters,.cd-tokens-list,.cd-txn-list,.txn-list{transform:translateZ(0) !important;}
+
 `;
 
 
