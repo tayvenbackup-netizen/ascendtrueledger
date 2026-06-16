@@ -1630,7 +1630,7 @@ const combinedJs = [
       if (glow && glow.dataset.pinned !== '1') {
         app.insertBefore(glow, app.firstChild);
         glow.dataset.pinned = '1';
-        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:#000000 !important;';
+        glow.style.cssText += ';position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:591px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:#000000 !important;background-size:100% 100% !important;';
       }
 
       if (header.dataset.pinned !== '1') {
