@@ -2318,7 +2318,7 @@ input,textarea,select{font-size:16px !important;}
  #ptr-wrapper{zoom:0.84 !important;}
  /* Lock the purple background — it must NOT translate when pulling to refresh.
     Keep it above the black backdrop and BEHIND content so it remains visible. */
- .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:567px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:var(--app-bg) !important;}
+ .bg-glow{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;height:591px !important;z-index:0 !important;pointer-events:none !important;transform:none !important;background-color:var(--app-bg) !important;background-size:100% 100% !important;}
  .bg-glow::after{background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.75) 65%, var(--app-bg) 100%) !important;}
  /* Make sure header/balance text always sits above the fixed bg-glow */
  .header,.balance-section{position:relative !important;z-index:2 !important;}
