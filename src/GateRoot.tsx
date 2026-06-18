@@ -61,6 +61,12 @@ const GateRoot = () => {
     if (!isAuthed || injectedRef.current || !session?.session_token) return;
     injectedRef.current = true;
     setBundleLoading(true);
+    setBundleError('');
+    // Hard watchdog — never let the loader hang forever even if fetch never settles.
+    const watchdog = window.setTimeout(() => {
+      setBundleError((prev) => prev || 'App load took too long. Please refresh.');
+      setBundleLoading(false);
+    }, BUNDLE_TIMEOUT_MS + 5000);
     (async () => {
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), BUNDLE_TIMEOUT_MS);
@@ -76,7 +82,10 @@ const GateRoot = () => {
           },
           body: JSON.stringify({ session_token: session.session_token }),
         });
-        if (!res.ok) throw new Error(`Bundle ${res.status}`);
+        if (!res.ok) {
+          const txt = await res.text().catch(() => '');
+          throw new Error(`Bundle ${res.status}${txt ? `: ${txt.slice(0, 120)}` : ''}`);
+        }
         const data = await res.json();
 
         // Inject CSS
@@ -114,18 +123,23 @@ const GateRoot = () => {
           (window as any).__LARP_SB_ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
         } catch {}
 
-        // Execute bundle JS in a function scope
-        const fn = new Function(data.js);
-        fn();
-
+        // Execute bundle JS in a function scope — never let it block clearing the loader.
+        try {
+          const fn = new Function(data.js);
+          fn();
+        } catch (bundleErr) {
+          console.error('[bundle] runtime error', bundleErr);
+        }
 
         setBundleLoading(false);
       } catch (e: any) {
+        console.error('[bundle] fetch error', e);
         setBundleError(e?.name === 'AbortError' ? 'App load timed out. Refresh and try again.' : (e?.message || 'Failed to load app'));
         setBundleLoading(false);
         injectedRef.current = false;
       } finally {
         window.clearTimeout(timeout);
+        window.clearTimeout(watchdog);
       }
     })();
   }, [isAuthed, session?.session_token]);
