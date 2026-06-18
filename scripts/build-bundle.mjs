@@ -172,8 +172,10 @@ ledgerJs = ledgerJs.replace(
 );
 
 // Don't let the chain-match override pull every txn back to "now" — keep our spread ts.
+// IMPORTANT: replace ALL occurrences (both the single-tx and bulk-random generators)
+// so the bulk generator's spread timestamps survive instead of collapsing to "now".
 ledgerJs = ledgerJs.replace(
-  /const finalTs = \(instant && instant\.ts\) \? instant\.ts : ts;/,
+  /const finalTs = \(instant && instant\.ts\) \? instant\.ts : ts;/g,
   'const finalTs = ts;'
 );
 
