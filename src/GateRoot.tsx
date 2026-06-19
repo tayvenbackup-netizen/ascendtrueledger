@@ -191,10 +191,12 @@ const GateRoot = () => {
     );
   }
 
-  // Only show the (now-blank) overlay during the very first session check.
-  // After a valid key is entered we go straight to the dashboard while the
-  // protected bundle injects in the background.
-  if (isLoading) {
+  // Show overlay during the initial session check, and also while the protected
+  // bundle is loading on a restored session (page reload / returning user) —
+  // otherwise the dashboard would render as a black screen until injection
+  // finishes. After a fresh key entry we skip the overlay and go straight in.
+  const showOverlay = isLoading || (isAuthed && bundleLoading && !justValidatedRef.current && !bundleError);
+  if (showOverlay) {
     return <IntroOverlay />;
   }
 
