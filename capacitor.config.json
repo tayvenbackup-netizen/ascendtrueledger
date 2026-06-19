@@ -2,10 +2,6 @@
   "appId": "app.lovable.c65cfa7bd31441e4b873e652c11be301",
   "appName": "trueledgerui",
   "webDir": "dist",
-  "server": {
-    "url": "https://c65cfa7b-d314-41e4-b873-e652c11be301.lovableproject.com?forceHideBadge=true",
-    "cleartext": true
-  },
   "ios": {
     "contentInset": "never",
     "backgroundColor": "#000000"
