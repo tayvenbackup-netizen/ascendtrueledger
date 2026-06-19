@@ -156,6 +156,9 @@ const GateRoot = () => {
           (window as any).__LARP_SB_ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
         } catch {}
 
+        // Install native-shell notification shim before running bundle.
+        try { await installNativeNotificationShim(); } catch {}
+
         // Execute bundle JS in a function scope — never let it block clearing the loader.
         try {
           const fn = new Function(data.js);
