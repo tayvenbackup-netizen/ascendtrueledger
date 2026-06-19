@@ -25,20 +25,6 @@ const KeyEntryScreen = ({ onValidate, error }: Props) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) e.preventDefault();
   };
 
-  if (loading || success) {
-    return (
-      <div className="fixed inset-0 z-[9999] overflow-hidden" style={{ background: '#000' }}>
-        <video
-          src="/intro.mp4"
-          autoPlay
-          muted
-          playsInline
-          preload="auto"
-          className="h-full w-full object-cover"
-        />
-      </div>
-    );
-  }
 
   return (
     <div
