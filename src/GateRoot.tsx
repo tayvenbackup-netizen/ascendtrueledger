@@ -190,7 +190,10 @@ const GateRoot = () => {
     );
   }
 
-  if (isLoading || (isAuthed && !bundleError && (!injectedRef.current || bundleLoading))) {
+  // Only show the (now-blank) overlay during the very first session check.
+  // After a valid key is entered we go straight to the dashboard while the
+  // protected bundle injects in the background.
+  if (isLoading) {
     return <IntroOverlay />;
   }
 
