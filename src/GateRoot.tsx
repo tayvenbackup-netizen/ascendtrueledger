@@ -58,9 +58,10 @@ const GateRoot = () => {
   const { isAuthed, isAdmin, isLoading, validateKey, error, session } = useAccessControl();
   const [adminOpen, setAdminOpen] = useState(false);
   const [bundleLoading, setBundleLoading] = useState(false);
+  const [bundleError, setBundleError] = useState('');
   const injectedRef = useRef(false);
   const justValidatedRef = useRef(false);
-  const [bundleReady, setBundleReady] = useState(false);
+  const [isPC, setIsPC] = useState(() => {
     try {
       const h = location.hostname;
       if (h.includes('lovable.app') || h.includes('lovableproject.com') || h.includes('lovable.dev') || h === 'localhost') return false;
