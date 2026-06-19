@@ -202,7 +202,7 @@ const GateRoot = () => {
 
   return (
     <>
-      {!isAuthed && <KeyEntryScreen onValidate={validateKey} error={error} />}
+      {!isAuthed && <KeyEntryScreen onValidate={async (k: string) => { const ok = await validateKey(k); if (ok) justValidatedRef.current = true; return ok; }} error={error} />}
       {isAuthed && bundleError && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center px-6 text-center" style={{ background: '#0a0a14', color: '#ff7a7a' }}>
           <div className="text-sm">Failed to load app: {bundleError}</div>
