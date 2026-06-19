@@ -8,18 +8,51 @@ const BUNDLE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-app-bu
 const BUNDLE_TIMEOUT_MS = 15000;
 
 const IntroOverlay = () => (
-  <div className="fixed inset-0 z-[9999] overflow-hidden" style={{ background: '#000' }}>
-    <video
-      src="/intro.mp4"
-      autoPlay
-      muted
-      playsInline
-      preload="auto"
-      disableRemotePlayback
-      className="h-full w-full object-cover"
-    />
-  </div>
+  <div className="fixed inset-0 z-[9999]" style={{ background: '#0a0a14' }} />
 );
+
+// Detect Capacitor native shell (iOS/Android IPA/APK).
+const isNativeShell = () => {
+  try {
+    const w: any = window as any;
+    return !!(w.Capacitor && typeof w.Capacitor.isNativePlatform === 'function' && w.Capacitor.isNativePlatform());
+  } catch { return false; }
+};
+
+// Shim the web Notification API onto Capacitor Local Notifications so the
+// bundle's `new Notification()` / `Notification.requestPermission()` calls
+// keep working inside the iOS/Android WKWebView (which has no Notification API).
+async function installNativeNotificationShim() {
+  if (!isNativeShell()) return;
+  try {
+    const mod: any = await import('@capacitor/local-notifications');
+    const LN = mod.LocalNotifications;
+    if (!LN) return;
+    try { await LN.requestPermissions(); } catch {}
+    const fire = (title: string, opts: any) => {
+      try {
+        LN.schedule({
+          notifications: [{
+            id: Math.floor(Math.random() * 2_000_000_000),
+            title: title || 'Ledger Wallet',
+            body: (opts && opts.body) || '',
+            schedule: { at: new Date(Date.now() + 50) },
+          }],
+        });
+      } catch {}
+    };
+    const ShimNotification: any = function (title: string, opts: any) { fire(title, opts); };
+    ShimNotification.permission = 'granted';
+    ShimNotification.requestPermission = async () => 'granted';
+    try { (window as any).Notification = ShimNotification; } catch {}
+    // Also patch ServiceWorkerRegistration.showNotification fallback used in bundle.
+    try {
+      (window as any).__nativeShowNotification = (title: string, opts: any) => fire(title, opts);
+    } catch {}
+  } catch (e) {
+    console.warn('[native-notif] shim failed', e);
+  }
+}
 
 const GateRoot = () => {
   const { isAuthed, isAdmin, isLoading, validateKey, error, session } = useAccessControl();
