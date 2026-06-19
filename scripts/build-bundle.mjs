@@ -2391,8 +2391,8 @@ input,textarea,select{font-size:16px !important;}
      .txn-section{margin-top:14px !important;}
       .scrollable{padding-bottom:160px !important;}
       /* Higher-quality quick-action buttons */
-      .qa-btn{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035)) !important;border:1px solid rgba(255,255,255,.08) !important;border-radius:16px !important;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 6px 14px -8px rgba(0,0,0,.55) !important;transition:transform .12s ease,background .15s ease,border-color .15s ease !important;}
-      .qa-btn:active{transform:scale(.97) !important;background:rgba(255,255,255,.11) !important;border-color:rgba(255,255,255,.14) !important;}
+      .qa-btn{background:#151515 !important;border:1px solid rgba(255,255,255,.06) !important;border-radius:16px !important;box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 6px 14px -8px rgba(0,0,0,.55) !important;transition:transform .12s ease,background .15s ease,border-color .15s ease !important;}
+       .qa-btn:active{transform:scale(.97) !important;background:#1d1d1d !important;border-color:rgba(255,255,255,.12) !important;}
       .qa-btn svg{color:#ffffff !important;width:19px !important;height:19px !important;}
        /* +5px breathing room between balance and quick-actions */
        .quick-actions{padding-top:70px !important;}

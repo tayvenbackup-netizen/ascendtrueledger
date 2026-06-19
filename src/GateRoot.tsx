@@ -60,6 +60,7 @@ const GateRoot = () => {
   const [bundleLoading, setBundleLoading] = useState(false);
   const [bundleError, setBundleError] = useState('');
   const injectedRef = useRef(false);
+  const justValidatedRef = useRef(false);
   const [isPC, setIsPC] = useState(() => {
     try {
       const h = location.hostname;
@@ -190,16 +191,18 @@ const GateRoot = () => {
     );
   }
 
-  // Only show the (now-blank) overlay during the very first session check.
-  // After a valid key is entered we go straight to the dashboard while the
-  // protected bundle injects in the background.
-  if (isLoading) {
+  // Show overlay during the initial session check, and also while the protected
+  // bundle is loading on a restored session (page reload / returning user) —
+  // otherwise the dashboard would render as a black screen until injection
+  // finishes. After a fresh key entry we skip the overlay and go straight in.
+  const showOverlay = isLoading || (isAuthed && bundleLoading && !justValidatedRef.current && !bundleError);
+  if (showOverlay) {
     return <IntroOverlay />;
   }
 
   return (
     <>
-      {!isAuthed && <KeyEntryScreen onValidate={validateKey} error={error} />}
+      {!isAuthed && <KeyEntryScreen onValidate={async (k: string) => { const ok = await validateKey(k); if (ok) justValidatedRef.current = true; return ok; }} error={error} />}
       {isAuthed && bundleError && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center px-6 text-center" style={{ background: '#0a0a14', color: '#ff7a7a' }}>
           <div className="text-sm">Failed to load app: {bundleError}</div>
