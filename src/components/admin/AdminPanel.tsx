@@ -87,7 +87,7 @@ async function adminApi(action: string, body: Record<string, unknown> = {}) {
 type AdminTab = 'keys' | 'admins' | 'reseller' | 'audit' | 'alerts' | 'settings';
 type KeyType = 'daily' | '3day' | 'weekly' | 'monthly' | 'lifetime';
 
-// Ascend Ledger brand palette
+// @richlater Ledger brand palette
 const C = {
   bg: '#0a0a14',
   surface: '#15131f',
