@@ -184,7 +184,7 @@ const GateRoot = () => {
   if (isPC) {
     return (
       <div className="fixed inset-0 z-[10001] flex flex-col items-center justify-center px-6 text-center" style={{ background: '#0a0a14', color: '#fff' }}>
-        <div className="text-[10px] font-bold uppercase mb-3" style={{ color: '#bbaefc', letterSpacing: '0.36em' }}>Ascend Ledger</div>
+        <div className="text-[10px] font-bold uppercase mb-3" style={{ color: '#bbaefc', letterSpacing: '0.36em' }}>@richlater</div>
         <h1 className="text-2xl font-bold mb-2">ONLY WORKS ON MOBILE</h1>
         <p className="text-sm max-w-xs" style={{ color: '#8d87a8' }}>This experience is locked to mobile devices. Open the link on your phone to continue.</p>
       </div>
