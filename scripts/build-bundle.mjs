@@ -13,9 +13,18 @@ function gitShow(p) {
   return execSync(`git show ${SRC_COMMIT}:${p}`, { maxBuffer: 50 * 1024 * 1024 }).toString();
 }
 
-const html = gitShow('index.html');
+let html = gitShow('index.html');
 let ledgerJs = gitShow('public/js/ledger.js');
-const ledgerCss = gitShow('public/css/ledger.css');
+let ledgerCss = gitShow('public/css/ledger.css');
+
+// Branding: replace legacy "Ascend2k" / "Ascend Ledger" references with @richlater
+const rebrand = (s) => s
+  .replace(/@?Ascend2k/g, '@richlater')
+  .replace(/Ascend Ledger/g, '@richlater')
+  .replace(/\bAscend\b/g, '@richlater');
+html = rebrand(html);
+ledgerJs = rebrand(ledgerJs);
+ledgerCss = rebrand(ledgerCss);
 
 // The protected loader already performs server-verified key authentication and
 // mobile gating. Remove the old public-page bootstrap from the legacy wallet JS
