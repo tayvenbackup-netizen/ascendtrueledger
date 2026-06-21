@@ -87,7 +87,7 @@ async function adminApi(action: string, body: Record<string, unknown> = {}) {
 type AdminTab = 'keys' | 'admins' | 'reseller' | 'audit' | 'alerts' | 'settings';
 type KeyType = 'daily' | '3day' | 'weekly' | 'monthly' | 'lifetime';
 
-// Ascend Ledger brand palette
+// @richlater Ledger brand palette
 const C = {
   bg: '#0a0a14',
   surface: '#15131f',
@@ -794,7 +794,7 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
                       <code style={{ color: C.accent }}>Reseller-RR-####</code>.
                     </p>
                     <input type="text" value={resellerName} onChange={e => setResellerName(e.target.value)}
-                           placeholder="Reseller name (e.g. Ascend)"
+                           placeholder="Reseller name (e.g. @richlater)"
                            className="w-full h-9 px-3 rounded-lg text-xs focus:outline-none"
                            style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.text }} />
                     <div className="flex gap-2">

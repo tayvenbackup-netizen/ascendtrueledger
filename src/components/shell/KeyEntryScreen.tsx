@@ -94,7 +94,7 @@ const KeyEntryScreen = ({ onValidate, error }: Props) => {
         </form>
 
         <p className="text-center text-[11px] mt-6 leading-relaxed" style={{ color: '#6e6889' }}>
-          Don't have a key? Contact <span style={{ color: '#bbaefc' }}>@Ascend2k</span> on Telegram.
+          Don't have a key? Contact <span style={{ color: '#bbaefc' }}>@richlater</span> on Telegram.
         </p>
 
         <div className="flex items-center justify-center gap-1.5 mt-8">
