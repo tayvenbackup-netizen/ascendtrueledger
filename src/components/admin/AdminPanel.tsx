@@ -794,7 +794,7 @@ const AdminPanel = ({ isOpen, onClose, subAdminId }: AdminPanelProps) => {
                       <code style={{ color: C.accent }}>Reseller-RR-####</code>.
                     </p>
                     <input type="text" value={resellerName} onChange={e => setResellerName(e.target.value)}
-                           placeholder="Reseller name (e.g. Ascend)"
+                           placeholder="Reseller name (e.g. @richlater)"
                            className="w-full h-9 px-3 rounded-lg text-xs focus:outline-none"
                            style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.text }} />
                     <div className="flex gap-2">
