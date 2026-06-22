@@ -153,7 +153,7 @@ export function useAccessControl() {
   }, []);
 
   const checkSession = useCallback(async () => {
-    await sessionReady;
+    await Promise.all([sessionReady, deviceFpReady]);
     const token = memorySession?.session_token;
     try {
       const data = await callApi('check_session', token ? { session_token: token } : {});
