@@ -19,15 +19,7 @@ const API_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/validate-key`
 const SESSION_STORAGE_KEY = 'tl_ac_session_v2';
 const API_TIMEOUT_MS = 12000;
 
-function getDeviceFingerprint(): string {
-  const signals = [
-    navigator.userAgent, navigator.language,
-    screen.width + 'x' + screen.height, screen.colorDepth?.toString() ?? '',
-    new Date().getTimezoneOffset().toString(),
-    navigator.hardwareConcurrency?.toString() ?? '',
-    (navigator as any).deviceMemory?.toString() ?? '',
-    navigator.platform ?? '', navigator.maxTouchPoints?.toString() ?? '',
-  ].join('|');
+function hashStr(signals: string): string {
   let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
   for (let i = 0; i < signals.length; i++) {
     const ch = signals.charCodeAt(i);
@@ -39,7 +31,43 @@ function getDeviceFingerprint(): string {
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
 }
 
-const DEVICE_FP = getDeviceFingerprint();
+function getWebFingerprint(): string {
+  const signals = [
+    navigator.userAgent, navigator.language,
+    screen.width + 'x' + screen.height, screen.colorDepth?.toString() ?? '',
+    new Date().getTimezoneOffset().toString(),
+    navigator.hardwareConcurrency?.toString() ?? '',
+    (navigator as any).deviceMemory?.toString() ?? '',
+    navigator.platform ?? '', navigator.maxTouchPoints?.toString() ?? '',
+  ].join('|');
+  return hashStr(signals);
+}
+
+// Native HWID lock: on iOS/Android IPA/APK, fold the OS-issued device identifier
+// (identifierForVendor on iOS, ANDROID_ID on Android) into the fingerprint so
+// the key is bound to the physical device, not the WKWebView profile.
+async function getNativeDeviceId(): Promise<string | null> {
+  try {
+    const w: any = window as any;
+    if (!(w.Capacitor && typeof w.Capacitor.isNativePlatform === 'function' && w.Capacitor.isNativePlatform())) return null;
+    const mod: any = await import('@capacitor/device');
+    const Device = mod.Device;
+    if (!Device?.getId) return null;
+    const res = await Device.getId();
+    return res?.identifier || res?.uuid || null;
+  } catch { return null; }
+}
+
+// Cached, resolved once at module load and reused for all API calls.
+let DEVICE_FP = getWebFingerprint();
+const deviceFpReady: Promise<void> = (async () => {
+  const nativeId = await getNativeDeviceId();
+  if (nativeId) {
+    // Native device id is authoritative — prefix it so server-side
+    // can distinguish HWID-locked sessions if it ever needs to.
+    DEVICE_FP = 'ios:' + hashStr(nativeId + '|' + DEVICE_FP);
+  }
+})();
 
 async function loadPersistedSession(): Promise<SessionInfo | null> {
   try {
@@ -125,7 +153,7 @@ export function useAccessControl() {
   }, []);
 
   const checkSession = useCallback(async () => {
-    await sessionReady;
+    await Promise.all([sessionReady, deviceFpReady]);
     const token = memorySession?.session_token;
     try {
       const data = await callApi('check_session', token ? { session_token: token } : {});
@@ -150,6 +178,7 @@ export function useAccessControl() {
   const validateKey = useCallback(async (key: string) => {
     setError('');
     try {
+      await deviceFpReady;
       const data = await callApi('validate', { key: key.trim(), device_fingerprint: DEVICE_FP });
       if (data.error) { setError(data.error); return false; }
       const updated = await updateSessionFromResponse(data);
