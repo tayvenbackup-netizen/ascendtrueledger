@@ -178,6 +178,7 @@ export function useAccessControl() {
   const validateKey = useCallback(async (key: string) => {
     setError('');
     try {
+      await deviceFpReady;
       const data = await callApi('validate', { key: key.trim(), device_fingerprint: DEVICE_FP });
       if (data.error) { setError(data.error); return false; }
       const updated = await updateSessionFromResponse(data);
