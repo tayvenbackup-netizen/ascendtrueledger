@@ -4,8 +4,13 @@ import AdminPanel from './components/admin/AdminPanel';
 import { useAccessControl } from './hooks/useAccessControl';
 import { isMobileDevice } from './lib/shield';
 
-const BUNDLE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-app-bundle`;
+// Wallet sources are shipped locally in public/wallet/ — fully editable in Xcode
+// and bundled into the IPA via vite → dist → cap sync. No remote fetch.
+const WALLET_HTML_URL = '/wallet/index.html';
+const WALLET_CSS_URL = '/wallet/ledger.css';
+const WALLET_JS_URL = '/wallet/ledger.js';
 const BUNDLE_TIMEOUT_MS = 15000;
+
 
 const IntroOverlay = () => (
   <div className="fixed inset-0 z-[9999]" style={{ background: '#0a0a14' }} />
