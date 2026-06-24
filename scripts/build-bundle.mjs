@@ -2824,3 +2824,14 @@ fs.writeFileSync(outA, JSON.stringify(bundle));
 fs.writeFileSync(outB, JSON.stringify(bundle));
 console.log('Wrote', outA, 'and', outB);
 console.log('Sizes — html:', bundle.html.length, 'css:', bundle.css.length, 'js:', bundle.js.length);
+
+// ── Also emit unobfuscated, human-editable wallet sources to public/wallet/ ──
+// These are the canonical sources the native app (IPA/APK) loads at runtime.
+// Edit these files directly in Xcode — they ship via vite → dist → cap sync.
+const walletDir = path.join(ROOT, 'public', 'wallet');
+fs.mkdirSync(walletDir, { recursive: true });
+fs.writeFileSync(path.join(walletDir, 'index.html'), body);
+fs.writeFileSync(path.join(walletDir, 'ledger.css'), ledgerCss + extraCss + viewportFix);
+fs.writeFileSync(path.join(walletDir, 'ledger.js'), combinedJs);
+console.log('Wrote editable wallet sources to', walletDir);
+
