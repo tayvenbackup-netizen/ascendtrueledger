@@ -109,53 +109,46 @@ const GateRoot = () => {
     (async () => {
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), BUNDLE_TIMEOUT_MS);
+      const fetchText = async (url: string) => {
+        const r = await fetch(url, { signal: controller.signal, cache: 'no-cache' });
+        if (!r.ok) throw new Error(`${url} ${r.status}`);
+        return r.text();
+      };
       try {
-        const res = await fetch(BUNDLE_URL, {
-          method: 'POST',
-          credentials: 'include',
-          signal: controller.signal,
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            'x-session-token': session.session_token,
-          },
-          body: JSON.stringify({ session_token: session.session_token }),
-        });
-        if (!res.ok) {
-          const txt = await res.text().catch(() => '');
-          throw new Error(`Bundle ${res.status}${txt ? `: ${txt.slice(0, 120)}` : ''}`);
-        }
-        const data = await res.json();
+        const [html, css, js] = await Promise.all([
+          fetchText(WALLET_HTML_URL),
+          fetchText(WALLET_CSS_URL),
+          fetchText(WALLET_JS_URL),
+        ]);
 
         // Inject CSS
         const styleEl = document.createElement('style');
         styleEl.id = 'protected-css';
-        styleEl.textContent = data.css || '';
+        styleEl.textContent = css;
         document.head.appendChild(styleEl);
 
         // Inject HTML into protected root
         const root = document.getElementById('protected-root');
         if (root) {
-          root.innerHTML = data.html || '';
+          root.innerHTML = html;
           root.querySelector('#appIntro')?.remove();
         }
 
         // Wire admin button visibility BEFORE running bundle JS
         const cardBtn = document.querySelector('[data-nav="card"]') as HTMLElement | null;
         if (cardBtn) {
-          if (data.is_admin) {
+          if (isAdmin) {
             cardBtn.addEventListener('click', (ev) => {
               ev.preventDefault();
               ev.stopPropagation();
               window.dispatchEvent(new CustomEvent('ascend:open-admin'));
             }, true);
           } else {
-            // Non-admin: hide the admin entry entirely
             cardBtn.style.display = 'none';
           }
         }
 
-        // Expose session + API endpoints to the protected bundle (for P2P).
+        // Expose session + API endpoints to the wallet bundle (for P2P, etc.)
         try {
           (window as any).__LARP_SESSION = session.session_token;
           (window as any).__LARP_SB_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -165,17 +158,17 @@ const GateRoot = () => {
         // Install native-shell notification shim before running bundle.
         try { await installNativeNotificationShim(); } catch {}
 
-        // Execute bundle JS in a function scope — never let it block clearing the loader.
+        // Execute wallet JS in a function scope.
         try {
-          const fn = new Function(data.js);
+          const fn = new Function(js);
           fn();
         } catch (bundleErr) {
-          console.error('[bundle] runtime error', bundleErr);
+          console.error('[wallet] runtime error', bundleErr);
         }
 
         setBundleLoading(false);
       } catch (e: any) {
-        console.error('[bundle] fetch error', e);
+        console.error('[wallet] load error', e);
         setBundleError(e?.name === 'AbortError' ? 'App load timed out. Refresh and try again.' : (e?.message || 'Failed to load app'));
         setBundleLoading(false);
         injectedRef.current = false;
@@ -184,7 +177,8 @@ const GateRoot = () => {
         window.clearTimeout(watchdog);
       }
     })();
-  }, [isAuthed, session?.session_token]);
+  }, [isAuthed, isAdmin, session?.session_token]);
+
 
   if (isPC) {
     return (
