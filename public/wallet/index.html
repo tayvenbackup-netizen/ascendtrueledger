@@ -1,0 +1,782 @@
+
+  
+  <div class="app">
+
+    <div class="spinner center" id="pullSpinner" style="display:none">
+    </div>
+
+    <div class="scrollable">
+    <div id="ptr-wrapper">
+    <div class="bg-glow"></div>
+
+
+    <header class="header">
+      <button class="circle-btn" id="eyeBtn" aria-label="Device">
+        <img src="/assets/header-device-icon.png" alt="Device" class="header-device-img"/>
+      </button>
+      <div class="header-right">
+        <button class="circle-btn" aria-label="Discover">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <polygon points="15.5 8.5 13 13.5 8.5 15.5 11 10.5 15.5 8.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </button>
+        <button class="circle-btn has-dot" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.7 21a2 2 0 01-3.4 0"/>
+          </svg>
+        </button>
+        <button class="circle-btn" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15 1.65 1.65 0 003.09 14H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6 1.65 1.65 0 0010 3.09V3a2 2 0 014 0v.09A1.65 1.65 0 0015 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- BALANCE -->
+    <section class="balance-section">
+      <h1 class="balance-amount" id="balanceDisplay">$0.00</h1>
+      <button class="balance-pill" id="balanceChange">
+        <span class="bp-pct">+0.00%</span>
+        <span class="bp-dot">·</span>
+        <span class="bp-period">Today</span>
+        <span class="bp-arrow">›</span>
+      </button>
+    </section>
+
+    <!-- Hidden chart shell to keep JS happy -->
+    <div class="chart-container" id="chartContainer" style="display:none">
+      <svg id="chartSvg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <path id="chartLine" d="" fill="none" stroke="#BBAEFC" stroke-width="1.8"/>
+        <line id="chartCrosshair" x1="0" y1="0" x2="0" y2="0" stroke="rgba(255,255,255,0.25)" style="display:none"/>
+        <circle id="chartDot" cx="0" cy="0" r="4.5" fill="white" style="display:none"/>
+      </svg>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="quick-actions">
+      <button class="qa-btn" data-action="transfer" onclick="window.__openTransferSheet&&window.__openTransferSheet(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 4v16M8 4l-3 3M8 4l3 3"/>
+          <path d="M16 20V4M16 20l-3-3M16 20l3-3"/>
+        </svg>
+        <span>Transfer</span>
+      </button>
+      <button class="qa-btn">
+        <img src="/assets/swap-icon.png" alt="Swap" class="qa-icon-img"/>
+        <span>Swap</span>
+      </button>
+      <button class="qa-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        <span>Buy</span>
+      </button>
+    </div>
+
+    <!-- EXPLORE MARKET -->
+    <div class="section-header">
+      <span>Explore the market</span>
+      <span class="section-chevron">›</span>
+    </div>
+
+    <div class="explore-row text-xs font-thin">
+      <div class="explore-card mood">
+        <div class="mood-gauge">
+          <svg viewBox="0 0 60 36" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="moodGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#BB5454"/>
+                <stop offset="50%" stop-color="#E0B84A"/>
+                <stop offset="100%" stop-color="#5BB85B"/>
+              </linearGradient>
+            </defs>
+            <path d="M5 32 A25 25 0 0 1 55 32" stroke="url(#moodGrad)" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <circle cx="51" cy="20" r="3" fill="#fff"/>
+          </svg>
+          <div class="mood-num">70</div>
+        </div>
+        <div class="mood-label">Mood</div>
+        <div class="mood-state">Greedy</div>
+      </div>
+
+      <div class="explore-card coin-card" data-coin="eth">
+        <div class="cc-logo"><img src="/assets/coin-eth.png" alt="ETH"/></div>
+        <div class="cc-name">ETH</div>
+        <div class="cc-pct" id="exploreEthPct">+0.00%</div>
+      </div>
+
+      <div class="explore-card coin-card" data-coin="btc">
+        <div class="cc-logo"><img src="/assets/coin-btc.png" alt="BTC"/></div>
+        <div class="cc-name">BTC</div>
+        <div class="cc-pct" id="exploreBtcPct">+0.00%</div>
+      </div>
+
+      <div class="explore-card coin-card" data-coin="sol">
+        <div class="cc-logo"><img src="/assets/coin-sol.png" alt="SOL"/></div>
+        <div class="cc-name">SOL</div>
+        <div class="cc-pct" id="exploreSolPct">+0.00%</div>
+      </div>
+
+      <div class="explore-card coin-card" data-coin="usdt_eth">
+        <div class="cc-logo"><img src="/assets/coin-usdt.png" alt="USDT"/></div>
+        <div class="cc-name">USDT</div>
+        <div class="cc-pct" id="exploreUsdtPct">+0.00%</div>
+      </div>
+
+
+      <div class="explore-card image-card" data-coin="zec">
+        <img src="/assets/zec.jpeg" alt="ZEC"/>
+      </div>
+
+      <div class="explore-card image-card" data-coin="wlfi">
+        <img src="/assets/wlfi.jpeg" alt="WLFI"/>
+      </div>
+
+      <div class="explore-card image-card" data-coin="algo">
+        <img src="/assets/algo.jpeg" alt="ALGO"/>
+      </div>
+
+      <div class="explore-card image-card" data-coin="viewall">
+        <img src="/assets/viewall.jpeg" alt="View all"/>
+      </div>
+    </div>
+
+    <!-- ASSETS / ACCOUNTS TABS -->
+    <div class="aa-tabs" id="aaTabs">
+      <button class="aa-tab active" data-aa="assets">Assets</button>
+      <button class="aa-tab" data-aa="accounts">Accounts</button>
+    </div>
+
+    <div class="asset-list" id="assetList"></div>
+    <div class="accounts-wrap" id="accountsWrap" style="display:none">
+      <div class="accounts-list" id="accountsList"></div>
+      <button class="accounts-add" id="accountsAdd">
+        <span>Add new or existing account</span><span class="aa-plus">+</span>
+      </button>
+      <button class="accounts-see-all" id="accountsSeeAll">See all accounts</button>
+    </div>
+
+    <!-- TRANSACTION HISTORY -->
+    <div class="txn-section">
+      <div class="txn-heading">TRANSACTION HISTORY</div>
+      <div class="txn-list" id="txnList"></div>
+      <button class="txn-see-all" id="txnSeeAll" style="display:none">See all</button>
+    </div>
+
+    <!-- Hidden allocation/txn for JS -->
+    <div class="allocation" style="display:none"></div>
+    <div class="transaction-history" style="display:none"></div>
+
+    <div style="height: 0"></div>
+
+    </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <div class="nav-pill">
+        <button class="nav-btn active text-sm" data-nav="home">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2 3 11h2v9h5v-6h4v6h5v-9h2z"/></svg>
+          <span>Home</span>
+        </button>
+        <button class="nav-btn text-sm" data-nav="swap">
+          <img src="/assets/nav-swap-icon.png" alt="Swap" class="nav-icon-img"/>
+          <span>Swap</span>
+        </button>
+        <button class="nav-btn text-sm" data-nav="earn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="16" rx="2"/>
+            <polyline points="7 14 11 10 14 13 18 8"/>
+          </svg>
+          <span>Earn</span>
+        </button>
+        <button class="nav-btn text-sm" data-nav="card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2.5" y="6" width="19" height="13" rx="2"/>
+            <line x1="2.5" y1="10.5" x2="21.5" y2="10.5"/>
+            <line x1="16" y1="15.5" x2="19" y2="15.5"/>
+          </svg>
+          <span>Card</span>
+        </button>
+      </div>
+    </nav>
+
+  </div>
+
+  <div id="settingsOverlay" class="settings-overlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <span class="settings-title">Edit Portfolio - @richlater on telegram</span>
+        <button id="settingsClose" class="settings-close">&#x2715;</button>
+      </div>
+
+      <div class="editor-tabs">
+        <button class="editor-tab active" data-etab="crypto">Add Crypto</button>
+        <button class="editor-tab" data-etab="txn">Add Transaction</button>
+      </div>
+
+      <div class="settings-body" id="editorPaneCrypto">
+        <div class="settings-row"><label>BTC</label><input id="set-btc" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="settings-row"><label>SOL</label><input id="set-sol" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="settings-row"><label>ETH</label><input id="set-eth" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="settings-row"><label>XRP</label><input id="set-xrp" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="settings-row"><label>BNB</label><input id="set-bnb" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="settings-row"><label>LTC</label><input id="set-ltc" type="number" min="0" step="any" placeholder="0"></div>
+        <div class="settings-row usdt-edit-row">
+          <label>USDT</label>
+          <input id="set-usdt-amount" type="number" min="0" step="any" placeholder="0" style="flex:1;min-width:0">
+          <select id="set-usdt-chain" class="usdt-chain-select">
+            <option value="usdt_eth">ETH</option>
+            <option value="usdt_sol">SOL</option>
+            <option value="usdt_tron">TRON</option>
+            <option value="usdt_bnb">BNB</option>
+          </select>
+          <input id="set-usdt_eth" type="hidden">
+          <input id="set-usdt_sol" type="hidden">
+          <input id="set-usdt_tron" type="hidden">
+          <input id="set-usdt_bnb" type="hidden">
+        </div>
+        <div class="settings-divider"></div>
+        <div class="settings-row">
+          <label>Curr.</label>
+          <select id="set-currency">
+            <option value="usd">$ USD</option><option value="eur">€ EUR</option><option value="gbp">£ GBP</option>
+            <option value="cad">CA$ CAD</option><option value="aud">A$ AUD</option><option value="jpy">¥ JPY</option>
+            <option value="chf">CHF CHF</option><option value="cny">¥ CNY</option><option value="inr">₹ INR</option>
+            <option value="brl">R$ BRL</option><option value="sek">kr SEK</option><option value="nok">kr NOK</option>
+            <option value="nzd">NZ$ NZD</option><option value="sgd">S$ SGD</option><option value="hkd">HK$ HKD</option>
+            <option value="krw">₩ KRW</option><option value="try">₺ TRY</option><option value="mxn">MX$ MXN</option>
+            <option value="dkk">kr DKK</option><option value="czk">Kč CZK</option>
+          </select>
+        </div>
+        <div class="settings-divider"></div>
+        <div class="settings-row"><label>API Key</label><input id="set-cgApiKey" type="text" placeholder="Optional CoinGecko API key"></div>
+        <div class="settings-row" style="margin-top:8px;"><label>Pro Key</label><input id="set-cgApiKeyPro" type="checkbox"></div>
+        <button id="settingsConfirm" class="settings-confirm">Save</button>
+      </div>
+
+      <div class="settings-body txn-editor" id="editorPaneTxn" style="display:none">
+        <div class="txn-form-row">
+          <span class="txn-form-label">Type</span>
+          <div class="txn-type-tabs">
+            <button class="txn-type-tab active" data-ttype="received">Received</button>
+            <button class="txn-type-tab" data-ttype="sent">Sent</button>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Crypto</span>
+          <div class="txn-input-wrap">
+            <select id="txn-coin" class="txn-input">
+              <option value="btc">BTC - Bitcoin</option>
+              <option value="eth">ETH - Ethereum</option>
+              <option value="sol">SOL - Solana</option>
+              <option value="xrp">XRP - Ripple</option>
+              <option value="bnb">BNB - BNB Chain</option>
+              <option value="ltc">LTC - Litecoin</option>
+            </select>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Amount</span>
+          <div class="txn-input-wrap">
+            <input id="txn-amount" class="txn-input" type="number" min="0" step="any" placeholder="0.00"/>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Date</span>
+          <div class="txn-input-wrap">
+            <input id="txn-date" class="txn-input" type="date"/>
+          </div>
+        </div>
+        <input id="txn-time" type="hidden" value=""/>
+        <button id="txnAddBtn" class="txn-add-btn">Add Transaction</button>
+
+        <div class="txn-random-section">
+          <div class="txn-random-title">Random Transaction History</div>
+          <div class="txn-random-coins" id="rndCoins">
+            <button class="rnd-coin active" data-coin="btc">BTC</button>
+            <button class="rnd-coin active" data-coin="eth">ETH</button>
+            <button class="rnd-coin active" data-coin="sol">SOL</button>
+            <button class="rnd-coin" data-coin="xrp">XRP</button>
+            <button class="rnd-coin" data-coin="bnb">BNB</button>
+            <button class="rnd-coin" data-coin="ltc">LTC</button>
+          </div>
+          <div class="txn-form-row rnd-row-split">
+            <span class="txn-form-label">Count</span>
+            <div class="txn-input-wrap rnd-count-wrap"><input id="rnd-count" class="txn-input" type="number" min="1" max="500" value="10"/></div>
+            <span class="txn-form-label rnd-back-label">History</span>
+            <div class="txn-input-wrap">
+              <select id="rnd-range" class="txn-input">
+                <option value="1">24 hours</option>
+                <option value="7">7 days</option>
+                <option value="30">30 days</option>
+                <option value="90" selected>90 days</option>
+                <option value="180">6 months</option>
+                <option value="365">1 year</option>
+                <option value="730">2 years</option>
+                <option value="1825">5 years</option>
+              </select>
+            </div>
+          </div>
+          <div class="txn-form-divider"></div>
+          <div class="txn-form-row">
+            <span class="txn-form-label">Min $</span>
+            <div class="txn-input-wrap"><input id="rnd-min" class="txn-input" type="number" min="0" step="any" value="50"/></div>
+          </div>
+          <div class="txn-form-divider"></div>
+          <div class="txn-form-row">
+            <span class="txn-form-label">Max $</span>
+            <div class="txn-input-wrap"><input id="rnd-max" class="txn-input" type="number" min="0" step="any" value="2000"/></div>
+          </div>
+          <button id="rndGenBtn" class="txn-add-btn">Generate Random History</button>
+        </div>
+
+        <div class="txn-edit-section">
+          <div class="txn-edit-title">Existing Transactions</div>
+          <div class="txn-edit-actions">
+            <button id="txnRemoveSome" class="txn-edit-action-btn">Remove some…</button>
+            <button id="txnRemoveAll" class="txn-edit-action-btn danger">Remove all</button>
+          </div>
+          <div id="txnEditorList" class="txn-edit-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION GENERATOR OVERLAY -->
+  <div id="notifOverlay" class="settings-overlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <span class="settings-title">Notification Generator</span>
+        <button id="notifClose" class="settings-close">&#x2715;</button>
+      </div>
+      <div class="settings-body">
+        <button id="notifPushBtn" class="notif-push-btn" data-enabled="0">
+          <span class="np-ic" id="notifPushIc">✕</span>
+          <span>Enable Push Notifications</span>
+        </button>
+
+        <div class="editor-tabs" style="margin-top:10px">
+          <button class="notif-tab active" data-ntab="received">Received</button>
+          <button class="notif-tab" data-ntab="sent">Sent</button>
+        </div>
+
+        <div class="txn-form-row">
+          <span class="txn-form-label">Wallet</span>
+          <div class="txn-input-wrap">
+            <input id="notif-wallet" class="txn-input" type="text" placeholder="Custom wallet (optional)"/>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Pull chain</span>
+          <div class="txn-input-wrap" style="text-align:left">
+            <input id="notif-pull" type="checkbox" checked style="width:18px;height:18px;accent-color:var(--purple)"/>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Crypto</span>
+          <div class="txn-input-wrap">
+            <select id="notif-coin" class="txn-input">
+              <option value="btc">BTC - Bitcoin</option>
+              <option value="eth" selected>ETH - Ethereum</option>
+              <option value="sol">SOL - Solana</option>
+              <option value="xrp">XRP - Ripple</option>
+              <option value="bnb">BNB - BNB Chain</option>
+              <option value="ltc">LTC - Litecoin</option>
+            </select>
+          </div>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Amount</span>
+          <div class="txn-input-wrap"><input id="notif-amount" class="txn-input" type="number" min="0" step="any" placeholder="0.00"/></div>
+          <span id="notif-usd" style="font-size:11px;color:var(--text-dim);min-width:62px;text-align:right">≈ $0.00</span>
+        </div>
+        <div class="txn-form-row" style="padding-top:0">
+          <span class="txn-form-label"></span>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);flex:1">
+            <input id="notif-random-amt" type="checkbox" checked style="width:14px;height:14px;accent-color:var(--purple)"/>
+            Random if empty
+          </label>
+        </div>
+        <div class="txn-form-divider"></div>
+        <div class="txn-form-row">
+          <span class="txn-form-label">Mode</span>
+          <div class="txn-type-tabs">
+            <button class="notif-mode-tab active" data-nmode="manual">Manual</button>
+            <button class="notif-mode-tab" data-nmode="auto">Auto</button>
+          </div>
+        </div>
+
+        <div id="notifAutoBox" style="display:none">
+          <div class="txn-form-divider"></div>
+          <div class="txn-form-row">
+            <span class="txn-form-label">Every</span>
+            <div class="txn-input-wrap rnd-count-wrap"><input id="notif-every" class="txn-input" type="number" min="1" value="5"/></div>
+            <div class="txn-input-wrap">
+              <select id="notif-unit" class="txn-input">
+                <option value="60000">per minute</option>
+                <option value="3600000">per hour</option>
+              </select>
+            </div>
+          </div>
+          <div class="txn-form-divider"></div>
+          <div class="txn-form-row">
+            <span class="txn-form-label">Start</span>
+            <div class="txn-input-wrap"><input id="notif-start" class="txn-input" type="datetime-local"/></div>
+          </div>
+        </div>
+
+        <button id="notifFireBtn" class="txn-add-btn">Send Notification Now</button>
+        <button id="notifAutoToggle" class="txn-add-btn" style="display:none;background:#3a3454;color:#fff">Start Auto Schedule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSACTION DETAIL OVERLAY -->
+  <div id="txnDetailOverlay" class="txn-detail-overlay">
+    <div class="txn-detail-screen">
+      <div class="txn-detail-header">
+        <button class="txn-detail-back" id="txnDetailBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+        <div class="txn-detail-titles">
+          <div class="txn-detail-eyebrow">Transaction details</div>
+          <div class="txn-detail-title" id="txnDetailType">Received</div>
+        </div>
+      </div>
+      <div class="txn-detail-scroll" id="txnDetailScroll">
+        <div class="txn-detail-hero">
+          <div class="txn-detail-arrow" id="txnDetailArrow"></div>
+          <div class="txn-detail-amt" id="txnDetailAmt">+0 BTC</div>
+          <div class="txn-detail-fiat">
+            <span id="txnDetailFiat">+$0</span>
+            <span class="txn-detail-info">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9.5"/><line x1="12" y1="11" x2="12" y2="17"/><circle cx="12" cy="7.6" r="1" fill="currentColor"/></svg>
+            </span>
+          </div>
+          <div class="txn-detail-confirm">
+            <span class="txn-confirm-dot"></span>
+            <span id="txnDetailConfirm">Confirmed (0)</span>
+          </div>
+        </div>
+        <div class="txn-field"><div class="txn-field-label">Account</div><div class="txn-field-value" id="txnDetailAccount">Bitcoin 1</div></div>
+        <div class="txn-field"><div class="txn-field-label">Date</div><div class="txn-field-value" id="txnDetailDate">—</div></div>
+        <div class="txn-field"><div class="txn-field-label">Network fees</div><div class="txn-field-fee"><span id="txnDetailFee">0 BTC</span><span class="txn-fee-approx">≈</span><span id="txnDetailFeeFiat">$0.00</span></div></div>
+        <div class="txn-field"><div class="txn-field-label">Transaction ID</div><div class="txn-field-value mono" id="txnDetailTxid">—</div></div>
+        <div class="txn-field"><div class="txn-field-label">From</div><div class="txn-field-value mono" id="txnDetailFrom">—</div></div>
+        <div class="txn-field"><div class="txn-field-label">To</div><div class="txn-field-value mono" id="txnDetailTo">—</div></div>
+        <div class="txn-field"><div class="txn-field-label">operationDetails.extra.inputs</div><div class="txn-field-value mono" id="txnDetailExtra">—</div></div>
+      </div>
+      <div class="txn-detail-footer">
+        <button class="txn-detail-explorer">View in explorer</button>
+      </div>
+    </div>
+  </div>
+
+  
+  
+  
+  
+  
+  
+  
+  <div id="appIntro" aria-hidden="true">
+    <video id="appIntroVideo" src="/intro.mp4" autoplay muted playsinline preload="auto" disableRemotePlayback x-webkit-airplay="deny"></video>
+  </div>
+  
+  
+
+  <div id="txnAllOverlay" class="txn-all-overlay" aria-hidden="true">
+    <div class="txn-all-screen">
+      <div class="txn-all-header">
+        <button class="txn-all-back" id="txnAllBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="txn-all-title">Transaction history</div>
+        <div class="txn-all-spacer"></div>
+      </div>
+      <div class="txn-all-body" id="txnAllBody"></div>
+    </div>
+  </div>
+  <div id="marketAllOverlay" class="market-overlay" aria-hidden="true">
+    <div class="market-screen">
+      <div class="market-header">
+        <button class="market-back" id="marketBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="market-title">Market</div>
+        <div class="market-spacer"></div>
+      </div>
+      <div class="market-search-wrap">
+        <div class="market-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="marketSearch" type="search" placeholder="Search" autocomplete="off" autocorrect="off" spellcheck="false"/>
+        </div>
+      </div>
+      <div class="market-filters">
+        <button class="mf-chip mf-star" id="mfStar" aria-label="Favorites">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </button>
+        <button class="mf-chip" id="mfSort" data-key="rank">Sort <span class="mf-val">Rank ↓</span></button>
+        <button class="mf-chip" id="mfTime" data-key="1d">Time <span class="mf-val">1D</span></button>
+        <button class="mf-chip" id="mfCurrency" data-key="usd">Currency <span class="mf-val">USD</span></button>
+      </div>
+      <div class="market-body" id="marketBody"><div class="market-loading">Loading market…</div></div>
+    </div>
+  </div>
+  <div id="coinDetailOverlay" class="coin-detail-overlay" aria-hidden="true">
+    <div class="coin-detail-screen">
+      <div class="coin-detail-bg" id="coinDetailBg"></div>
+      <div class="coin-detail-header">
+        <button class="coin-detail-back" id="coinDetailBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="coin-detail-header-title" id="cdHeaderTitle"></div>
+        <button class="coin-detail-settings" id="coinDetailSettings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+      <div class="coin-detail-body" id="coinDetailBody">
+        <div class="cd-account-name" id="cdAccountName"></div>
+        <div class="cd-native-balance" id="cdNativeBalance"></div>
+        <div class="cd-fiat-balance" id="cdFiatBalance"></div>
+        <div class="cd-change" id="cdChange"></div>
+        <button class="cd-address" id="cdAddress">
+          <svg class="cd-qr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/><rect x="11" y="11" width="2" height="2"/></svg>
+          <span id="cdAddressText"></span>
+        </button>
+        <div class="cd-chart-wrap">
+          <svg id="cdChartSvg" class="cd-chart-svg" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="cdChartFillGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="currentColor" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="currentColor" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path id="cdChartFill" fill="url(#cdChartFillGrad)" stroke="none"/>
+            <path id="cdChartLine" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line id="cdChartScrubLine" x1="0" y1="0" x2="0" y2="0" stroke="rgba(255,255,255,0.35)" stroke-width="1" stroke-dasharray="3 3" style="display:none"/>
+            <circle id="cdChartScrubDot" cx="0" cy="0" r="5" fill="#fff" stroke="rgba(0,0,0,0.4)" stroke-width="1" style="display:none"/>
+          </svg>
+        </div>
+        <div class="cd-range-tabs">
+          <button class="cd-range active" data-range="1D">1D</button>
+          <button class="cd-range" data-range="1W">1W</button>
+          <button class="cd-range" data-range="1M">1M</button>
+          <button class="cd-range" data-range="1Y">1Y</button>
+          <button class="cd-range" data-range="ALL">ALL</button>
+        </div>
+        <div class="cd-powered-by" id="cdPoweredBy">
+          <span id="cdPoweredText">Powered by Labs</span>
+          <span class="cd-more-info">More info <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor" stroke="none"/></svg></span>
+        </div>
+        <div class="cd-section-label">QUICK ACTIONS</div>
+        <div class="cd-quick-actions" id="cdQuickActions"></div>
+        <div class="cd-tokens-section" id="cdTokensSection">
+          <div class="cd-section-label cd-tokens-label">TOKENS (<span id="cdTokensCount">0</span>)</div>
+          <div class="cd-tokens-list" id="cdTokensList"></div>
+          <button class="cd-tokens-more" id="cdTokensMore">Display more Tokens <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+        </div>
+        <div class="cd-divider"></div>
+        <div class="cd-section-label cd-txn-label">TRANSACTION HISTORY</div>
+        <div class="cd-txn-list" id="cdTxnList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SEND / TRANSFER FLOW ─────────────────────────────────────── -->
+  <div id="transferSheet" class="tr-sheet" aria-hidden="true">
+    <div class="tr-sheet-backdrop" data-tr-close="1"></div>
+    <div class="tr-sheet-panel">
+      <div class="tr-sheet-handle"></div>
+      <button class="tr-sheet-x" data-tr-close="1" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="tr-sheet-title">Transfer</div>
+      <button class="tr-sheet-row" id="trRowReceive">
+        <div class="tr-sheet-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg></div>
+        <div class="tr-sheet-text"><div class="tr-sheet-h">Receive via crypto address</div></div>
+      </button>
+      <button class="tr-sheet-row" id="trRowSend">
+        <div class="tr-sheet-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/></svg></div>
+        <div class="tr-sheet-text"><div class="tr-sheet-h">Send crypto</div></div>
+      </button>
+      <button class="tr-sheet-row">
+        <div class="tr-sheet-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10l9-6 9 6v2H3z"/><path d="M5 12v6M9 12v6M15 12v6M19 12v6M3 20h18"/></svg></div>
+        <div class="tr-sheet-text"><div class="tr-sheet-h">Receive via bank transfer</div><div class="tr-sheet-sub">Receive stablecoins by simply sending cash.</div></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── RECEIVE FLOW ─────────────────────────────────────────────── -->
+  <div id="receiveFlow" class="rf-overlay" aria-hidden="true">
+    <div class="rf-backdrop" data-rf-close="1"></div>
+    <div class="rf-panel">
+      <div class="rf-handle"></div>
+      <div class="rf-track" id="rfTrack">
+        <div class="rf-pane" data-step="1">
+          <button class="rf-x" data-rf-close="1" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          <div class="rf-title">Select asset</div>
+          <div class="rf-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="rfCoinSearch" type="text" placeholder="Search by name or address"/></div>
+          <div class="rf-coin-list" id="rfCoinList"></div>
+        </div>
+        <div class="rf-pane" data-step="2">
+          <button class="rf-back" id="rfBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <button class="rf-x" data-rf-close="1" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          <div class="rf-title">Select account</div>
+          <div class="rf-acc-list" id="rfAccList"></div>
+        </div>
+        <div class="rf-pane rf-pane-qr" data-step="3">
+          <div class="rf-qr-head">
+            <div class="rf-qr-title-wrap"><div class="rf-qr-title">Receive <span id="rfQrSym">SOL</span></div><div class="rf-qr-sub">On <span id="rfQrNet">Solana</span></div></div>
+            <button class="rf-x rf-x-qr" data-rf-close="1" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+          <div class="rf-qr-card">
+            <div class="rf-qr-acc" id="rfQrAcc">—</div>
+            <div class="rf-qr-img-wrap"><img class="rf-qr-img" id="rfQrImg" alt=""/><div class="rf-qr-logo"><img id="rfQrLogo" src="" alt=""/></div></div>
+            <div class="rf-qr-addr" id="rfQrAddr">—</div>
+          </div>
+          <div class="rf-qr-actions">
+            <button class="rf-qr-share" id="rfShare" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 8 12 3 17 8"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+            <button class="rf-qr-copy" id="rfCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span>Copy address</span></button>
+          </div>
+          <div class="rf-qr-memo">Need a Tag/Memo?</div>
+          <div class="rf-qr-warn">Send only tokens from <span id="rfQrNet2">Solana</span> network. Sending from another network may result in loss of funds.</div>
+          <div class="rf-qr-help">
+            <div class="rf-qr-help-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10l9-6 9 6v2H3z"/><path d="M5 12v6M9 12v6M15 12v6M19 12v6M3 20h18"/></svg></div>
+            <div class="rf-qr-help-txt">Learn how to withdraw from exchanges?</div>
+            <button class="rf-qr-help-x" data-rf-close="1" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+          <button class="rf-verify-cta" id="rfVerify">Verify your address</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sendFlow" class="sf-overlay" aria-hidden="true">
+    <div class="sf-screen">
+      <div class="sf-header">
+        <button class="sf-back" id="sfBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="sf-title-wrap"><div class="sf-step" id="sfStepText">Step 1 of 5</div><div class="sf-title" id="sfTitle">Account to debit</div></div>
+        <button class="sf-close" id="sfClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="sf-track" id="sfTrack">
+        <div class="sf-pane" data-step="1">
+          <div class="sf-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="sfCoinSearch" type="text" placeholder="Search"/></div>
+          <div class="sf-coin-list" id="sfCoinList"></div>
+        </div>
+        <div class="sf-pane" data-step="2">
+          <button class="sf-scan-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg><span>Scan QR code</span></button>
+          <div class="sf-or"><span>OR</span></div>
+          <div class="sf-field"><input id="sfAddr" type="text" placeholder="Enter address" autocomplete="off"/><button class="sf-paste" id="sfPaste" aria-label="Paste"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="8" y="3" width="8" height="4" rx="1"/><rect x="5" y="7" width="14" height="14" rx="2"/></svg></button></div>
+          <div class="sf-field"><input id="sfMemo" type="text" placeholder="Memo" autocomplete="off"/></div>
+          <div class="sf-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor"/></svg><span>Please verify the address matches the one shared by the recipient.</span></div>
+          <button class="sf-cta" id="sfStep2Cta">Continue</button>
+        </div>
+        <div class="sf-pane" data-step="3">
+          <div class="sf-amt-row"><input id="sfAmt" inputmode="decimal" type="text" value="0"/><span id="sfAmtSym" class="sf-amt-sym">SOL</span></div>
+          <div class="sf-amt-div"></div>
+          <div class="sf-amt-row sf-fiat-row"><span id="sfFiat">0.00</span><span class="sf-amt-sym">$</span></div>
+          <div class="sf-amt-footer">
+            <div><div class="sf-avail-l">Total available</div><div class="sf-avail-v" id="sfAvail">0 SOL</div></div>
+            <label class="sf-max"><span>Use max</span><input id="sfMax" type="checkbox"/><span class="sf-max-track"><span class="sf-max-dot"></span></span></label>
+          </div>
+          <button class="sf-cta" id="sfStep3Cta">Continue</button>
+        </div>
+        <div class="sf-pane" data-step="4">
+          <div class="sf-sm-info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#bbaefc" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="#bbaefc"/></svg>
+            <span id="sfSmInfo">You will need to refill this account in order to send the tokens of this account</span>
+          </div>
+          <div class="sf-sm-flow">
+            <div class="sf-sm-step">
+              <div class="sf-sm-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#bbaefc" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h3"/></svg></div>
+              <div class="sf-sm-body">
+                <div class="sf-sm-lbl">From</div>
+                <div class="sf-sm-val sf-sm-from"><img id="sfSmFromIc" src="/assets/coin-sol.png" alt=""/><span id="sfCfFrom">—</span></div>
+              </div>
+            </div>
+            <div class="sf-sm-line"></div>
+            <div class="sf-sm-step">
+              <div class="sf-sm-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#bbaefc" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg></div>
+              <div class="sf-sm-body">
+                <div class="sf-sm-lbl">To</div>
+                <div class="sf-sm-val sf-sm-addr" id="sfCfTo">—</div>
+                <div class="sf-sm-warn" id="sfCfWarn" style="display:none">Account not funded</div>
+              </div>
+            </div>
+          </div>
+          <div class="sf-sm-row sf-sm-row-mem"><span class="sf-sm-k">Memo</span><a class="sf-sm-edit" id="sfMemoEdit">Edit</a></div>
+          <div class="sf-sm-row sf-sm-row-amt">
+            <span class="sf-sm-k">Amount</span>
+            <div class="sf-sm-vbox"><div class="sf-sm-amt" id="sfCfAmt">0 SOL</div><div class="sf-sm-fiat" id="sfCfFiat">≈ $0.00</div></div>
+          </div>
+          <div class="sf-fees-block">
+            <div class="sf-fees-head"><span class="sf-sm-k">Fees <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor"/></svg></span></div>
+            <div class="sf-fee-tiers" id="sfFeeTiers"></div>
+            <button class="sf-fee-custom" id="sfFeeCustom" type="button">Customize Fees</button>
+          </div>
+          <div class="sf-sm-row sf-sm-row-total">
+            <span class="sf-sm-k">Total <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.9" fill="currentColor"/></svg></span>
+            <div class="sf-sm-vbox"><div class="sf-sm-amt" id="sfCfTotal">0 SOL</div><div class="sf-sm-fiat" id="sfCfTotalFiat">≈ $0.00</div></div>
+          </div>
+          <button class="sf-cta" id="sfStep4Cta">Continue</button>
+        </div>
+        <div class="sf-pane sf-pane-dev" data-step="5">
+          <div class="sf-dev" data-sub="a">
+            <div class="sf-dev-label">Bluetooth</div>
+            <button class="sf-dev-row" id="sfDevRow" type="button">
+              <svg class="sf-dev-ic" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4.5 L25.5 12 L19 15 L9.5 9.5 Z"/><rect x="6" y="15" width="20" height="9" rx="2.2"/><circle cx="22" cy="19.5" r="0.9" fill="currentColor" stroke="none"/></svg>
+              <span>Nano X 4A93</span>
+            </button>
+            <button class="sf-cta sf-cta-pair" id="sfDevPair" type="button">Pair with bluetooth</button>
+          </div>
+          <div class="sf-dev" data-sub="b" style="display:none">
+            <div class="sf-dev-loading">
+              <div class="sf-purple-spinner"></div>
+              <div class="sf-dev-loading-txt">Loading...</div>
+            </div>
+          </div>
+          <div class="sf-dev" data-sub="c" style="display:none">
+            <div class="sf-dev-open">
+              <div class="sf-ledger-wrap">
+                <img src="/assets/ledger-nano.png" alt="" class="sf-ledger-img"/>
+                <span class="sf-ledger-glow sf-ledger-glow-l"></span>
+                <span class="sf-ledger-glow sf-ledger-glow-r"></span>
+              </div>
+              <div class="sf-bracket-wrap"><div class="sf-bracket-txt">OPEN THE <span id="sfOpenAppCoin">BITCOIN</span> APP ON<br/>YOUR DEVICE</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sf-pane sf-pane-sent" data-step="6">
+          <div class="sf-sent2">
+            <div class="sf-sent2-check"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 8"/></svg></div>
+            <div class="sf-bracket-wrap sent-bracket"><div class="sf-sent2-title">TRANSACTION SENT</div></div>
+            <div class="sf-sent2-sub">Your account balance will be updated once the network confirms the transaction.</div>
+          </div>
+          <button class="sf-cta sf-cta-view" id="sfViewDetails" type="button">View details</button>
+          <button class="sf-sent2-close" id="sfSentClose" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sfToast" class="sf-toast" aria-hidden="true">
+    <div class="sf-toast-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="sf-toast-text"><div class="sf-toast-h">Sent</div><div class="sf-toast-sub" id="sfToastSub">Transaction submitted</div></div>
+  </div>
