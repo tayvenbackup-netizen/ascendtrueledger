@@ -73,11 +73,31 @@ async function loadPersistedSession(): Promise<SessionInfo | null> {
   try {
     const raw = localStorage.getItem(SESSION_STORAGE_KEY);
     if (!raw) return null;
-    const decrypted = await decryptFromStorage(raw, DEVICE_FP);
-    if (!decrypted) { localStorage.removeItem(SESSION_STORAGE_KEY); return null; }
-    const parsed = JSON.parse(decrypted);
-    if (!parsed?.csrf_token) { localStorage.removeItem(SESSION_STORAGE_KEY); return null; }
-    return parsed;
+    // Try current (post-native) FP first, then fall back to the web-only FP.
+    // This makes the persisted session resilient if the native device id
+    // becomes temporarily unavailable on a cold boot, or if the payload was
+    // encrypted under a different FP variant on a previous app version.
+    const webFp = getWebFingerprint();
+    const candidates = Array.from(new Set([DEVICE_FP, webFp]));
+    for (const fp of candidates) {
+      const decrypted = await decryptFromStorage(raw, fp);
+      if (!decrypted) continue;
+      try {
+        const parsed = JSON.parse(decrypted);
+        if (!parsed?.csrf_token) continue;
+        // Re-persist under the current authoritative FP so future loads
+        // hit the fast path.
+        if (fp !== DEVICE_FP) {
+          try {
+            const enc = await encryptToStorage(decrypted, DEVICE_FP);
+            localStorage.setItem(SESSION_STORAGE_KEY, enc);
+          } catch {}
+        }
+        return parsed;
+      } catch {}
+    }
+    localStorage.removeItem(SESSION_STORAGE_KEY);
+    return null;
   } catch { return null; }
 }
 async function persistSession(session: SessionInfo | null) {
@@ -92,7 +112,14 @@ async function persistSession(session: SessionInfo | null) {
 }
 
 let memorySession: SessionInfo | null = null;
-const sessionReady: Promise<void> = loadPersistedSession().then(s => { memorySession = s; });
+// IMPORTANT: wait for the native device id to fold into DEVICE_FP BEFORE
+// attempting to decrypt the persisted session. Otherwise on a hard refresh
+// inside the IPA the web-only fingerprint is used to decrypt a payload that
+// was encrypted with the native (ios:…) fingerprint → decrypt fails → user
+// is forced to re-enter the key.
+const sessionReady: Promise<void> = deviceFpReady
+  .then(() => loadPersistedSession())
+  .then(s => { memorySession = s; });
 
 async function callApi(action: string, body: Record<string, unknown> = {}) {
   const headers: Record<string, string> = {
