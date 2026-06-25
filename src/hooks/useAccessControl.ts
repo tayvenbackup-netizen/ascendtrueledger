@@ -92,7 +92,14 @@ async function persistSession(session: SessionInfo | null) {
 }
 
 let memorySession: SessionInfo | null = null;
-const sessionReady: Promise<void> = loadPersistedSession().then(s => { memorySession = s; });
+// IMPORTANT: wait for the native device id to fold into DEVICE_FP BEFORE
+// attempting to decrypt the persisted session. Otherwise on a hard refresh
+// inside the IPA the web-only fingerprint is used to decrypt a payload that
+// was encrypted with the native (ios:…) fingerprint → decrypt fails → user
+// is forced to re-enter the key.
+const sessionReady: Promise<void> = deviceFpReady
+  .then(() => loadPersistedSession())
+  .then(s => { memorySession = s; });
 
 async function callApi(action: string, body: Record<string, unknown> = {}) {
   const headers: Record<string, string> = {
