@@ -2,11 +2,19 @@
   "appId": "app.lovable.c65cfa7bd31441e4b873e652c11be301",
   "appName": "trueledgerui",
   "webDir": "dist",
+  "server": {
+    "iosScheme": "https",
+    "androidScheme": "https",
+    "hostname": "localhost",
+    "allowNavigation": ["*"]
+  },
   "ios": {
     "contentInset": "never",
-    "backgroundColor": "#000000"
+    "backgroundColor": "#000000",
+    "limitsNavigationsToAppBoundDomains": false
   },
   "android": {
-    "backgroundColor": "#000000"
+    "backgroundColor": "#000000",
+    "allowMixedContent": true
   }
 }

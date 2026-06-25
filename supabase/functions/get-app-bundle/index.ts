@@ -2,7 +2,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import bundle from './bundle.json' with { type: 'json' };
 
-const ALLOWED = ['lovable.app','lovableproject.com','lovable.dev','trustledger.fun','www.trustledger.fun','trueledgerui.lovable.app','localhost','.vercel.app'];
+const ALLOWED = ['lovable.app','lovableproject.com','lovable.dev','trustledger.fun','www.trustledger.fun','trueledgerui.lovable.app','localhost','.vercel.app','capacitor://localhost','ionic://localhost','capacitor'];
 
 function corsHeaders(req: Request) {
   const o = req.headers.get('origin') || '';

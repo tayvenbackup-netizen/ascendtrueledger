@@ -10,6 +10,9 @@ const ALLOWED_ORIGIN_PATTERNS = [
   'ascendify-seven.vercel.app',
   '.vercel.app',
   'localhost',
+  'capacitor://localhost',
+  'ionic://localhost',
+  'capacitor',
 ];
 
 function isAllowedOrigin(origin: string): boolean {
